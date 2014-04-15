@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.dialog.add(&quot;anchor&quot;,function(c){var d=function(a){this._.selectedElement=a;this.setValueOf(&quot;info&quot;,&quot;txtName&quot;,a.data(&quot;cke-saved-name&quot;)||&quot;&quot;)};return{title:c.lang.link.anchor.title,minWidth:300,minHeight:60,onOk:function(){var a=CKEDITOR.tools.trim(this.getValueOf(&quot;info&quot;,&quot;txtName&quot;)),a={id:a,name:a,&quot;data-cke-saved-name&quot;:a};if(this._.selectedElement)this._.selectedElement.data(&quot;cke-realelement&quot;)?(a=c.document.createElement(&quot;a&quot;,{attributes:a}),c.createFakeElement(a,&quot;cke_anchor&quot;,&quot;anchor&quot;).replace(this._.selectedElement)):
+this._.selectedElement.setAttributes(a);else{var b=c.getSelection(),b=b&amp;&amp;b.getRanges()[0];b.collapsed?(CKEDITOR.plugins.link.synAnchorSelector&amp;&amp;(a[&quot;class&quot;]=&quot;cke_anchor_empty&quot;),CKEDITOR.plugins.link.emptyAnchorFix&amp;&amp;(a.contenteditable=&quot;false&quot;,a[&quot;data-cke-editable&quot;]=1),a=c.document.createElement(&quot;a&quot;,{attributes:a}),CKEDITOR.plugins.link.fakeAnchor&amp;&amp;(a=c.createFakeElement(a,&quot;cke_anchor&quot;,&quot;anchor&quot;)),b.insertNode(a)):(CKEDITOR.env.ie&amp;&amp;9&gt;CKEDITOR.env.version&amp;&amp;(a[&quot;class&quot;]=&quot;cke_anchor&quot;),a=new CKEDITOR.style({element:&quot;a&quot;,
+attributes:a}),a.type=CKEDITOR.STYLE_INLINE,c.applyStyle(a))}},onHide:function(){delete this._.selectedElement},onShow:function(){var a=c.getSelection(),b=a.getSelectedElement();if(b)CKEDITOR.plugins.link.fakeAnchor?((a=CKEDITOR.plugins.link.tryRestoreFakeAnchor(c,b))&amp;&amp;d.call(this,a),this._.selectedElement=b):b.is(&quot;a&quot;)&amp;&amp;b.hasAttribute(&quot;name&quot;)&amp;&amp;d.call(this,b);else if(b=CKEDITOR.plugins.link.getSelectedLink(c))d.call(this,b),a.selectElement(b);this.getContentElement(&quot;info&quot;,&quot;txtName&quot;).focus()},contents:[{id:&quot;info&quot;,
+label:c.lang.link.anchor.title,accessKey:&quot;I&quot;,elements:[{type:&quot;text&quot;,id:&quot;txtName&quot;,label:c.lang.link.anchor.name,required:!0,validate:function(){return!this.getValue()?(alert(c.lang.link.anchor.errorName),!1):!0}}]}]}});</pre>
+</body>
+</html>

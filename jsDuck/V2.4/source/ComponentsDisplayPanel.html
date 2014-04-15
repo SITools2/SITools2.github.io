@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser, 
+ showHelp, loadUrl*/
+/*
+ * @include &quot;absoluteLayoutProp.js&quot;
+ * @include &quot;componentsListPanel.js&quot;
+ * @include &quot;componentPropPanel.js&quot;
+ * @include &quot;../../../client-public/js/forms/formParameterToComponent.js&quot;
+ */
+Ext.namespace('sitools.admin.forms');
+
+<span id='sitools-admin-forms-ComponentsDisplayPanel-cfg-formComponentsStore'><span id='sitools-admin-forms-ComponentsDisplayPanel-cfg-storeColumns'><span id='sitools-admin-forms-ComponentsDisplayPanel'>/**
+</span></span></span> * Panel de disposition des composants de formulaires. 
+ * @cfg {Ext.data.Store} storeColumns The store with all filtrable columns
+ * @cfg {Ext.data.Store} formComponentsStore The store with all Components.
+ * @class sitools.admin.forms.ComponentsDisplayPanel
+ * @extends Ext.Panel
+ */
+sitools.admin.forms.ComponentsDisplayPanel = Ext.extend(Ext.Panel, {
+	
+	y : 0,
+	position : 0,
+	padding : 5,
+	bodyStyle : 'background-color : #EDF2FF;',
+	initComponent : function () {
+        
+        Ext.apply(this, {
+			id : &quot;absoluteLayout&quot;,
+			layout : {
+                type : 'vbox',
+                align : 'stretch'
+            },
+	        autoScroll : true,
+	        height : this.formSize.height, 
+	        width : this.formSize.width, 
+	        listeners : {
+	            scope : this,
+	            activate : this._activeDisposition
+	        }        
+        });
+        sitools.admin.forms.ComponentsDisplayPanel.superclass.initComponent.call(this);
+		
+	}, 
+	
+    _activeDisposition : function () {
+        this.body.addClass(Ext.getCmp(&quot;formMainFormId&quot;).find('name', 'css')[0].getValue());
+        this.setWidth(this.formSize.width);
+        
+        this.removeAll(true);
+
+        var totalHeight = 0;
+        
+
+		if (this.action != 'modify') {
+			var mainPanel = new sitools.admin.forms.advancedFormPanel({
+				containerPanelId : 'main',
+				title : i18n.get('label.mainForm'),
+				height : 300,
+				border : true,
+				//id : 'mainpanel',
+				ddGroup : 'gridComponentsList',
+				collapsible : false,
+				datasetColumnModel : this.datasetColumnModel,
+				formComponentsStore : this.formComponentsStore,
+				storeConcepts : this.storeConcepts,
+				context : this.context,
+				absoluteLayout : this
+			});
+			// this.add(mainPanel);
+		}
+	        
+	     if (this.zoneStore.getCount() == 0 &amp;&amp; mainPanel){
+	        this.zoneStore.add(new Ext.data.Record(mainPanel));
+    	} 
+
+        if (this.zoneStore.getCount() &gt; 0) {
+            this.zoneStore.each(function (rec) {
+                totalHeight += rec.data.height;
+                //if (rec.data.id!='mainpanel'){
+				var zonePanel = new sitools.admin.forms.advancedFormPanel({
+	                    containerPanelId : rec.data.containerPanelId,
+	                    title: rec.data.title,
+	                    height: rec.data.height,
+	                    position : rec.data.position,
+	                    collapsible : rec.data.collapsible,
+	                    border: true,
+	                    ddGroup : 'gridComponentsList',
+	                    datasetColumnModel : this.datasetColumnModel,
+	                    formComponentsStore : this.formComponentsStore,
+	                    storeConcepts : this.storeConcepts,
+	                    context : this.context,
+	                    absoluteLayout : this
+	                });
+				this.add(zonePanel);
+                //}
+            }, this);
+        }
+        
+        if (this.formSize.height &lt;= totalHeight) {
+			this.formSize.height = totalHeight + 20;
+        	this.setHeight(totalHeight + 20);	
+		}
+        
+        this.doLayout();
+
+        /* loop on the panels */
+        if (!Ext.isEmpty(this.items)) {
+            this.items.each(function (item) {
+                item.fireEvent('activate');
+            }, this);
+
+        }
+    }
+    
+});
+</pre>
+</body>
+</html>

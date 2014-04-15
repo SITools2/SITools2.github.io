@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, i18n, userLogin, DEFAULT_ORDER_FOLDER, document, alertFailure, SITOOLS_DATE_FORMAT, SITOOLS_DEFAULT_IHM_DATE_FORMAT, sql2ext, 
+getDesktop, getColumnModel, extColModelToStorage, SitoolsDesk, projectGlobal, DEFAULT_PREFERENCES_FOLDER, DEFAULT_LIVEGRID_BUFFER_SIZE, loadUrl, ColumnRendererEnum*/
+/*
+ * @include &quot;contextMenu.js&quot;
+ * @include &quot;../../viewDataDetail/viewDataDetail.js&quot;
+ * @include &quot;../../plot/dataPlotter.js&quot;
+ * @include &quot;contextMenu.js&quot;
+ * @include &quot;storeLiveGrid.js&quot;
+ */
+Ext.namespace('sitools.user.component.dataviews.tplView');
+
+<span id='sitools-user-component-dataviews-tplView-TplView'>/**
+</span> * Define the sitools DataView to display Datasets via an Ext.Dataview
+ * Build an Ext.DataView corresponding to the dataset Definition.
+ * @requires sitools.user.component.dataviews.tplView.StoreTplView
+ * @requires sitools.user.component.viewDataDetail
+ * @requires sitools.user.component.dataPlotter
+ * @requires sitools.user.component.dataviews.tplView.dataViewPagingToolbar
+ * @class sitools.user.component.dataviews.tplView.TplView
+ * @extends Ext.Panel
+ */
+sitools.user.component.dataviews.tplView.TplView = function (config) {
+//sitools.user.component.dataView = function (config) {
+
+//    this.autoScroll = true;
+    Ext.apply(this, config);
+    
+	
+	this.urlRecords = config.dataUrl + '/records';
+    this.sitoolsAttachementForUsers = config.dataUrl;
+    
+    this.columnModel = getColumnModel(config.datasetCm);
+    this.componentType = &quot;data&quot;;
+    
+    this.origin = &quot;sitools.user.component.dataviews.tplView.TplView&quot;;
+
+    this.store = new sitools.user.component.dataviews.tplView.StoreTplView({
+		datasetCm : config.datasetCm,
+		urlRecords : this.urlRecords,
+		sitoolsAttachementForUsers : this.sitoolsAttachementForUsers,
+		userPreference : config.userPreference, 
+		bufferSize : DEFAULT_LIVEGRID_BUFFER_SIZE, 
+		formParams : config.formParams, 
+		formMultiDsParams : config.formMultiDsParams, 
+		mainView : this, 
+		datasetId : config.datasetId,
+		filtersCfg : config.filtersCfg,
+        isFirstCountDone : false
+	});
+    
+    this.store.filters = new sitools.widget.FiltersCollection({
+        filters : config.filters 
+    });
+    
+    this.store.on(&quot;beforeload&quot;, function (store, options) {
+        //set the nocount param to false.
+        //before load is called only when a new action (sort, filter) is applied
+        var noCount;
+        
+        if (!store.isFirstCountDone || store.isNewFilter) {
+            options.params.nocount = false;
+        } else {
+            options.params.nocount = true;
+        }
+
+        if (store.isNewFilter) {
+			options.params.start = 0;
+			options.params.limit = DEFAULT_LIVEGRID_BUFFER_SIZE;
+		}
+        
+        store.isNewFilter = false;        
+	    
+        if (!Ext.isEmpty(store.filters)) {
+            var params = store.buildQuery(store.filters.getFilterData());
+            Ext.apply(options.params, params);
+        }
+        
+	    if (!Ext.isEmpty(this.dataView)) {
+			this._loadMaskAnchor = Ext.get(this.el.dom);
+	    
+			this._loadMaskAnchor.mask(i18n.get('label.waitMessage'), &quot;x-mask-loading&quot;);
+	    }
+        this.store.storeOptions(options);
+        //this.el.mask(i18n.get('label.waitMessage'), &quot;x-mask-loading&quot;);
+    }, this);
+    
+    
+	this.store.on('load', function (store, records, options) {
+		if (this._loadMaskAnchor &amp;&amp; this._loadMaskAnchor.isMasked()) {
+			this._loadMaskAnchor.unmask();
+		}
+        var plotComp = Ext.getCmp(&quot;plot&quot; + config.datasetId);
+        if (plotComp) {
+            var rightPanel = plotComp.findById('plot-right-panel');
+            var success = rightPanel.fireEvent('buffer', store);
+        }
+        store.isFirstCountDone = true;
+        
+        
+        this.getTopToolbar().updateContextToolbar();
+	
+	}, this);
+	
+
+    
+    
+	this.store.load({
+		params : {
+			start : 0, 
+			limit : DEFAULT_LIVEGRID_BUFFER_SIZE
+		}
+	});
+    
+    
+	var tplString = '&lt;tpl for=&quot;.&quot;&gt;&lt;div class=&quot;thumb-wrap&quot;&gt;';
+	var style, maxColLength = 0, dataviewConfig = {};
+	Ext.each(this.columnModel.config, function (col) {
+		if (!col.hidden) {
+			if (col.header.length &gt; maxColLength) {
+				maxColLength = col.header.length;
+			}
+		}
+	});
+    
+    var tplStringImg = '&lt;ul&gt;';
+    
+	maxColLength  = (maxColLength + 3) * 7;
+	style = String.format(&quot;width :{0}px&quot;, maxColLength);
+	
+	dataviewConfig = sitoolsUtils.arrayProperties2Object(config.datasetViewConfig);
+
+	Ext.each(this.columnModel.config, function (col) {
+		if (!col.hidden) {
+            if (this.isColumnImage(col.columnRenderer)) {
+                tplStringImg += sitools.user.component.dataviews.dataviewUtils.getRendererDataView(col, style, dataviewConfig);
+            } else {
+                tplString += sitools.user.component.dataviews.dataviewUtils.getRendererDataView(col, style, dataviewConfig);
+            }
+		}
+	}, this);
+    tplStringImg += '&lt;/ul&gt;';
+    tplString += String.format('&lt;span&gt;&lt;div class=x-view-entete style=&quot;{0}&quot;&gt;{1} &lt;/div&gt;&lt;/span&gt;', style, i18n.get(&quot;label.imagesAndServices&quot;));
+	tplString += '&lt;span class=&quot;linkImageDataView&quot;&gt; ' + tplStringImg + '&lt;/span&gt;&lt;/div&gt;&lt;/tpl&gt;&lt;div class=&quot;x-clear&quot;&gt;&lt;/div&gt;';
+	var tpl = new Ext.XTemplate(
+	    tplString, 
+	    {
+			compiled : true, 
+			isEmpty : function (value) {
+				return Ext.isEmpty(value);
+			}, 
+			isNotEmpty : function (value) {
+				return ! Ext.isEmpty(value);
+			}, 
+			isValidDate : function (value) {
+				try {
+					var dt = Date.parseDate(value, SITOOLS_DATE_FORMAT, true);
+					if (Ext.isEmpty(dt)) {
+						return false;
+					}
+					return true;
+				}
+				catch (err) {
+					return false;
+				}
+			},
+			
+		    columnModel : this.columnModel.config
+	    }
+	);
+	this.dataView = new Ext.DataView({
+		store: this.store, 
+		tpl : tpl, 
+        autoHeight: true,
+        multiSelect: true,
+        columnModel : this.columnModel.config, 
+        overClass: 'x-view-over',
+        itemSelector: 'div.thumb-wrap',
+        selectedClass : 'x-view-selected-datasetView',
+        emptyText: '', 
+        simpleSelect : true,
+        listeners : {
+			scope : this, 
+			selectionchange : function (dataView, recNodes) {
+				var recs = dataView.getRecords(recNodes);
+				if (Ext.isEmpty(recs)) {
+					return;
+				}
+				//get the first selected record
+				var rec = recs[0];
+		        var primaryKeyValue = &quot;&quot;, primaryKeyName = &quot;&quot;;
+		        Ext.each(rec.fields.items, function (field) {
+		            if (field.primaryKey) {
+		                this.primaryKeyName = field.name;
+		            }
+		        }, this);
+		        //this.primaryKeyName = primaryKeyName;
+		        this.primaryKeyValue = rec.get(this.primaryKeyName);
+		        
+		        this.primaryKeyValue = encodeURIComponent(this.primaryKeyValue);
+		        
+		        var url = this.urlRecords + &quot;/&quot; + this.primaryKeyValue;
+				Ext.apply(this.panelDetail, {
+					url : url
+				});
+				this.panelDetail.getCmDefAndbuildForm();
+				this.panelDetail.expand();
+				
+				//destroy all selections if all was selected and another row is selected
+				if (this.isAllSelected() &amp;&amp; recNodes.length === DEFAULT_LIVEGRID_BUFFER_SIZE - 1) {
+				    this.selectAllRows.toggle();
+				    this.deselectAll();
+				    var unselectedRec = this.getUnselectedRow(recs, this.store.data.items);
+				    this.select(unselectedRec);
+				}
+				
+			}
+        }
+	});
+	
+	var configDataViewPanel = {
+		autoScroll : true,
+		items : [this.dataView], 
+		region : 'center'
+	};
+
+	var panelWest = new Ext.Panel(configDataViewPanel);
+	
+	
+
+	this.panelDetail = new sitools.user.component.viewDataDetail({
+		fromWhere : &quot;dataView&quot;,
+		grid : this.dataView, 
+		baseUrl : this.sitoolsAttachementForUsers, 
+		datasetId : config.datasetId, 
+		datasetUrl : this.sitoolsAttachementForUsers, 
+		boxMinWidth : 200
+	});
+	Ext.apply(this.panelDetail, {
+		title : &quot;detail&quot;,
+		collapsible : true, 
+		collapsed : true, 
+		region : &quot;east&quot;,
+        split : true		
+	});
+	
+	if (! Ext.isEmpty(config.userPreference) &amp;&amp; config.userPreference.datasetView === &quot;sitools.user.component.dataviews.tplView.TplView&quot;) {
+		this.panelDetail.setWidth(config.userPreference.viewPanelDetailSize.width);
+	}
+	
+    this.tbar = new sitools.user.component.dataviews.services.menuServicesToolbar({
+        datasetUrl :  this.sitoolsAttachementForUsers,
+        datasetId : this.datasetId,
+        dataview : this,
+        origin : this.origin
+    });
+    
+	this.items = [panelWest, this.panelDetail];
+	this.dataviewUtils = sitools.user.component.dataviews.dataviewUtils;
+	        
+	this.bbar = new sitools.user.component.dataviews.tplView.dataViewPagingToolbar({
+        store: this.store,       // grid and PagingToolbar using same store
+        displayInfo: true,
+        pageSize: DEFAULT_LIVEGRID_BUFFER_SIZE,
+        items : [],
+        listeners : {
+            scope : this,
+            change : function () {
+                if (this.isAllSelected()) {
+                    this.selectAll();
+                }
+            }
+        } 
+    });
+	Ext.apply(config, this);
+	sitools.user.component.dataviews.tplView.TplView.superclass.constructor.call(this, config);
+};
+
+Ext.extend(sitools.user.component.dataviews.tplView.TplView, Ext.Panel, {
+	layout : 'border',
+	tbar : this.tbar,
+	getSelectedRecord : function (dataView) {
+		var pageNumber = this.getBottomToolbar().inputItem.getValue();
+		var selectedIndex = dataView.getSelectedIndexes()[0];
+		if (Ext.isEmpty(selectedIndex)) {
+			return null;
+		}
+		var storeIndex = (pageNumber - 1) * this.getBottomToolbar().pageSize + selectedIndex;
+		var rec = dataView.getStore().getAt(storeIndex);
+		return rec;
+	}, 
+
+	_getSettings : function () {
+		return {
+			objectName : &quot;TplView&quot;, 
+			datasetName : this.datasetName, 
+			viewPanelDetailSize : this.panelDetail.getSize(), 
+			datasetView : &quot;sitools.user.component.dataviews.tplView.TplView&quot;,
+            datasetUrl : this.sitoolsAttachementForUsers, 
+            preferencesPath : this.preferencesPath, 
+            preferencesFileName : this.preferencesFileName
+		};
+
+    }, 
+    getColumnModel : function () {
+		return extColModelToStorage(this.columnModel);
+    }, 
+    getSelections : function () {
+		return this.dataView.getSelectedRecords();
+    },
+    getSelectionModel : function () {
+        return this.dataView;
+    },
+    getNbRowsSelected : function () {
+		return this.getSelections().length;
+    }, 
+
+    getStore : function () {
+		return this.store;
+    }, 
+    select : function (record) {
+		return this.dataView.select(record);	
+    }, 
+    getDataView : function () {
+		return this.dataView;
+    },
+    
+    getFilters : function () {
+        return this.store.filters;
+    }, 
+    getRequestParam : function () {
+        var request = &quot;&quot;, formParams = {};
+        
+		var selections = this.getSelections();
+        // First case : no records selected: build the Query
+        if (Ext.isEmpty(selections)) {
+			request += this.getRequestParamWithoutSelection();
+            
+        } 
+        else {
+            if (this.isAllSelected()) {
+                //First Case : all the dataset is selected.
+                request = &quot;&amp;ranges=[[0,&quot; + (this.store.getTotalCount() - 1) + &quot;]]&quot;;
+                //We have to re-build all the request in case we use a range selection.
+                request += this.getRequestParamWithoutSelection();
+            } else {
+            
+                var recSelected;
+                
+                recSelected = selections;
+                
+                formParams = this.dataviewUtils.getFormParamsFromRecsSelected(recSelected);
+                // use the form API to request the selected records
+                request += &quot;&amp;&quot; + Ext.urlEncode(formParams);
+            }
+        
+        }
+        return request;
+    },
+<span id='sitools-user-component-dataviews-tplView-TplView-method-getFormParamsFromRecsSelected'>	/**
+</span>	 * build the param that will represent the active selection.
+	 * @param [Ext.data.Record] recSelected the selected records
+	 * @returns {} this object contains the param that will use FORM API 
+	 */
+	getFormParamsFromRecsSelected : function (recSelected) {
+        var rec = recSelected[0], result = {};
+        var primaryKeyName = &quot;&quot;;
+        Ext.each(rec.fields.items, function (field) {
+            if (field.primaryKey) {
+                primaryKeyName = field.name;
+            }
+        });
+        if (Ext.isEmpty(primaryKeyName)) {
+            Ext.Msg.alert(i18n.get('label.error'), i18n.get('label.noPrimaryKey'));
+            return;
+        }
+        // build the primaryKey Value
+        var primaryKeyValues = [];
+        Ext.each(recSelected, function (record) {
+            primaryKeyValues.push(record.get(primaryKeyName));
+        });
+
+        // use the form API to request the selected records
+        result[&quot;p[0]&quot;] = &quot;LISTBOXMULTIPLE|&quot; + primaryKeyName + &quot;|&quot; + primaryKeyValues.join(&quot;|&quot;);
+        return result;
+	}, 
+	getRequestParamWithoutSelection : function () {
+		var result = &quot;&quot;, formParams = {};
+
+        // add the sorting params
+        var storeSort = this.getStore().getSortState();
+        if (!Ext.isEmpty(storeSort)) {
+            var sort;
+            if (!Ext.isEmpty(storeSort.sorters)) {
+                sort = {
+                    ordersList : storeSort.sorters
+                };
+            } else {
+                sort = {
+                    ordersList : [ storeSort ]
+                };
+            }
+            result += &quot;&amp;sort=&quot; + Ext.encode(sort);
+        }
+
+        // add the formParams
+        var formParamsTmp = this.getStore().getFormParams(), i = 0;
+        if (!Ext.isEmpty(formParamsTmp)) {
+            Ext.each(formParamsTmp, function (param) {
+                formParams[&quot;p[&quot; + i + &quot;]&quot;] = param;
+                i += 1;
+            }, this);
+            result += &quot;&amp;&quot; + Ext.urlEncode(formParams);
+        }
+        return result;
+    },
+    
+    isColumnImage : function (columnRenderer) {
+        if (Ext.isEmpty(columnRenderer)) {
+			return false;
+        }
+        switch (columnRenderer.behavior) {
+        case ColumnRendererEnum.IMAGE_FROM_SQL:
+        case ColumnRendererEnum.DATASET_ICON_LINK:
+        case ColumnRendererEnum.IMAGE_THUMB_FROM_IMAGE:
+            return true;                
+        case ColumnRendererEnum.URL_LOCAL:
+        case ColumnRendererEnum.URL_EXT_NEW_TAB:
+        case ColumnRendererEnum.URL_EXT_DESKTOP:
+            return !Ext.isEmpty(columnRenderer.image);                
+        default : 
+            return false;
+        }
+    },
+    
+    getSelectionForPlot : function () {
+        return this.getRequestParam();
+    },
+    
+<span id='sitools-user-component-dataviews-tplView-TplView-method-getSortInfo'>    /**
+</span>     * @public
+     * return the sortInfo of the TplView.
+     * @return [] Array of sortInfo object 
+     */
+    getSortInfo : function () {
+        return this.store.sortInfo;
+    },
+    
+<span id='sitools-user-component-dataviews-tplView-TplView-method-'>    /**
+</span>     * Return an empty array (can be modifiable)
+     * @returns {Array}
+     */
+<span id='sitools-user-component-dataviews-tplView-TplView-method-getCustomToolbarButtons'>    /**
+</span>     * Return an array containing a button to show or hide columns
+     * @returns {Array}
+     */
+    getCustomToolbarButtons : function () {
+        var array = [];
+        var iconCls = (this.isAllSelected()) ? &quot;checkbox-icon-on&quot; : &quot;checkbox-icon-off&quot;;
+        var pressed = this.isAllSelected();
+        
+        array.push(new Ext.Toolbar.Separator());
+        
+        this.selectAllRows = new Ext.Button({
+            name : &quot;selectAll&quot;,
+            iconCls: iconCls,
+            enableToggle : true,
+            scope : this,
+            text : (pressed) ? i18n.get('label.deselectAll') : i18n.get('label.selectAll'),
+            cls : 'services-toolbar-btn',
+            pressed : pressed,
+            handler :  function (button, e) {
+                if (button.pressed) {
+                    this.selectAll();
+                } else {
+                    this.deselectAll();
+                }
+            },
+            toggleHandler : function (button, pressed) {
+                if (pressed) {
+                    button.setIconClass(&quot;checkbox-icon-on&quot;);
+                } else {
+                    button.setIconClass(&quot;checkbox-icon-off&quot;);
+                }
+            }      
+            
+        });
+        array.push(this.selectAllRows);
+        return array;
+    },
+    
+    selectAll : function () {
+        this.dataView.selectRange(0, DEFAULT_LIVEGRID_BUFFER_SIZE);
+    },
+    
+    deselectAll : function () {
+        this.dataView.clearSelections();
+    },
+    
+    isAllSelected : function () {
+        return (!Ext.isEmpty(this.selectAllRows) &amp;&amp; this.selectAllRows.pressed);
+    },
+<span id='sitools-user-component-dataviews-tplView-TplView-method-getUnselectedRow'>    /**
+</span>     * Get the unselected row from the list of all selected records and the
+     * whole store
+     * 
+     * @param selectedRecs
+     *            the selected records
+     * @param allRecs
+     *            all the records from the store
+     * @returns the unselected item, or null if not found
+     */
+    getUnselectedRow : function (selectedRecs, allRecs) {
+        var unselected = null;
+        Ext.each(allRecs, function (record) {
+            if (selectedRecs.indexOf(record) === -1) {
+                unselected = record;
+                return;
+            }
+        }, this);
+        return unselected;
+    }
+
+});
+
+<span id='sitools-user-component-dataviews-tplView-TplView-static-method-getParameters'>/**
+</span> * @static
+ * Implementation of the method getParameters to be able to load view Config panel. 
+ * @return {Array} the parameters to display into administration view. 
+ */
+sitools.user.component.dataviews.tplView.TplView.getParameters = function () {
+	return [];
+};
+
+</pre>
+</body>
+</html>

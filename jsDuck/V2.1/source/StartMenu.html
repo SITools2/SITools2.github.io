@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, i18n,document*/
+/*!
+ * Ext JS Library 3.2.1
+ * Copyright(c) 2006-2010 Ext JS, Inc.
+ * licensing@extjs.com
+ * http://www.extjs.com/license
+ */
+<span id='Ext-ux-StartMenu-method-constructor'><span id='Ext-ux-StartMenu-cfg-'><span id='Ext-ux-StartMenu'>/**
+</span></span></span> * &lt;p&gt;SAMPLE USAGE:&lt;/p&gt;
+ * 
+ * &lt;pre&gt;&lt;code&gt;
+this.startMenu = new Ext.ux.StartMenu({ iconCls: 'user', height: 300, shadow: true, title: get_cookie('memberName'), width: 300 });
+
+this.startMenu.add({ text: 'Grid Window', iconCls:'icon-grid', handler :
+this.createWindow, scope: this });
+ 
+this.startMenu.addTool({ 
+	text:'Logout', 
+	iconCls:'logout', 
+	handler:function(){
+		window.location = &quot;logout.php&quot;; 
+	}, 
+	scope:this 
+});
+ * &lt;/code&gt;&lt;/pre&gt;
+ * @class Ext.ux.StartMenu
+ * @extends Ext.menu.Menu A start menu object.
+ * @constructor Creates a new StartMenu
+ * @cfg {Object}
+ *            config Configuration options
+ * 
+ * 
+ */
+
+Ext.namespace(&quot;Ext.ux&quot;);
+
+Ext.ux.StartMenu = Ext.extend(Ext.menu.Menu, {
+    initComponent : function (config) {
+	    Ext.ux.StartMenu.superclass.initComponent.call(this, config);
+
+	    var tools = this.toolItems;
+	    this.toolItems = new Ext.util.MixedCollection();
+	    if (tools) {
+		    this.addTool.apply(this, tools);
+	    }
+    },
+
+    // private
+    onRender : function (ct, position) {
+	    Ext.ux.StartMenu.superclass.onRender.call(this, ct, position);
+	    var el = this.el.addClass('ux-start-menu');
+
+	    var header = el.createChild({
+	        tag : &quot;div&quot;,
+	        cls : &quot;x-window-header x-unselectable x-panel-icon &quot; + this.iconCls
+	    });
+
+	    this.header = header;
+
+	    var headerText = header.createChild({
+	        tag : &quot;span&quot;,
+	        cls : &quot;x-window-header-text&quot;
+	    });
+	    var tl = header.wrap({
+		    cls : &quot;ux-start-menu-tl&quot;
+	    });
+	    var tr = header.wrap({
+		    cls : &quot;ux-start-menu-tr&quot;
+	    });
+	    var tc = header.wrap({
+		    cls : &quot;ux-start-menu-tc&quot;
+	    });
+
+	    this.menuBWrap = el.createChild({
+	        tag : &quot;div&quot;,
+	        cls : &quot;x-window-body x-border-layout-ct ux-start-menu-body&quot;
+	    });
+	    var ml = this.menuBWrap.wrap({
+		    cls : &quot;ux-start-menu-ml&quot;
+	    });
+	    var mc = this.menuBWrap.wrap({
+		    cls : &quot;x-window-mc ux-start-menu-bwrap&quot;
+	    });
+
+	    this.menuPanel = this.menuBWrap.createChild({
+	        tag : &quot;div&quot;,
+	        cls : &quot;x-panel x-border-panel ux-start-menu-apps-panel&quot;
+	    });
+	    this.toolsPanel = this.menuBWrap.createChild({
+	        tag : &quot;div&quot;,
+	        cls : &quot;x-panel x-border-panel ux-start-menu-tools-panel&quot;
+	    });
+
+	    var bwrap = ml.wrap({
+		    cls : &quot;x-window-bwrap&quot;
+	    });
+	    var bc = bwrap.createChild({
+	        tag : &quot;div&quot;,
+	        cls : &quot;ux-start-menu-bc&quot;
+	    });
+	    var bl = bc.wrap({
+		    cls : &quot;ux-start-menu-bl x-panel-nofooter&quot;
+	    });
+	    var br = bc.wrap({
+		    cls : &quot;ux-start-menu-br&quot;
+	    });
+
+	    this.ul.appendTo(this.menuPanel);
+
+	    var toolsUl = this.toolsPanel.createChild({
+	        tag : &quot;ul&quot;,
+	        cls : &quot;x-menu-list&quot;
+	    });
+
+	    this.mon(toolsUl, 'click', this.onClick, this);
+	    this.mon(toolsUl, 'mouseover', this.onMouseOver, this);
+	    this.mon(toolsUl, 'mouseout', this.onMouseOut, this);
+
+	    if (this.item) {
+		    this.items.each(function (item) {
+			    item.parentMenu = this;
+		    }, this);
+	    }
+	    this.toolItems.each(function (item) {
+		    if (!Ext.isEmpty(item.text)) {
+			    item.text = i18n.get(item.text);
+		    }
+		    var li = document.createElement(&quot;li&quot;);
+		    li.className = &quot;x-menu-list-item&quot;;
+		    toolsUl.dom.appendChild(li);
+		    item.render(li);
+		    item.parentMenu = this;
+	    }, this);
+
+	    this.toolsUl = toolsUl;
+
+	    this.menuBWrap.setStyle('position', 'relative');
+	    this.menuBWrap.setHeight(this.height - 28);
+
+	    this.menuPanel.setStyle({
+	        padding : '2px',
+	        position : 'absolute',
+	        overflow : 'auto'
+	    });
+
+	    this.toolsPanel.setStyle({
+	        padding : '2px 4px 2px 2px',
+	        position : 'absolute',
+	        overflow : 'auto'
+	    });
+
+	    this.setTitle(this.title);
+    },
+
+    // private
+    findTargetItem : function (e) {
+	    var t = e.getTarget(&quot;.x-menu-list-item&quot;, this.ul, true);
+	    if (t &amp;&amp; t.menuItemId) {
+		    if (this.items.get(t.menuItemId)) {
+			    return this.items.get(t.menuItemId);
+		    } else {
+			    return this.toolItems.get(t.menuItemId);
+		    }
+	    }
+    },
+
+<span id='Ext-ux-StartMenu-method-show'>    /**
+</span>	 * Displays this menu relative to another element
+	 * 
+	 * @param {Mixed}
+	 *            element The element to align to
+	 * @param {String}
+	 *            position (optional) The {@link Ext.Element#alignTo} anchor
+	 *            position to use in aligning to the element (defaults to
+	 *            this.defaultAlign)
+	 * @param {Ext.ux.StartMenu}
+	 *            parentMenu (optional) This menu's parent menu, if applicable
+	 *            (defaults to undefined)
+	 */
+    show : function (el, pos, parentMenu) {
+	    this.parentMenu = parentMenu;
+	    if (!this.el) {
+		    this.render();
+	    }
+
+	    this.fireEvent(&quot;beforeshow&quot;, this);
+	    this.showAt(this.el.getAlignToXY(el, pos || this.defaultAlign), parentMenu, false);
+	    var tPanelWidth = 100;
+	    var box = this.menuBWrap.getBox();
+	    this.menuPanel.setWidth(box.width - tPanelWidth);
+	    this.menuPanel.setHeight(box.height);
+
+	    this.toolsPanel.setWidth(tPanelWidth);
+	    this.toolsPanel.setX(box.x + box.width - tPanelWidth);
+	    this.toolsPanel.setHeight(box.height);
+    },
+
+    addTool : function () {
+	    var a = arguments, l = a.length, item;
+	    for (var i = 0; i &lt; l; i++) {
+		    var el = a[i];
+		    if (el.render) { // some kind of Item
+			    item = this.addToolItem(el);
+		    } else if (typeof el == &quot;string&quot;) { // string
+			    if (el == &quot;separator&quot; || el == &quot;-&quot;) {
+				    item = this.addToolSeparator();
+			    } else {
+				    item = this.addText(el);
+			    }
+		    } else if (el.tagName || el.el) { // element
+			    item = this.addElement(el);
+		    } else if (typeof el == &quot;object&quot;) { // must be menu item config?
+			    item = this.addToolMenuItem(el);
+		    }
+	    }
+	    return item;
+    },
+
+<span id='Ext-ux-StartMenu-method-addToolSeparator'>    /**
+</span>	 * Adds a separator bar to the Tools
+	 * 
+	 * @return {Ext.menu.Item} The menu item that was added
+	 */
+    addToolSeparator : function () {
+	    return this.addToolItem(new Ext.menu.Separator({
+		    itemCls : 'ux-toolmenu-sep'
+	    }));
+    },
+
+    addToolItem : function (item) {
+	    item.text = i18n.get(item.text);
+	    this.toolItems.add(item);
+	    if (this.ul) {
+		    var li = document.createElement(&quot;li&quot;);
+		    li.className = &quot;x-menu-list-item&quot;;
+		    this.ul.dom.appendChild(li);
+		    item.render(li, this);
+		    this.delayAutoWidth();
+	    }
+	    return item;
+    },
+
+    addToolMenuItem : function (config) {
+	    if (!(config instanceof Ext.menu.Item)) {
+		    if (typeof config.checked == &quot;boolean&quot;) { // must be check menu
+			    // item config?
+			    config = new Ext.menu.CheckItem(config);
+		    } else {
+			    config = new Ext.menu.Item(config);
+		    }
+	    }
+	    return this.addToolItem(config);
+    },
+
+    setTitle : function (title, iconCls) {
+	    this.title = title;
+	    this.header.child('span').update(title);
+	    return this;
+    }
+});
+</pre>
+</body>
+</html>

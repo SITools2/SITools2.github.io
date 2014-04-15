@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser, 
+ showHelp, loadUrl*/
+Ext.namespace('sitools.admin.rssFeed');
+
+<span id='sitools-admin-rssFeed-rssFeedProps-cfg-idFeed'><span id='sitools-admin-rssFeed-rssFeedProps-cfg-action'><span id='sitools-admin-rssFeed-rssFeedProps-cfg-store'><span id='sitools-admin-rssFeed-rssFeedProps-cfg-id'><span id='sitools-admin-rssFeed-rssFeedProps-cfg-urlRef'><span id='sitools-admin-rssFeed-rssFeedProps-cfg-url'><span id='sitools-admin-rssFeed-rssFeedProps'>/**
+</span></span></span></span></span></span></span> * A Panel to show the rss properties
+ * 
+ * @cfg url, the url where the Rss API is attached
+ * @cfg urlRef, the relative url of the RSS API
+ * @cfg id, the id of the DataSet, Project or Archive
+ * @cfg store, the CRUD store
+ * @cfg action, the type of action ( create or modify )
+ * @cfg idFeed, the id of the Feed to load in case of edit ( optional )
+ * @class sitools.admin.rssFeed.rssFeedProps
+ * @extends Ext.Window
+ */
+//sitools.component.rssFeedProps = Ext.extend(Ext.Window, {
+sitools.admin.rssFeed.rssFeedProps = Ext.extend(Ext.Window, {
+    width : 700,
+    height : 480,
+    modal : true,
+    resizable : false,
+    stateful : false,
+    urlValid : false,
+
+    initComponent : function () {
+
+        this.crudStore = this.store;
+
+        
+<span id='sitools-admin-rssFeed-rssFeedProps-property-buttonValidUrl'>        /**
+</span>         * *********************************************** TAB1 FORMULAIRE
+         * ***********************************************
+         */
+        
+        this.buttonValidUrl =  new Ext.Button({
+            text : i18n.get('label.validateUrl'),
+            scope : this,
+            handler : function () {
+                this.validateUrl();
+            },
+            width : 150,
+            iconCls : &quot;img-help&quot;,
+            iconAlign : &quot;left&quot;            
+        });
+        
+        
+        this.boxComponent = new Ext.BoxComponent({
+            hidden : true,
+            labelSeparator : &quot;&quot;,
+            fieldLabel : &quot; &quot;,
+            id : &quot;boxComponentValid&quot;,
+            cls : &quot;sitools-form-valid-msg&quot;,
+            setHtml : function (html) {
+                var el = this.getEl();
+                el.update(html);
+            }
+        });
+        
+
+        this.formPanel = new Ext.FormPanel({
+            labelWidth : 100, // label settings here cascade unless overridden
+            defaultType : 'textfield',
+            padding : 10,
+            height : 165,
+            title : i18n.get(&quot;title.feedDetails&quot;),
+            trackResetOnLoad : true,
+            items : [{
+		        xtype : 'fieldset',
+				title : i18n.get('title.feedDetailsCommon'),
+				autoHeight : true,
+				defaultType : 'textfield',
+				items : [{
+		            name : 'id',
+		            xtype : 'hidden'
+		        }, {
+		            fieldLabel : i18n.get('label.name'),
+		            name : 'name',
+		            anchor : '100%',
+		            allowBlank : false            
+		        }, {
+		            fieldLabel : i18n.get('label.feedSource'),
+		            name : 'feedSource',
+		            xtype : 'radiogroup',
+		            columns : 1,
+		            items : [ {
+		                boxLabel : 'CLASSIC',
+		                name : 'feedSource',
+		                inputValue : &quot;CLASSIC&quot;,
+		                checked : true
+		            }, {
+		                boxLabel : 'EXTERNAL',
+		                name : 'feedSource',
+		                inputValue : &quot;EXTERNAL&quot;
+		            } ],
+		            listeners : {
+		                scope : this,
+		                change : function (radioGroup, radioChecked) {
+		                    var name = radioChecked.getGroupValue();
+		                    this.toogleSpecificForm(name);
+		                    if (name == &quot;CLASSIC&quot;) {                        
+		                        this.gridPanel.setDisabled(false);
+		                    } else {
+		                        this.gridPanel.setDisabled(true);
+		                    }
+		                    this.doLayout();
+		                       
+		                }
+		            }
+                
+                }]  
+            }, {
+                xtype : 'fieldset',
+				title : i18n.get('title.feedDetailsSpecific'),
+				autoHeight : true,
+				defaultType : 'textfield',
+                items : [{
+	                fieldLabel : i18n.get('label.titleRss'),
+	                name : 'title',
+	                anchor : '100%'
+	            }, {
+	                fieldLabel : i18n.get('label.description'),
+	                name : 'description',
+	                anchor : '100%'
+	            }, {
+	                fieldLabel : i18n.get('label.linkTitle'),
+	                name : 'link',
+	                anchor : '100%'
+	            }, {
+	                fieldLabel : i18n.get('label.authorName'),
+	                name : 'authorName',
+	                anchor : '100%'
+	            }, {
+	                fieldLabel : i18n.get('label.authorEmail'),
+	                name : 'authorEmail',
+	                anchor : '100%'
+	            }, {
+	                fieldLabel : i18n.get('label.feedType'),
+	                name : 'feedType',
+	                xtype : 'radiogroup',
+	                columns : 1,
+	                items : [ {
+	                    boxLabel : 'RSS',
+	                    name : 'feedType',
+	                    inputValue : &quot;rss_2.0&quot;,
+	                    checked : true
+	                }, {
+	                    boxLabel : 'ATOM',
+	                    name : 'feedType',
+	                    inputValue : &quot;atom_1.0&quot;
+	                } ]
+	            },  {
+                        xtype: 'compositefield',
+                        anchor : &quot;100%&quot;,
+                        fieldLabel : i18n.get('label.url'),
+                        msgTarget: 'under',
+                        hidden : true,
+                        id : 'compositeFieldExternalUrl',
+                        items: [{                            
+				            name : 'externalUrl',
+                            xtype: 'textfield',
+                            anchor : &quot;100%&quot;,                            
+                            flex : 1,
+                            status : &quot;pending&quot;,
+                            allowBlank : &quot;false&quot;,
+                            vtype : &quot;uri&quot;,
+                            validator : function (value) {
+                                var status = this.status;
+                                if (status == &quot;invalid&quot;) {
+                                    return this.invalidText;
+								} else {
+									return true;
+								}
+                                
+                            },
+                            listeners : {
+                                scope : this,
+                                change : function (textField, newValue, oldValue) {
+                                    textField.fireEvent(&quot;changeStatus&quot;, textField, &quot;pending&quot;);
+                                },                                
+                                changeStatus : function (textField, status, errorMessage) {
+                                    textField.status = status;
+                                    textField.clearInvalid();
+                                    var imgClass;
+                                    switch (status) {
+                                    case &quot;pending&quot;:
+                                        imgClass = &quot;img-help&quot;;    
+                                        this.boxComponent.setVisible(false);
+                                        break;
+                                    case &quot;valid&quot;:
+                                        imgClass = &quot;img-valid&quot;;                                        
+                                        break;
+                                    case &quot;invalid&quot;:
+                                        this.boxComponent.setVisible(false);
+                                        imgClass = &quot;img-error&quot;;
+                                        if (Ext.isEmpty(errorMessage)) {
+										    textField.markInvalid();                                            
+										} else {
+										    textField.markInvalid(errorMessage);
+                                            textField.invalidText = errorMessage;
+										}
+                                        break;
+                                    default :
+                                        this.boxComponent.setVisible(false);
+                                        imgClass = &quot;img-error&quot;;
+                                        break;
+                                    
+                                    }
+                                    this.buttonValidUrl.setIconClass(imgClass);
+                                }
+                            }
+                        }, this.buttonValidUrl                            
+                        ]
+                    }, this.boxComponent
+                    
+                ]
+            }]
+            
+        });
+        
+        
+<span id='sitools-admin-rssFeed-rssFeedProps-property-storeItem'>        /**
+</span>         * *********************************************** TAB2 GRID LIST ITEMS
+         * ***********************************************
+         */
+
+        this.storeItem = new Ext.data.JsonStore({
+            idProperty : 'id',
+            fields : [ {
+                name : 'id',
+                type : 'string'
+            }, {
+                name : 'title',
+                type : 'string'
+            }, {
+                name : 'description',
+                type : 'string'
+            }, {
+                name : 'link',
+                type : 'string'
+            }, {
+                name : 'pubDate',
+                type : 'date'
+            } /*
+                 * ,{ name : 'guid', type :'guid' }
+                 */
+            ]
+        });
+
+        var cm = new Ext.grid.ColumnModel({
+            // specify any defaults for each column
+            defaults : {
+                sortable : true
+            // columns are not sortable by default
+            },
+            columns : [ {
+                header : i18n.get('label.titleRss'),
+                dataIndex : 'title',
+                width : 150,
+                sortable : true
+            }, {
+                header : i18n.get('label.description'),
+                dataIndex : 'description',
+                width : 200,
+                sortable : false
+            }, {
+                header : i18n.get('label.linkTitle'),
+                dataIndex : 'link',
+                width : 200,
+                sortable : false
+            }, {
+                header : i18n.get('label.updatedDate'),
+                dataIndex : 'updatedDate',
+                width : 100,
+                sortable : true
+            } ]
+        });
+
+        var tbar = {
+            xtype : 'sitools.widget.GridSorterToolbar',
+            defaults : {
+                scope : this
+            },
+            items : [ {
+                text : i18n.get('label.add'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/toolbar_create.png',
+                handler : this.onCreate,
+                xtype : 's-menuButton'
+            }, {
+                text : i18n.get('label.modify'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/toolbar_edit.png',
+                handler : this.onModify,
+                xtype : 's-menuButton'
+            }, {
+                text : i18n.get('label.delete'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/toolbar_delete.png',
+                handler : this.onDelete,
+                xtype : 's-menuButton'
+            }]
+        };
+
+        this.gridPanel = new Ext.grid.GridPanel({
+            viewConfig : {
+                forceFit : true
+            },
+            layout : 'fit',
+            title : i18n.get(&quot;title.feedItems&quot;),
+            store : this.storeItem,
+            cm : cm,
+            tbar : tbar
+
+        });
+
+<span id='sitools-admin-rssFeed-rssFeedProps-property-saveButton'>        /**
+</span>         * *********************************************** TAB PANEL
+         * ***********************************************
+         */
+        
+        this.saveButton = new Ext.Button({
+            text : i18n.get('label.ok'),
+            scope : this,
+            handler : this.onValidate
+        });
+
+        this.tabPanel = new Ext.TabPanel({
+            height : 450,
+            activeTab : 0,
+            items : [ this.formPanel, this.gridPanel ],
+            buttons : [ this.saveButton, {
+                text : i18n.get('label.cancel'),
+                scope : this,
+                handler : function () {
+                    this.close();
+                }
+            } ]
+        });
+
+        this.items = [ this.tabPanel ];
+
+        sitools.admin.rssFeed.rssFeedProps.superclass.initComponent.call(this);
+    },
+    
+<span id='sitools-admin-rssFeed-rssFeedProps-method-onRender'>    /**
+</span>     * done a specific render to load rss informations. 
+     */
+    onRender : function () {
+        sitools.admin.rssFeed.rssFeedProps.superclass.onRender.apply(this, arguments);
+        if (this.action == &quot;create&quot;) {
+            this.title = i18n.get(&quot;title.createFeed&quot;);
+        } else {
+            this.title = i18n.get(&quot;title.editFeed&quot;);
+            // load data from the server
+            Ext.Ajax.request({
+                url : this.url + &quot;/&quot; + this.id + this.urlRef + &quot;/&quot; + this.idFeed,
+                method : &quot;GET&quot;,
+                scope : this,
+                success : function (ret) {
+                    // check for the success of the request
+                    var json = Ext.decode(ret.responseText);
+                    if (!json.success) {
+                        Ext.Msg.alert(i18n.get('label.warning'), json.message);
+                        return false;
+                    }
+                    var data = json.FeedModel;
+                    this.populateForm(data);
+                    this.populateStore(data);
+
+                    if (data.feedSource == &quot;OPENSEARCH&quot;) {
+                        this.gridPanel.setDisabled(true);
+                        var feedTypeField = this.formPanel.getForm().findField(&quot;feedType&quot;);
+                        feedTypeField.setDisabled(true);
+                    } else if (data.feedSource == &quot;EXTERNAL&quot;) {
+                        this.gridPanel.setDisabled(true);
+                        var externalUrlField = this.formPanel.getForm().findField(&quot;externalUrl&quot;);
+                        if (!Ext.isEmpty(externalUrlField.getValue())) {
+                            externalUrlField.fireEvent(&quot;changeStatus&quot;, externalUrlField, &quot;valid&quot;);
+                        }
+                    }
+
+                },
+                failure : alertFailure
+            });
+        }
+
+    },
+
+<span id='sitools-admin-rssFeed-rssFeedProps-method-populateForm'>    /**
+</span>     * Fill rss fields properties 
+     * 
+     * @param data, the data containing the feed model
+     */
+    populateForm : function (data) {
+        if (data !== undefined) {
+            var form = this.formPanel.getForm();
+            
+            var rec = {};
+            rec.id = data.id;
+            rec.name = data.name;
+            rec.feedType = data.feedType;
+            rec.feedSource = data.feedSource;
+			rec.title = data.title;
+	        rec.description = data.description;
+            
+            if (data.feedSource == &quot;EXTERNAL&quot;) {
+                rec.externalUrl = data.externalUrl;
+			} else {
+	            rec.link = data.link;
+	            if (data.author !== undefined) {
+	                rec.authorName = data.author.name;
+	                rec.authorEmail = data.author.email;
+	            }
+            }
+
+            var record = new Ext.data.Record(rec);
+            form.loadRecord(record);
+            
+        }
+    },
+
+<span id='sitools-admin-rssFeed-rssFeedProps-method-populateStore'>    /**
+</span>     * Fill the grid store with data 
+     * 
+     * @param data, the data containing the feed model
+     */
+    populateStore : function (data) {
+        this.storeItem.removeAll();
+        if (data !== undefined &amp;&amp; data.entries !== undefined) {
+            var i;
+            for (i = 0; i &lt; data.entries.length; i++) {
+                var entry = data.entries[i];
+                var date = new Date(entry.updatedDate);
+                entry.updatedDate = date;
+                var rec = new Ext.data.Record(entry);
+                this.storeItem.add(rec);
+
+            }
+        }
+
+    },
+
+<span id='sitools-admin-rssFeed-rssFeedProps-method-onValidate'>    /**
+</span>     * Check rss name property and save all rss properties
+     */
+    onValidate : function () {
+        // gets the RSS details from the form
+        var form = this.formPanel.getForm();
+        if (!form.isValid()) {
+            Ext.Msg.alert(i18n.get('label.error'), i18n.get('warning.invalidForm'));
+            return;
+        }
+        var feedSource = form.findField(&quot;feedSource&quot;).getValue().inputValue;
+        var externalUrlField = form.findField(&quot;externalUrl&quot;);
+        var externalUrlStatus = externalUrlField.status;
+        if (feedSource == &quot;EXTERNAL&quot; &amp;&amp; (&quot;pending&quot; == externalUrlStatus)) {
+			this.validateUrl(this.onValidateModify);
+		}
+		else if (feedSource == &quot;EXTERNAL&quot; &amp;&amp; &quot;invalid&quot; == externalUrlStatus) {
+            Ext.Msg.alert(i18n.get('label.error'), i18n.get('warning.invalidForm'));
+            return;
+		}
+        else {        
+            this.onValidateModify();
+        }
+        
+    },
+    
+    onValidateModify : function () {
+        var form = this.formPanel.getForm();
+        if (this.action == 'modify') {
+            var name = form.findField(&quot;name&quot;).getValue();
+            var originalName = form.findField(&quot;name&quot;).originalValue;
+            if (originalName != name) {
+                Ext.Msg.show({
+                    title : i18n.get('label.warning'),
+                    buttons : Ext.Msg.YESNO,
+                    msg : i18n.get('rssFeedProp.warning.feedName.changed'),
+                    scope : this,
+                    fn : function (btn, text) {
+                        if (btn == 'yes') {
+                            this.onSaveFeed();
+                        }
+                    }
+                });
+            } else {
+                this.onSaveFeed();
+            }
+        } else {
+            this.onSaveFeed();
+        }
+    },
+    
+<span id='sitools-admin-rssFeed-rssFeedProps-method-onSaveFeed'>    /**
+</span>     * Save rss properties fields
+     */
+    onSaveFeed : function () {
+        var form = this.formPanel.getForm();
+        var feedTypeField = form.findField(&quot;feedType&quot;);
+        feedTypeField.setDisabled(false);        
+                
+        var json = {};
+        json.author = {};
+        Ext.iterate(form.getValues(), function (key, value) {
+            if (key == &quot;authorName&quot;) {
+                json.author.name = value;
+            } else if (key == &quot;authorEmail&quot;) {
+                json.author.email = value;
+            } else {
+                json[key] = value;
+            }
+        }, this);
+        
+        if (json.feedSource == &quot;EXTERNAL&quot;) {
+            json.title = form.findField(&quot;title&quot;).getValue();
+            json.description = form.findField(&quot;description&quot;).getValue();
+            
+        }
+                
+//        // if the id is empty (create) we assign the name to it
+//        if (Ext.isEmpty(json.id)) {
+//			json.id = json.name;
+//		}
+        // gets the value from the grid
+        json.entries = [];
+        if (json.feedSource == &quot;CLASSIC&quot;) {
+	        
+	        var i;
+	        for (i = 0; i &lt; this.storeItem.getCount(); i++) {
+	            var rec = this.storeItem.getAt(i).copy().data;
+	            var date = rec.updatedDate;
+	            if (date !== null &amp;&amp; date !== undefined) {
+	                var updatedDate = new Date(date);
+	                rec.updatedDate = updatedDate.format('Y-m-d\\TH:i:s.u') + updatedDate.getGMTOffset();
+	            }
+	            date = rec.publishedDate;
+	            if (date !== null &amp;&amp; date !== undefined) {
+	                var publishedDate = new Date(date);
+	                rec.publishedDate = publishedDate.format('Y-m-d\\TH:i:s.u') + publishedDate.getGMTOffset();
+	
+	            }
+	            json.entries.push(rec);
+	        }
+        }
+
+        var url = this.url + &quot;/&quot; + this.id + this.urlRef;
+        var method;
+        if (this.action == &quot;create&quot;) {
+            method = &quot;POST&quot;;
+        } else {
+            method = &quot;PUT&quot;;
+            url += &quot;/&quot; + this.idFeed;
+        }
+
+        Ext.Ajax.request({
+            url : url,
+            method : method,
+            scope : this,
+            jsonData : json,
+            success : function (ret) {
+                // check for the success of the request
+                var data = Ext.decode(ret.responseText);
+                if (!data.success) {
+                    Ext.Msg.alert(i18n.get('label.warning'), i18n.get(data.message));
+                    return false;
+                }
+                this.store.reload();
+                this.close();
+
+            },
+            failure : alertFailure
+        });
+    },
+    
+    toogleSpecificForm : function (feedSource) {
+        var isClassic = (feedSource == &quot;CLASSIC&quot;);
+        var form = this.formPanel.getForm(); 
+        form.findField(&quot;title&quot;).setDisabled(!isClassic);
+        form.findField(&quot;title&quot;).setVisible(isClassic);
+        
+        form.findField(&quot;description&quot;).setDisabled(!isClassic);
+        form.findField(&quot;description&quot;).setVisible(isClassic);
+        
+        form.findField(&quot;link&quot;).setDisabled(!isClassic);
+        form.findField(&quot;link&quot;).setVisible(isClassic);
+        
+        form.findField(&quot;authorName&quot;).setDisabled(!isClassic);
+        form.findField(&quot;authorName&quot;).setVisible(isClassic);        
+        
+        form.findField(&quot;authorEmail&quot;).setDisabled(!isClassic);
+        form.findField(&quot;authorEmail&quot;).setVisible(isClassic);
+        
+        form.findField(&quot;authorEmail&quot;).setDisabled(!isClassic);
+        form.findField(&quot;authorEmail&quot;).setVisible(isClassic);
+        
+        form.findField(&quot;feedType&quot;).setVisible(isClassic);
+        
+        Ext.getCmp('boxComponentValid').setDisabled(isClassic);
+        Ext.getCmp('boxComponentValid').setVisible(!isClassic);
+        
+        Ext.getCmp('compositeFieldExternalUrl').setDisabled(isClassic);
+        Ext.getCmp('compositeFieldExternalUrl').setVisible(!isClassic);
+    }, 
+
+<span id='sitools-admin-rssFeed-rssFeedProps-method-onCreate'>    /**
+</span>     * Create a {sitools.admin.rssFeed.rssFeedItemProps} rss item property field
+     *  to create a property
+     */
+    onCreate : function () {
+        var up = new sitools.admin.rssFeed.rssFeedItemProps({
+            store : this.storeItem,
+            parent : this.gridPanel,
+            action : &quot;create&quot;
+        });
+        up.show();
+    },
+    
+<span id='sitools-admin-rssFeed-rssFeedProps-method-onModify'>    /**
+</span>     * Open a {sitools.admin.rssFeed.rssFeedItemProps} rss item property field
+     *  to modify a property
+     */
+    onModify : function () {
+        var rec = this.gridPanel.getSelectionModel().getSelected();
+        if (!rec) {
+            return Ext.Msg.alert(i18n.get('label.warning'), i18n.get('warning.noselection'));
+        }
+        var up = new sitools.admin.rssFeed.rssFeedItemProps({
+            store : this.storeItem,
+            parent : this.gridPanel,
+            action : &quot;modify&quot;,
+            rec : rec
+        });
+        up.show();
+    },
+    
+<span id='sitools-admin-rssFeed-rssFeedProps-method-onDelete'>    /**
+</span>     * Delete the selected rss property from the store
+     */
+    onDelete : function () {
+        var rec = this.gridPanel.getSelectionModel().getSelected();
+        if (!rec) {
+            return Ext.Msg.alert(i18n.get('label.warning'), i18n.get('warning.noselection'));
+        }
+        this.storeItem.remove(rec);
+    },
+    
+    validateUrl : function (successCallback) {
+        var externalUrlField = this.formPanel.getForm().findField(&quot;externalUrl&quot;);
+        if (externalUrlField.isValid()) {
+	        var externalUrl = externalUrlField.getValue();
+	        var url = &quot;/sitools/proxy&quot;;
+	        this.saveButton.disable();
+	        this.buttonValidUrl.disable();
+	        this.buttonValidUrl.setIconClass(&quot;img-loading&quot;);
+	        Ext.Ajax.request({
+	            url : url,
+	            method : &quot;GET&quot;,
+	            scope : this,
+	            //custom parameters to avoid calling the requestexception event if there is an error
+	            doNotHandleRequestexception : true,
+	            params : {
+	                external_url : externalUrl
+	            },
+	            success : function (ret) {
+	                var responseXML = ret.responseXML;
+	                var isRss = false, isAtom = false;
+	                var rss = null, atom = null;
+	                if (!Ext.isEmpty(responseXML)) {
+	//                    isRss = responseXML.firstChild.localName == &quot;rss&quot;;
+	//                    isAtom = responseXML.firstChild.localName == &quot;feed&quot;;
+	                    rss = Ext.DomQuery.selectNode(&quot;rss&quot;, responseXML);
+	                    atom = Ext.DomQuery.selectNode(&quot;feed&quot;, responseXML);
+	                    isRss = !Ext.isEmpty(rss);
+	                    isAtom = !Ext.isEmpty(atom);
+	                }
+	                
+	                var form = this.formPanel.getForm();
+	                var feedField = form.findField(&quot;feedType&quot;);
+	                var externalUrlField = form.findField(&quot;externalUrl&quot;);
+	                if (isRss) {
+						feedField.setValue(&quot;rss_2.0&quot;);                    
+					} else if (isAtom) {
+						feedField.setValue(&quot;atom_1.0&quot;);                    
+					} 
+	                
+	                if (isRss || isAtom) {
+                        this.boxComponent.setHtml(String.format(i18n.get(&quot;label.feedTypeDetected&quot;), feedField.getValue().inputValue));
+                        this.boxComponent.setVisible(true);
+                        
+                        var xml = (isRss) ? rss : atom;
+                        var titleNode  = Ext.DomQuery.selectNode(&quot;title&quot;, xml);
+                        var descriptionNode  = Ext.DomQuery.selectNode(&quot;description&quot;, xml);
+                        
+                        if (titleNode) {
+                            form.findField(&quot;title&quot;).setValue(titleNode.textContent);
+                        }
+                        if (descriptionNode) {
+                            form.findField(&quot;description&quot;).setValue(descriptionNode.textContent);
+                        }
+                        
+	                    externalUrlField.fireEvent(&quot;changeStatus&quot;, externalUrlField, &quot;valid&quot;);
+	                    if (Ext.isFunction(successCallback)) {
+	                        successCallback.call(this);
+	                    }
+	                } else {
+	                    externalUrlField.fireEvent(&quot;changeStatus&quot;, externalUrlField, &quot;invalid&quot;, i18n.get(&quot;label.incompatible.feed.type&quot;));
+	                }
+	                
+	            },
+	            failure : function (response, options) {
+	                this.urlValid = false;
+	                var externalUrlField = this.formPanel.getForm().findField(&quot;externalUrl&quot;);
+	                externalUrlField.fireEvent(&quot;changeStatus&quot;, externalUrlField, &quot;invalid&quot;, i18n.get(&quot;label.urlInvalid&quot;));                
+	            },
+	            callback : function (options, success, response) {
+	                this.saveButton.enable();
+	                this.buttonValidUrl.enable();
+	            }
+	        });
+        }
+        
+    }
+
+});
+</pre>
+</body>
+</html>

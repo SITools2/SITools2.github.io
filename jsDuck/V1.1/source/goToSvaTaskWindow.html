@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/*******************************************************************************
+</span> * Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * 
+ * This file is part of SITools2.
+ * 
+ * SITools2 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * SITools2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * SITools2. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ******************************************************************************/
+/*global Ext, sitools, i18n, SitoolsDesk */
+
+Ext.namespace('sitools.user.component.dataviews');
+
+<span id='sitools-user-component-dataviews-goToSvaTaskWindow'>/**
+</span> * A simple window to display results of SVA
+ * @class sitools.user.component.dataviews.goToSvaTaskWindow
+ * @extends Ext.Window
+ */
+sitools.user.component.dataviews.goToSvaTaskWindow = Ext.extend(Ext.Window, {
+//sitools.user.component.livegrid.goToSvaTaskWindow = Ext.extend(Ext.Window, {
+	modal : true,
+    width : &quot;800&quot;, 
+    initComponent : function () {
+        var svaTask = this.svaTask;
+        this.title = i18n.get('label.info');
+		
+		var message = &quot;&lt;span style='font-weight:bold'&gt;&quot; + i18n.get('label.status') + &quot; : &lt;/span&gt;&quot; + svaTask.status
+				+ &quot;&lt;br&gt;&quot;;
+		message += &quot;&lt;span style='font-weight:bold'&gt;&quot; + i18n.get('label.id') + &quot; : &lt;/span&gt;&quot; + svaTask.id + &quot;&lt;br&gt;&quot;;
+		message += &quot;&lt;span style='font-weight:bold'&gt;&quot; + i18n.get('label.url')
+				+ &quot; : &lt;/span&gt; &lt;a target='_blank' href='&quot; + svaTask.statusUrl
+				+ &quot;'&gt;&quot; + svaTask.statusUrl + &quot;&lt;/a&gt;&lt;br&gt;&quot;;
+		message += &quot;&lt;br&gt;&quot; + i18n.get('label.svaTaskPlace');
+
+		this.buttons = [{
+			text : i18n.get('label.goSvaTask'),
+			handler : this.goToSvaTask
+		}, {
+			text : i18n.get('label.close'),
+			handler : function () {
+				this.ownerCt.ownerCt.close();
+			}
+		}];
+        
+        var panel = new Ext.Panel({
+            layout : 'fit', 
+            padding: 5,
+            width : &quot;800&quot;, 
+            html : message  
+        });
+        
+        this.items = panel;
+        
+        sitools.user.component.dataviews.goToSvaTaskWindow.superclass.initComponent.call(this);
+
+	},
+    
+    goToSvaTask : function () {
+        this.ownerCt.ownerCt.close();
+        var homeModule = SitoolsDesk.app.findModule(&quot;EspacePersonnel&quot;);
+        if (!Ext.isEmpty(homeModule.getWindow())) {
+            homeModule.getWindow().close();
+        }
+        homeModule.createWindow({
+            activePanel : &quot;task&quot;
+        });
+    }
+
+});
+</pre>
+</body>
+</html>

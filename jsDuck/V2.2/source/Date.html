@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+Ext.ns(&quot;sitools.common.utils&quot;);
+
+<span id='sitools-common-utils-Date'>/**
+</span> * An utility class to use for specific sitools dates.
+ */
+sitools.common.utils.Date = {
+<span id='sitools-common-utils-Date-property-regToday'>	/**
+</span>	 * The regExp to test if a string can be transformed to a date 
+	 */
+	regToday : new RegExp(&quot;^\{\\$TODAY\} *(\\+ *[0-9]*|\\- *[0-9]*)?$&quot;),
+<span id='sitools-common-utils-Date-property-timeInterval'>	/**
+</span>	 * in the template {$TODAY} + x, determine the x unit (currently it is a Day)
+	 * @type 
+	 */
+	timeInterval : Date.DAY, 
+<span id='sitools-common-utils-Date-method-stringWithTodayToDate'>	/**
+</span>	 * Transform a String value containing {$TODAY} into a valid date.
+	 * @param {String} val the string value
+	 * @return {Date} the date Value.
+	 */
+	stringWithTodayToDate : function(val) {
+		if (Ext.isDate(val)) {
+			return val;
+		}
+		if (!this.regToday.test(val)) {
+			return null;
+		}
+		
+		var regNbJour = new RegExp(&quot;[0-9]+&quot;, &quot;g&quot;);
+		var regOp = new RegExp(&quot;[+]|[-]&quot;);
+		var nbJour = parseFloat(regNbJour.exec(val));
+		var op = regOp.exec(val);
+		
+		var result = new Date();
+		if (Ext.isEmpty(nbJour) &amp;&amp; !Ext.isEmpty(op)) {
+			return null;
+		}
+		if (!Ext.isEmpty(nbJour) &amp;&amp; !Ext.isEmpty(op)) {
+			if (op == &quot;-&quot;) {
+				nbJour = nbJour * -1;
+			}
+			result = result.add(this.timeInterval, nbJour); 
+		}
+		return result;
+
+	}, 
+<span id='sitools-common-utils-Date-method-isValidDate'>	/**
+</span>	 * Test if a date object is valid or not.
+	 * @param {Date} d date value
+	 * @return {Boolean} valid or not valid
+	 */
+	isValidDate : function (d) {
+		if ( Object.prototype.toString.call(d) !== &quot;[object Date]&quot; )
+			return false;
+		return !isNaN(d.getTime());
+	}
+}</pre>
+</body>
+</html>

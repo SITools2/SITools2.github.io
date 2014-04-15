@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure*/
+Ext.namespace('sitools.admin.quickStart');
+
+sitools.admin.quickStart.qsSecurity = Ext.extend(Ext.Panel, {
+    forceLayout : true, 
+    layout : &quot;vbox&quot;,
+    border : false, 
+    layoutConfig : {
+        align : 'center',
+        pack : 'start'
+    },
+    bodyCssClass : 'quickStart',
+    initComponent : function () {
+        
+        var title = new Ext.form.Label({
+            cls : 'qs-h1',
+            html : i18n.get('label.qsUserTitle'),
+            listeners : {
+                render : function (img) {
+                    img.getEl().fadeIn({
+                        easing : 'easeIn',
+                        duration: 1
+                    });
+                }
+            }
+        });
+        
+        var desc = new Ext.form.Label({
+            cls : 'qs-div',
+            id : &quot;start-desc&quot;,
+            html : i18n.get('label.qsUserDesc'),
+            listeners : {
+                render : function (desc) {
+                   desc.getEl().fadeIn({
+                       easing : 'easeIn',
+                       duration: 1
+                   });
+               }
+            }
+        });
+        
+        var imgUser = new Ext.form.Label({
+            html : '&lt;img id=&quot;qs-user-logo&quot; class=&quot;bouton_action&quot; src=&quot;/sitools/client-admin/res/html/quickStart/icons/user-logo.png&quot;/&gt;',
+            listeners : {
+                scope : this,
+                render : function (user) {
+                    user.getEl().fadeIn({
+                        endOpacity: 1,
+                        easing : 'easeIn',
+                        duration: 1,
+                        useDisplay : true
+                    });
+                },
+                afterrender : function (user) {
+                    Ext.get(&quot;qs-user-logo&quot;).on('load', function () {
+                        
+                        user.getEl().alignTo(&quot;start-desc&quot;, &quot;tl&quot;, [50, 30]);
+                        
+                        user.getEl().on('mouseleave', function (e, t, o) {
+                            t.src = &quot;/sitools/client-admin/res/html/quickStart/icons/user-logo.png&quot;; 
+                         });
+                        user.getEl().on('mouseenter', function (e, t, o) {
+                             t.src = &quot;/sitools/client-admin/res/html/quickStart/icons/user-logo-hover.png&quot;; 
+                         });
+                        user.getEl().on('click', function (e, t, o) {
+                            this.qs.openFeature(&quot;usrNodeId&quot;);
+                         }, this);
+                        
+                        new Ext.ToolTip({
+                            target : 'qs-user-logo',
+                            anchor: 'right',
+                            autoShow : true,
+                            showDelay : 0,
+                            html : &quot;&lt;b&gt;Open User&lt;/b&gt;&quot;
+                        });
+                        
+                    }, this);
+                }
+            }
+        });
+        
+        var imgShare = new Ext.form.Label({
+            html : '&lt;img id=&quot;qs-share-logo&quot; src=&quot;/sitools/client-admin/res/html/quickStart/icons/share-logo.png&quot;/&gt;',
+            listeners : {
+                scope : this,
+                render : function (imgShare) {
+                    imgShare.getEl().fadeIn({
+                        endOpacity: 1,
+                        easing : 'easeIn',
+                        duration: 1,
+                        useDisplay : true
+                    });
+                },
+                afterrender : function (group) {
+                    Ext.get(&quot;qs-share-logo&quot;).on('load', function () {
+//                        group.getEl().alignTo(&quot;qs-user-logo&quot;, &quot;tr&quot;,  [82, 50]);
+                        group.getEl().alignTo(this.getEl(), &quot;c-c&quot;, [-10, -25]);
+                    }, this);
+                }
+            }
+        });
+        
+        var imgGroup = new Ext.form.Label({
+            html : '&lt;img id=&quot;qs-group-logo&quot; class=&quot;bouton_action&quot; src=&quot;/sitools/client-admin/res/html/quickStart/icons/group-logo.png&quot;/&gt;',
+            listeners : {
+                scope : this,
+                render : function (imgProjet) {
+                    imgProjet.getEl().fadeIn({
+                        endOpacity: 1,
+                        easing : 'easeIn',
+                        duration: 1.5,
+                        useDisplay : true
+                    });
+                },
+                afterrender : function (group) {
+                    Ext.get(&quot;qs-group-logo&quot;).on('load', function () {
+                        
+                        group.getEl().on('mouseleave', function (e, t, o) {
+                           t.src = &quot;/sitools/client-admin/res/html/quickStart/icons/group-logo.png&quot;; 
+                        });
+                        group.getEl().on('mouseenter', function (e, t, o) {
+                            t.src = &quot;/sitools/client-admin/res/html/quickStart/icons/group-logo-hover.png&quot;; 
+                        });
+                        group.getEl().on('click', function (e, t, o) {
+                            this.qs.openFeature(&quot;grpNodeId&quot;);
+                        }, this);
+                        
+//                        group.getEl().alignTo(&quot;qs-share-logo&quot;, &quot;bl&quot;,  [-35, 28]);
+                        group.getEl().alignTo(this.getEl(), &quot;c-b&quot;, [-6, -60]);
+
+                        new Ext.ToolTip({
+                            target : 'qs-group-logo',
+                            anchor: 'bottom',
+                            autoShow : true,
+                            showDelay : 0,
+                            html : &quot;&lt;b&gt;Open Group&lt;/b&gt;&quot;
+                        });
+                        
+                    }, this);
+                }
+            }
+        });
+        
+        var imgRole = new Ext.form.Label({
+            html : '&lt;img id=&quot;qs-role-logo&quot; class=&quot;bouton_action&quot; src=&quot;/sitools/client-admin/res/html/quickStart/icons/role-logo.png&quot;/&gt;',
+            listeners : {
+                scope : this,
+                render : function (imgProjet) {
+                    imgProjet.getEl().fadeIn({
+                        endOpacity: 1,
+                        easing : 'easeIn',
+                        duration: 1.5,
+                        useDisplay : true
+                    });
+                },
+                afterrender : function (group) {
+                    Ext.get(&quot;qs-role-logo&quot;).on('load', function () {
+                        
+                        group.getEl().on('mouseleave', function (e, t, o) {
+                           t.src = &quot;/sitools/client-admin/res/html/quickStart/icons/role-logo.png&quot;; 
+                        });
+                        group.getEl().on('mouseenter', function (e, t, o) {
+                            t.src = &quot;/sitools/client-admin/res/html/quickStart/icons/role-logo-hover.png&quot;; 
+                        });
+                        group.getEl().on('click', function (e, t, o) {
+                            this.qs.openFeature(&quot;roleNodeId&quot;);
+                        }, this);
+                        
+                        group.getEl().alignTo(&quot;qs-user-logo&quot;, &quot;tr&quot;,  [255, 0]);
+                        
+                        new Ext.ToolTip({
+                            target : 'qs-role-logo',
+                            anchor: 'left',
+                            autoShow : true,
+                            showDelay : 0,
+                            html : &quot;&lt;b&gt;Open Role&lt;/b&gt;&quot;
+                        });
+                        
+                    }, this);
+                }
+            }
+        });
+//        this.add(imgGroup);
+//        this.doLayout();
+        
+        this.items = [title, desc, imgUser, imgShare, imgGroup, imgRole];
+        
+        sitools.admin.quickStart.qsSecurity.superclass.initComponent.call(this);
+    }    
+});
+
+</pre>
+</body>
+</html>

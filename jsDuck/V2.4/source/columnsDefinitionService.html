@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/*******************************************************************************
+</span> * Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * 
+ * This file is part of SITools2.
+ * 
+ * SITools2 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * SITools2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * SITools2. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ******************************************************************************/
+/*
+ * global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE,
+ * ImageChooser, loadUrl, extColModelToStorage, SitoolsDesk
+ */
+
+Ext.namespace('sitools.user.component.dataviews.services');
+
+<span id='sitools-user-component-dataviews-services-columnsDefinitionService-cfg-the'><span id='sitools-user-component-dataviews-services-columnsDefinitionService'>/**
+</span></span> * GUI Service to download a data selection from the dataset
+ * 
+ * @required datasetId
+ * @required datasetUrl
+ * @cfg {Ext.data.JsonStore} the store where nodes are saved
+ * @class sitools.user.component.dataviews.services.addSelectionService
+ * @extends Ext.Window
+ */
+
+sitools.user.component.dataviews.services.columnsDefinitionService = {};
+
+sitools.user.component.dataviews.services.columnsDefinitionService.getParameters = function() {
+	return [];
+};
+
+sitools.user.component.dataviews.services.columnsDefinitionService.executeAsService = function(
+		config) {
+	var windowConfig = {
+		title : i18n.get('label.definitionTitle') + &quot; : &quot;
+				+ config.dataview.datasetName,
+		datasetName : config.dataview.datasetName,
+		iconCls : &quot;semantic&quot;,
+		datasetDescription : config.datasetDescription,
+		type : &quot;defi&quot;,
+		saveToolbar : true,
+		toolbarItems : []
+	};
+
+	var javascriptObject = sitools.user.component.columnsDefinition;
+
+	Ext.apply(windowConfig, {
+				id : &quot;defi&quot; + config.dataview.datasetId
+			});
+	var componentCfg = {
+		datasetId : config.dataview.datasetId,
+		datasetCm : config.dataview.datasetCm,
+		datasetName : config.dataview.datasetName,
+		dictionaryMappings : config.dataview.dictionaryMappings,
+		preferencesPath : &quot;/&quot; + config.dataview.datasetName,
+		preferencesFileName : &quot;semantic&quot;
+	};
+
+	SitoolsDesk.addDesktopWindow(windowConfig, componentCfg, javascriptObject);
+};</pre>
+</body>
+</html>

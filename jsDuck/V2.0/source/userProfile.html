@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, utils_logout, sitools, SitoolsDesk, window, userLogin, showResponse, projectGlobal, 
+  userStorage, DEFAULT_PREFERENCES_FOLDER, i18n, extColModelToJsonColModel, loadUrl*/
+
+Ext.namespace('sitools.user.component.entete');
+
+<span id='sitools-user-component-entete-UserProfile-cfg-buttonId'><span id='sitools-user-component-entete-UserProfile'>/**
+</span></span> * @cfg {String} buttonId the id of the button that displays the window
+ * @class sitools.user.component.entete.UserProfile
+ * @extends Ext.Window
+ */
+sitools.user.component.entete.UserProfile = Ext.extend(Ext.Window, {
+	initComponent : function () {
+	    
+		this.header = false;
+		
+		this.user = projectGlobal.user || {
+			firstName : &quot;public&quot;, 
+			identifier : &quot;public&quot;, 
+			email : &quot;&amp;nbsp;&quot;
+		};
+		this.userPublic = this.user.identifier === &quot;public&quot;;
+		var userLanguage = SitoolsDesk.app.language, userLargeIcon;
+		
+		Ext.each(projectGlobal.languages, function (language) {
+			if (userLanguage === language.localName) {
+				userLargeIcon = language.largeIcon;
+			}
+		});
+		var freeDisk = 0;
+		var totalDisk = 0;
+		var userTasksRunning = 0;
+		var userTotalTasks = 0;
+		var data = [{
+			identifier : &quot;language&quot;, 
+			name: i18n.get(&quot;label.langues&quot;), 
+			url : userLargeIcon, 
+			action : &quot;changeLanguage&quot;
+		}];
+		
+		this.height =  this.user.identifier === &quot;public&quot; ? 140 : 220; 
+		this.width = 400;
+		
+		if (this.user.identifier !== &quot;public&quot;) {
+			data.push({
+				identifier : &quot;editProfile&quot;, 
+				name: i18n.get(&quot;label.editProfile&quot;), 
+				url : '/sitools/common/res/images/icons/menu/regcrud.png', 
+				action : &quot;editProfile&quot;, 
+				comment : &quot;&quot;
+			}, {
+				identifier : &quot;userDiskSpace&quot;, 
+				name: i18n.get('label.userDiskSpace'), 
+				url : '/sitools/common/res/images/icons/menu/dataAccess.png', 
+				action : &quot;showDisk&quot;, 
+				comment : String.format(i18n.get(&quot;label.userDiskUse&quot;), freeDisk, totalDisk)
+			}, {
+				identifier : &quot;tasks&quot;, 
+				name: i18n.get(&quot;label.Tasks&quot;), 
+				url : &quot;/sitools/common/res/images/icons/menu/applications2.png&quot;, 
+				action : &quot;showTasks&quot;, 
+				comment : String.format(i18n.get(&quot;label.taskRunning&quot;), userTasksRunning, userTotalTasks)
+			});
+			
+		}
+
+		var store = new Ext.data.JsonStore({
+			fields : ['name', 'url', 'action', 'comment', 'identifier'],
+			data : data
+		});
+		var tpl = new Ext.XTemplate('&lt;tpl for=&quot;.&quot;&gt;',
+		        '&lt;div class=&quot;userButtons&quot; id=&quot;{identifier}&quot;&gt;',
+		        '&lt;div class=&quot;userButtons-thumb&quot;&gt;&lt;img src=&quot;{url}&quot; title=&quot;{name}&quot;&gt;&lt;/div&gt;',
+		        '&lt;span class=&quot;userButtons-name&quot;&gt;{name}&lt;/span&gt;', 
+		        '&lt;span class=&quot;userButtons-comment&quot;&gt;{comment}&lt;/span&gt;&lt;/div&gt;',
+		    '&lt;/tpl&gt;',
+		    '&lt;div class=&quot;x-clear&quot;&gt;&lt;/div&gt;'
+		);
+		
+		var buttonsDataView = new Ext.DataView({
+	        store: store,
+	        cls : &quot;userButtonsDataview&quot;, 
+	        tpl: tpl,
+	        autoHeight : true,
+	        width : this.userPublic ? 100 : 400, 
+	        multiSelect: true,
+	        overClass: 'x-view-over',
+	        emptyText: 'No images to display', 
+	        itemSelector: 'div.userButtons',
+	        listeners : {
+				scope : this, 
+				click : this.actionItemClick, 
+				afterRender : function () {
+					this.fillDiskInformations();
+					this.fillTaskInformations();
+				}
+			}
+	    });
+		
+		
+		var userInfoStore = new Ext.data.JsonStore({
+			fields : ['firstName', 'lastName', 'image', 'email', 'identifier'],
+			data : [Ext.apply(this.user, {
+				&quot;image&quot; : &quot;/sitools/common/res/images/icons/menu/usersGroups.png&quot;
+			})]
+		});
+		var logout = new Ext.Button({
+			scope : this, 
+			text  : i18n.get('label.logout'), 
+			handler : function () {
+				utils_logout();
+			}
+		});
+		var login = new Ext.Button({
+			scope : this, 
+			cls : &quot;userProfileBtn&quot;, 
+			text  : i18n.get('label.login'), 
+			handler : function () {
+				var tmp = new sitools.userProfile.Login({
+		            closable : true,
+		            url : loadUrl.get('APP_URL') + '/login',
+		            register : loadUrl.get('APP_URL') + '/inscriptions/user',
+		            reset : loadUrl.get('APP_URL') + '/resetPassword'
+		        }).show();
+			}
+		});
+		
+		var register = new Ext.Button({
+			scope : this, 
+			cls : &quot;userProfileBtn&quot;, 
+			text  : i18n.get('label.register'), 
+			handler : function () {
+				var register = new sitools.widget.Register({
+	                closable : true,
+	                url : &quot;/sitools/inscriptions/user&quot;,
+	                login : &quot;/sitools/login&quot;
+	            });
+	            register.show();
+			}
+		});
+		var closeBtn = new Ext.Button({
+			scope : this,
+			icon : &quot;/sitools/common/res/images/icons/close-icon.png&quot;, 
+			handler : function () {
+				this.destroy();
+			}, 
+			x : this.width - 30, 
+			y : this.height * -1 + 1, 
+			style : {
+				&quot;position&quot; : &quot;relative&quot;, 
+				&quot;height&quot; : 16,
+				&quot;width&quot; : 16,
+				&quot;z-index&quot; : 200
+			}
+		});
+		
+		var displayInfo = new Ext.DataView({
+			flex : 1, 
+			logoutBtn : logout, 
+			loginBtn : login, 
+			closeBtn : closeBtn, 
+			registerBtn : register, 
+			cls : &quot;x-panel-body&quot;, 
+			tpl : new Ext.XTemplate('&lt;tpl for=&quot;.&quot;&gt;',
+			        '&lt;div class=&quot;userProfileItem&quot; id=&quot;{identifier}&quot;&gt;',
+			        '&lt;div class=&quot;userProfile userProfileItem-thumb&quot;&gt;&lt;img style=&quot;height:60px;&quot; src=&quot;{image}&quot; title=&quot;{name}&quot;&gt;&lt;/div&gt;',
+			        '&lt;div class=&quot;userProfile&quot;&gt;&lt;span class=&quot;userProfileName&quot;&gt;{firstName} {lastName}&lt;/span&gt;', 
+			        '&lt;span class=&quot;userProfileEmail&quot;&gt;{email}&lt;/span&gt;',
+			        '&lt;div id=&quot;logBtn&quot;&gt;&lt;/div&gt;', 
+		            '&lt;/div&gt;', 
+			    '&lt;/tpl&gt;',
+			    '&lt;div class=&quot;x-clear&quot;&gt;&lt;/div&gt;'
+			), 
+			store : userInfoStore, 
+			listeners : {
+				scope : this, 
+				afterRender : function (me) {
+					if (this.user.identifier !== &quot;public&quot;) {
+						me.logoutBtn.render(&quot;logBtn&quot;);
+					}
+					else {
+						me.loginBtn.render(&quot;logBtn&quot;);
+						me.registerBtn.render(&quot;logBtn&quot;);
+					}
+					me.closeBtn.render(this.id);
+				}
+			}
+		});
+		sitools.user.component.entete.UserProfile.superclass.initComponent.call(Ext.apply(this, {
+			id : &quot;userProfileWindow&quot;, 
+			header : false,
+			stateful : false, 
+			shadow : false, 
+			layout : this.user.identifier === &quot;public&quot; ? 'hbox' : 'vbox',
+			layoutConfig : {
+				align : &quot;stretch&quot;
+			},
+			border : false, 
+			hideBorders : true, 
+			closable : false, 
+			x : Ext.getBody().getWidth() - 400, 
+			y : SitoolsDesk.getEnteteEl().getHeight(), 
+			resizable : false, 
+			bodyBorder : false, 
+			listeners : {
+				scope : this, 
+				beforeRender : function () {
+					Ext.getBody().on(&quot;click&quot;, this.interceptOnClick, this);
+				}, 
+				beforeDestroy : function (me) {
+					Ext.getBody().un(&quot;click&quot;, this.interceptOnClick, this);
+					Ext.getCmp(this.buttonId).enable();
+				}
+			}, 
+			items : [displayInfo, {
+				xtype : &quot;panel&quot;, 
+				items : [buttonsDataView]
+			}]
+		}));
+		
+	}, 
+<span id='sitools-user-component-entete-UserProfile-method-interceptOnClick'>	/**
+</span>	 * while this window is active, checked if any click is done on this window, or somewhere Else. 
+	 * 
+	 * @param {Ext.event} evt the clic Event. 
+	 * @param {HtmlElement} target the Html target element. 
+	 * @returns
+	 */
+	interceptOnClick : function (evt, target) {
+		//le click est sur le bouton pour ouvrir la fenêtre : Désactiver le bouton... et fin de l'action.
+		if (Ext.DomQuery.select(&quot;table[id=&quot; + this.buttonId + &quot;] button[id=&quot; + target.id + &quot;]&quot;).length === 1) {
+			Ext.getCmp(this.buttonId).disable();
+			return;
+		}
+		
+		//Le clic est sur un élément de la fenêtre : rien à faire. 
+		if (this.isDescendant(Ext.DomQuery.select(&quot;div[id=userProfileWindow]&quot;)[0], target)) {
+			if (evt.shiftKey &amp;&amp; evt.ctrlKey) {
+				breakout().getBackToDesktop();
+			}
+			return;
+		}
+		
+		//Le clic est quelque part en dehors de la fenêtre, on détruit la fenêtre (-&gt; beforeDestroy est exécuté)
+		this.destroy();
+	}, 
+<span id='sitools-user-component-entete-UserProfile-method-actionItemClick'>	/**
+</span>	 * Handler of any click on the dataview used to display actions btn : 
+	 * Execute the method specified in each store.action attribute. 
+	 * 
+	 * @param {Ext.DataView} dataView the clicked Dataview
+	 * @param {numeric} index the index of the clicked node
+	 * @param {Html Element} node the clicked html element 
+	 * @param {Ext.event} e The click event
+	 * @returns
+	 */
+	actionItemClick : function (dataView, index, node, e) {
+		try {
+			var data = dataView.getSelectedRecords()[0].data;	
+			eval(&quot;this.&quot; + data.action).call(this, dataView, index, node, e);
+		}
+		catch (err) {
+			return;
+		}
+		
+	}, 
+	isDescendant : function (parent, child) {
+		var node = child.parentNode;
+		while (node !== null) {
+		    if (node === parent) {
+		        return true;
+		    }
+		    node = node.parentNode;
+		}
+		return false;
+	}, 
+<span id='sitools-user-component-entete-UserProfile-method-changeLanguage'>	/**
+</span>	 * Open a Ext.Menu.menu containing all projectGlobal.languages options. 
+	 * @param {Ext.DataView} dataView the clicked Dataview
+	 * @param {numeric} index the index of the clicked node
+	 * @param {Html Element} node the clicked html element 
+	 * @param {Ext.event} e The click event
+	 */
+	changeLanguage : function (dataView, index, node, e) {
+	    var menuLangues = new Ext.menu.Menu({
+	        plain : true
+	    });
+	    Ext.each(projectGlobal.languages, function (language) {
+	        menuLangues.add({
+	            text : language.displayName,
+	            scope : this,
+	            handler : function () {
+	                var callback = function () {
+	                    Ext.util.Cookies.set('language', language.localName);
+	                    window.location.reload();
+	                };
+	                var date = new Date();
+	                Ext.util.Cookies.set('language', language.localName, date.add(Date.MINUTE, 20));
+	                var userPreferences = {};
+	                userPreferences.language = language.localName;
+	                if (!Ext.isEmpty(userLogin)) {
+	                    userStorage.set(loadUrl.get('APP_PORTAL_URL'),  &quot;/&quot; + DEFAULT_PREFERENCES_FOLDER + loadUrl.get('APP_PORTAL_URL'), userPreferences, callback);
+	                } else {
+	                    window.location.reload();
+	                }
+
+	            },
+	            icon : language.image
+	        });
+	    }, this);
+	    menuLangues.showAt([Ext.get(node.id).getLeft(), Ext.get(node.id).getBottom()]);
+		
+	}, 
+<span id='sitools-user-component-entete-UserProfile-method-editProfile'>	/**
+</span>	 * Open a window in the desktop with the sitools.userProfile.editProfile object. 
+	 * @param {Ext.DataView} dataView the clicked Dataview
+	 * @param {numeric} index the index of the clicked node
+	 * @param {Html Element} node the clicked html element 
+	 * @param {Ext.event} e The click event
+	 */
+	editProfile : function (dataView, index, node, e) {
+		if (this.user.identifier === &quot;public&quot;) {
+			return;
+		}
+		var componentCfg = {
+		    identifier : this.user.identifier,
+		    url: '/sitools/editProfile/' + this.user.identifier,
+		    handler : function (user) {
+				projectGlobal.user = user;
+			}
+        };
+        var jsObj = sitools.userProfile.editProfile;
+
+        var windowConfig = {
+            title : i18n.get('label.editProfile'),
+            saveToolbar : false, 
+            iconCls : &quot;editProfile&quot;
+        };
+		SitoolsDesk.addDesktopWindow(windowConfig, componentCfg, jsObj, true);
+		this.destroy();
+	}, 
+<span id='sitools-user-component-entete-UserProfile-method-showTasks'>	/**
+</span>	 * Open a window in the desktop with the sitools.user.component.entete.userProfile.tasks object. 
+	 * @param {Ext.DataView} dataView the clicked Dataview
+	 * @param {numeric} index the index of the clicked node
+	 * @param {Html Element} node the clicked html element 
+	 * @param {Ext.event} e The click event
+	 */
+	showTasks : function () {
+		var jsObj = sitools.user.component.entete.userProfile.tasks;
+        var windowConfig = {
+            title : i18n.get('label.Tasks'),
+            saveToolbar : false, 
+            iconCls : 'tasks'
+        };
+        SitoolsDesk.addDesktopWindow(windowConfig, {}, jsObj, true);
+		this.destroy();
+		
+	}, 
+<span id='sitools-user-component-entete-UserProfile-method-showDisk'>	/**
+</span>	 * Open a window in the desktop with the sitools.user.component.entete.userProfile.diskSpace object. 
+	 * @param {Ext.DataView} dataView the clicked Dataview
+	 * @param {numeric} index the index of the clicked node
+	 * @param {Html Element} node the clicked html element 
+	 * @param {Ext.event} e The click event
+	 */
+	showDisk : function () {
+		var jsObj = sitools.user.component.entete.userProfile.diskSpace;
+		var windowConfig = {
+            title : i18n.get('label.userSpace'),
+            saveToolbar : false, 
+            iconCls : &quot;diskSpace&quot;
+        };
+        SitoolsDesk.addDesktopWindow(windowConfig, {}, jsObj, true);
+		this.destroy();
+	}, 
+<span id='sitools-user-component-entete-UserProfile-method-fillDiskInformations'>	/**
+</span>	 * Send a request on user task resource to determine how many tasks are launched and finished.
+	 * Update the task comment div with the formated result. 
+	 */
+	fillDiskInformations : function () {
+		var el = Ext.DomQuery.select(&quot;div[id='userDiskSpace'] span[class='userButtons-comment']&quot;)[0];
+		if (Ext.isEmpty(el)) {
+			return;
+		}
+		Ext.Ajax.request({
+			method : &quot;GET&quot;,
+
+			url : loadUrl.get('APP_URL') + loadUrl.get('APP_USERSTORAGE_USER_URL').replace(&quot;{identifier}&quot;, this.user.identifier) + &quot;/status&quot;, 
+			success : function (ret) {
+				var json = Ext.decode(ret.responseText);
+				if (!json.success) {
+					return;
+				}
+				var storage = json.userstorage.storage;
+				var totalSpace = storage.quota;
+				var usedSpace = storage.busyUserSpace;
+				var pourcentage = usedSpace / totalSpace * 100;
+				var cls = null; 
+			    if (pourcentage &gt;= 90 &amp;&amp; pourcentage &lt; 100) {
+				    Ext.get(&quot;userDiskSpace&quot;).addClass(&quot;sitools-userProfile-warning-icon&quot;);
+				    cls = &quot;sitools-userProfile-warning-text&quot;;
+				}
+			    else if (pourcentage &gt; 100) {
+                    Ext.get(&quot;userDiskSpace&quot;).addClass(&quot;sitools-userProfile-error-icon&quot;);
+                    cls = &quot;sitools-userProfile-error-text&quot;;
+                }
+			    var str = &quot;&quot;;
+			    if (!Ext.isEmpty(cls)) {
+                    str += &quot;&lt;span class='&quot; + cls + &quot;'&gt;&quot;;
+                }
+			    str += String.format(i18n.get('label.diskSpace'), Ext.util.Format.round(pourcentage, 0), Ext.util.Format.fileSize(totalSpace));
+			    if (!Ext.isEmpty(cls)) {
+                    str += &quot;&lt;/span&gt;&quot;;
+                }
+				el.update(str);
+			}
+		});
+	}, 
+<span id='sitools-user-component-entete-UserProfile-method-fillTaskInformations'>	/**
+</span>	 * Send a request on user userstorage resource to determine the space allowed and consumed. 
+	 * Update the diskSpace comment div with the formated result. 
+	 */
+	fillTaskInformations : function () {
+		var el = Ext.DomQuery.select(&quot;div[id='tasks'] span[class='userButtons-comment']&quot;)[0];
+		if (Ext.isEmpty(el)) {
+			return;
+		}
+		Ext.Ajax.request({
+			method : &quot;GET&quot;,
+			url : loadUrl.get('APP_URL') + loadUrl.get('APP_USERRESOURCE_ROOT_URL') +  &quot;/&quot; + this.user.identifier + &quot;/tasks&quot;, 
+			success : function (ret) {
+				var json = Ext.decode(ret.responseText);
+				if (!json.success) {
+					return;
+				}
+				var runningTasks = 0, totalTasks = 0;
+				Ext.each(json.data, function (task) {
+					if (task.status === &quot;TASK_STATUS_RUNNING&quot; || task.status === &quot;TASK_STATUS_PENDING&quot;) {
+						runningTasks++;
+					}
+					totalTasks++;
+				});
+                if (runningTasks &gt; 0) {
+				    el.update(String.format(i18n.get('label.taskRunning'), runningTasks));
+                } else {
+                    el.update(&quot;&quot;);
+                }
+			}
+		});
+		
+	}
+	
+});</pre>
+</body>
+</html>

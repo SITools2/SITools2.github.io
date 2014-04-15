@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span> * Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * 
+ * This file is part of SITools2.
+ * 
+ * SITools2 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * SITools2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * SITools2. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ******************************************************************************/
+/*global Ext, sitools, i18n, extColModelToStorage, projectId, userStorage, window, extColModelToSrv, userLogin, alertFailure, DEFAULT_LIVEGRID_BUFFER_SIZE, projectGlobal, SitoolsDesk, DEFAULT_ORDER_FOLDER, DEFAULT_PREFERENCES_FOLDER, loadUrl */
+
+/*
+ * @include &quot;resourcePluginParamsPanel.js&quot;
+ * @include &quot;goToTaskPanel.js&quot;
+ * @include &quot;../../../env.js&quot;
+ * @include &quot;../../../def.js&quot;
+ */
+Ext.namespace('sitools.user.component.dataviews.services');
+
+<span id='global-cfg-grid'>/**
+</span> * Define an object to call server service resources
+ * 
+ * @extends Ext.util.Observable
+ * @cfg {} grid The object that calls ContextMenu 
+ * @cfg {string} datasetUrl The url Attachement of the dataset
+ * @cfg {string} datasetName Dataset Name
+ * @cfg {string} origin name of the dataview which call this object
+ * @requires sitools.user.component.dataviews.resourcePluginParamsPanel
+ * @requires sitools.user.component.dataviews.goToTaskPanel
+ */
+sitools.user.component.dataviews.services.serverServicesUtil =  Ext.extend(Ext.util.Observable, {
+
+    constructor : function (config) {
+<span id='global-property-'>        /** apply datasetUrl, grid, origin **/
+</span>        Ext.apply(this, config);
+        
+        this.urlDatasetServiceServer = this.datasetUrl + &quot;/services&quot; + '/server/{idService}';
+    },
+    
+    callServerService : function (idService, selections) {
+        this.setSelections(selections);
+        Ext.Ajax.request({
+            url : this.urlDatasetServiceServer.replace('{idService}', idService),
+            method : 'GET',
+            scope : this,
+            success : function (ret) {
+                var json = Ext.decode(ret.responseText);
+                if (!json.success) {
+                    Ext.Msg.alert(i18n.get(&quot;label.warning&quot;), i18n.get(&quot;label.resource.not.found&quot;));
+                    return;
+                }
+                
+                var resource = json.resourcePlugin;
+                var parameters = resource.parameters;
+                var url = null, runTypeUserInput = null, methods = null;
+                parameters.each(function (param) {
+                    switch (param.name) {
+                    case &quot;methods&quot;:
+                        methods = param.value;
+                        break;
+                    case &quot;runTypeUserInput&quot;:
+                        runTypeUserInput = param.value;
+                        break;
+                    case &quot;url&quot;:
+                        url = this.datasetUrl + param.value;
+                        break;                    
+                    }
+                }, this);
+                
+                this.resourceClick(resource, url, methods, runTypeUserInput, parameters);
+            }
+        });
+        
+    },
+    
+    
+<span id='global-method-getNbRowsSelected'>    /**
+</span>     * Get the number of selected records
+     * @return {number}
+     */
+    getNbRowsSelected : function () {
+        if (this.grid.getNbRowsSelected()) {
+            return this.grid.getNbRowsSelected();
+        }
+        else {
+            return null;
+        }
+    },
+<span id='global-method-getNbGridRecords'>    /**
+</span>     * Get the number of grid records
+     * @return {number}
+     */
+    getNbGridRecords : function () {
+        return this.grid.getStore().totalLength;
+    }, 
+<span id='global-method-setGrid'>    /**
+</span>     * Sets the grid attribute
+     * @param {} cmp
+     */
+    setGrid : function (cmp) {
+        this.grid = cmp;
+    },
+<span id='global-method-setSelections'>    /**
+</span>     * sets the selections attribute
+     * @param {} selections
+     */
+    setSelections : function (selections) {
+        this.selections = selections;
+    },
+<span id='global-method-resourceClick'>    /**
+</span>     * Method called when a resource item is clicked.
+     * 
+     * @param {} resource The resource description
+     * @param {string} url the url to call to execute query
+     * @param {Array} methods A list of permissed methods. 
+     * @param {} runType The runType of the resource.
+     * @param {Array} parameters An array of parameters.
+     */
+    resourceClick : function (resource, url, methods, runType, parameters, postParameter, callback) {
+        this.checkResourceParameters(resource, url, methods, runType, parameters, postParameter, callback);
+    },
+    
+<span id='global-method-handleResourceClick'>    /**
+</span>     * handle the click on a Resource after the parameters have been checked
+     * 
+     * @param {} resource The resource description
+     * @param {string} url the url to call to execute query
+     * @param {Array} methods A list of permissed methods. 
+     * @param {} runType The runType of the resource.
+     * @param {Array} parameters An array of parameters.
+     */
+    handleResourceClick : function (resource, url, methods, runType, parameters, postParameter, callback) {
+        //check that the number of records allowed is not reached
+        var showParameterBox = false;
+        var params = {};
+        Ext.each(parameters, function (parameter) {
+            if (parameter.type === &quot;PARAMETER_USER_INPUT&quot; &amp;&amp; parameter.userUpdatable) {
+                showParameterBox = true;
+            } 
+            if (parameter.type == &quot;PARAMETER_IN_QUERY&quot;) {
+                params[parameter.name] = parameter.value;   
+            }
+        });
+        if (methods.split(&quot;|&quot;) &amp;&amp; methods.split(&quot;|&quot;).length &gt; 1) {
+            showParameterBox = true;
+        }
+        var componentCfg = null, windowConfig = null, jsObj = null;
+        if (showParameterBox &amp;&amp; this.origin !== &quot;sitools.user.modules.projectServices&quot;) {
+            windowConfig = {
+                title : i18n.get(&quot;label.resourceReqParam&quot;), 
+                iconCls : &quot;datasetRessource&quot;
+            };
+            jsObj = sitools.user.component.dataviews.resourcePluginParamsPanel;
+            componentCfg = {
+                resource : resource,
+                url : url,
+                methods : methods,
+                runType : runType,
+                parameters : parameters,
+                contextMenu : this,
+                postParameter : postParameter,
+                callback : callback,
+                withSelection : (this.getNbRowsSelected() !== 0)
+            };
+            SitoolsDesk.addDesktopWindow(windowConfig, componentCfg, jsObj);
+        }
+        else if (showParameterBox) {
+            windowConfig = {
+                title : i18n.get(&quot;label.resourceReqParam&quot;), 
+                iconCls : &quot;datasetRessource&quot;
+            };
+            jsObj = sitools.user.component.dataviews.resourcePluginParamsPanel;
+            componentCfg = {
+                resource : resource,
+                url : url,
+                methods : methods,
+                runType : runType,
+                parameters : parameters,
+                contextMenu : this,
+                withSelection : false,
+                postParameter : postParameter,
+                callback : callback
+            };
+            SitoolsDesk.addDesktopWindow(windowConfig, componentCfg, jsObj);
+        }
+        else {
+            this.onResourceCallClick(resource, url, methods, runType, null, params, postParameter, callback);
+        }
+    },
+
+<span id='global-method-onResourceCallClick'>    /**
+</span>     * the action used when click on a Resource menu. Request Resource tasks to the URL
+     * datasetUrlAttachment + &quot;/sva/&quot; + sva.id + &quot;/tasks If there is no selected
+     * record : Build the request with the actual params of the grid : sort,
+     * filters, formParams, ColModel else Build the request with a list of
+     * records primaryKeyValue by using the formRequest API LISTBOXMULTIPLE|
+     * 
+     * @param {} resource the resource object.  
+     * @param url :
+     *            the Url to request the data
+     * @param method :
+     *            the method used to request the data
+     * @param grid :
+     *            the liveGrid
+     * @param method :
+     *            the method for the resource : POST or GET
+     * @param userSyncChoice :
+     *            the user choice : &quot;sync&quot; || &quot;async&quot;
+     * @param limit :
+     *            the request limit
+     * @param userParameters :
+     *            a list of key/value object
+     * 
+     */
+    onResourceCallClick : function (resource, url, method, userSyncChoice, limit, userParameters, postParameter, callback) {
+        if ((method === &quot;POST&quot; || method === &quot;PUT&quot; || method === &quot;DELETE&quot;) &amp;&amp; userSyncChoice === &quot;TASK_RUN_SYNC&quot;) {
+            Ext.Msg.alert(i18n.get('label.error'), String.format(i18n.get(&quot;error.invalidMethodOrSyncRessourceCall&quot;), method, userSyncChoice));
+            return;
+        }
+
+        var request = &quot;&quot;;
+        if (this.origin !== &quot;sitools.user.modules.projectServices&quot;) {
+            try {
+                request = this.grid.getRequestParam();
+            }
+            catch (err) {
+                Ext.Msg.alert(i18n.get('label.error'), String.format(i18n.get('label.notImplementedService'), err));
+                return false;
+            }
+        }
+
+        url += &quot;?1=1&quot; + request;
+        if (!Ext.isEmpty(limit)) {
+            url += &quot;&amp;limit=&quot; + limit;
+        }
+        if (! Ext.isEmpty(userParameters)) {
+            Ext.iterate(userParameters, function (key, value) {
+                url += &quot;&amp;&quot; + key + &quot;=&quot; + value; 
+            });
+        }
+
+        if (method === &quot;GET&quot;) {
+            switch (resource.behavior) {
+            case &quot;DISPLAY_IN_NEW_TAB&quot; :
+                if (!Ext.isEmpty(callback)) {
+                    callback.call();
+                }
+                window.open(url);
+                Ext.getBody().unmask();
+                break;
+            case &quot;DISPLAY_IN_DESKTOP&quot; :
+                var windowConfig = {
+                    title : i18n.get('downloadedResource'), 
+                    iconCls : &quot;datasetRessource&quot;
+                };
+                var jsObj = Ext.ux.ManagedIFrame.Panel;
+                var componentCfg = {
+                    layout : 'fit',
+                    defaultSrc: url, 
+                    autoScroll : true
+                };
+                Ext.Ajax.request({
+                    method : &quot;HEAD&quot;, 
+                    url : url, 
+                    success : function (ret) {
+                        var headerFile = &quot;&quot;;
+                        try {
+                            headerFile = ret.getResponseHeader(&quot;Content-Type&quot;).split(&quot;;&quot;)[0].split(&quot;/&quot;)[0];
+                        }
+                        catch (err) {
+                            headerFile = &quot;&quot;;    
+                        }
+                        var contentDisp = ret.getResponseHeader(&quot;Content-Disposition&quot;);
+                        
+                        if (headerFile === &quot;text&quot; &amp;&amp; Ext.isEmpty(contentDisp)) {
+                            SitoolsDesk.addDesktopWindow(windowConfig, componentCfg, jsObj);
+                        }
+                        else {
+                            if (!Ext.isEmpty(callback)) {
+                                callback.call();
+                            }
+                            var iFrame = Ext.getCmp(&quot;tempMifDownload&quot;);
+                            if (Ext.isEmpty(iFrame)) {
+                                iFrame  = new Ext.ux.ManagedIFrame.Panel({
+                                    layout : 'fit',
+                                    defaultSrc: url, 
+                                    autoScroll : true, 
+                                    renderTo : Ext.getBody(), 
+                                    id : &quot;tempMifDownload&quot;,
+                                    listeners : {
+                                        activate : function () {
+                                            
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                iFrame.setSrc(url); 
+                            }
+                        }
+                    }, 
+                    failure : alertFailure
+                });
+                break;
+            case &quot;DOWNLOAD&quot; :
+                if (!Ext.isEmpty(callback)) {
+                    callback.call();
+                }
+                //générer un panel caché
+                var iFrame = Ext.getCmp(&quot;tempMifDownload&quot;);
+                if (Ext.isEmpty(iFrame)) {
+                    iFrame  = new Ext.ux.ManagedIFrame.Panel({
+                        layout : 'fit',
+                        defaultSrc: url, 
+                        autoScroll : true, 
+                        renderTo : Ext.getBody(), 
+                        id : &quot;tempMifDownload&quot;,
+                        listeners : {
+                            afterrender : function () {
+//                              callback.call();
+//                              console.log('afterrender 2');
+                          }
+                        }
+                    });
+                }
+                else {
+                    iFrame.setSrc(url); 
+                }
+                
+                break;
+            }
+            return;
+        } else {
+            this._executeRequestForResource(url, method, postParameter, callback);
+        }
+    },
+<span id='global-method-_executeRequestForResource'>    /**
+</span>     * Execute the resource.
+     * @param {string} url the url to request
+     * @param {string} method The method (GET, POST, PUT, DELETE)
+     * @param {} postObject The object that will be passed with the request.
+     */
+    _executeRequestForResource : function (url, method, postObject, callback) {
+        var config = {
+            method : method,
+            url : url,
+            scope : this,
+            success : function (response, opts) {
+                // try {
+                
+                var json = Ext.decode(response.responseText);
+                if (!json.success) {
+                    Ext.Msg.show({
+                        title : i18n.get('label.error'),
+                        msg : json.message,
+                        width : 300,
+                        buttons : Ext.MessageBox.OK
+                    });
+                    return;
+                }
+                var task = json.TaskModel;
+                if (!Ext.isEmpty(task.urlResult)) {
+                    window.open(task.urlResult);
+                } else {
+                    var componentCfg = {
+                        task : task
+                    };
+                    var jsObj = sitools.user.component.dataviews.goToTaskPanel;
+        
+                    var windowConfig = {
+                        title : i18n.get('label.info'),
+                        saveToolbar : false,
+                        iconCls : &quot;datasetRessource&quot;
+                    };
+                    SitoolsDesk.addDesktopWindow(windowConfig, componentCfg, jsObj, true);
+                    
+                }
+                
+
+            },
+            failure : function (response, opts) {
+                this.grid.getEl().unmask();
+                Ext.Msg.show({
+                        title : i18n.get('label.error'),
+                        msg : response.responseText,
+                        width : 300,
+                        buttons : Ext.MessageBox.OK
+                    });
+            },
+            callback : function () {
+                
+                if (Ext.getBody().isMasked()) {
+                    Ext.getBody().unmask();
+                }
+                callback.call();
+            }
+
+        };
+        if (!Ext.isEmpty(postObject)) {
+            Ext.apply(config, postObject);
+        }
+        Ext.Ajax.request(config);
+    },
+<span id='global-method-checkResourceParameters'>    /**
+</span>     * check that the request is compatible with the resource parameters.
+     * If the parameters are ok, call the method handleResourceClick to handle the resource call
+     * @param {} resource The resource description
+     * @param {string} url the url to call to execute query
+     * @param {Array} methods A list of permissed methods. 
+     * @param {} runType The runType of the resource.
+     * @param {Array} parameters An array of parameters.
+     * 
+     */
+    checkResourceParameters : function (resource, url, methods, runType, parameters, postParameter, callback) {
+        //in the case of a OrderResource, let's check that the number of records is not superior to too_many_selected_threshold =&gt; stop the resource execution
+        var maxThreshold = this.getParameterFromName(parameters, &quot;too_many_selected_threshold&quot;);
+        var nbRows;
+        if (!Ext.isEmpty(maxThreshold)) {
+            var maxThresholdTextParam, maxTresholdText;
+            //get the number of rows either from a selection or all the rows
+            nbRows = (Ext.isEmpty(this.getNbRowsSelected()) || this.getNbRowsSelected() === 0) ? this.getNbGridRecords() : this.getNbRowsSelected();
+            if (!Ext.isEmpty(maxThreshold.value) &amp;&amp; parseInt(maxThreshold.value) !== -1 &amp;&amp; nbRows &gt; parseInt(maxThreshold.value)) {
+                maxThresholdTextParam = this.getParameterFromName(parameters, &quot;too_many_selected_threshold_text&quot;);
+                maxTresholdText = i18n.get(&quot;label.defaultMaxThresholdText&quot;);
+                if (!Ext.isEmpty(maxThresholdTextParam)) {
+                    maxTresholdText = maxThresholdTextParam.value;
+                }
+                Ext.Msg.alert(i18n.get(&quot;label.error&quot;), maxTresholdText);
+                return;
+            }
+        }
+        //in the case of a OrderResource, let's check that the number of records is not superior to max_warning_threshold =&gt; ask the user to continue or stop the resource execution
+        var warningThreshold = this.getParameterFromName(parameters, &quot;max_warning_threshold&quot;);
+        if (!Ext.isEmpty(warningThreshold)) {
+            //get the number of rows either from a selection or all the rows
+            nbRows = (Ext.isEmpty(this.getNbRowsSelected()) || this.getNbRowsSelected() === 0) ? this.getNbGridRecords() : this.getNbRowsSelected();
+            if (!Ext.isEmpty(warningThreshold.value) &amp;&amp;  parseInt(warningThreshold.value) !== -1 &amp;&amp; nbRows &gt;  parseInt(warningThreshold.value)) {
+                var warningThresholdTextParam = this.getParameterFromName(parameters, &quot;max_warning_threshold_text&quot;);
+                var warningTresholdText = i18n.get(&quot;label.defaultWarningThresholdText&quot;);
+                if (!Ext.isEmpty(warningThresholdTextParam)) {
+                    warningTresholdText = warningThresholdTextParam.value;
+                } 
+                Ext.Msg.show({
+                    title : i18n.get('label.warning'),
+                    buttons : {
+                        yes : i18n.get('label.yes'),
+                        no : i18n.get('label.no')
+                    },
+                    msg : warningTresholdText,
+                    scope : this,
+                    fn : function (btn, text) {
+                        if (btn === 'yes') {
+                            this.handleResourceClick(resource, url, methods, runType, parameters, postParameter, callback);
+                        }
+                    }
+                }); 
+                return;     
+            }
+        }
+        this.handleResourceClick(resource, url, methods, runType, parameters, postParameter, callback);
+    },
+<span id='global-method-getParameterFromName'>    /**
+</span>     * get the parameter with the given name from the given list of parameter
+     * @param {Array} parameters the Array of parameters
+     * @param {string} name the name of the Parameter to search
+     * @return {Object} a Parameter with the given name or null if the parameter is not found 
+     */
+    getParameterFromName : function (parameters, name) {
+        var paramOut = null;
+        for (var index = 0; index &lt; parameters.length &amp;&amp; paramOut === null; index++) {
+            if (parameters[index].name === name) {
+                paramOut = parameters[index];
+            }
+        }
+        return paramOut;
+
+    }
+    
+});
+</pre>
+</body>
+</html>

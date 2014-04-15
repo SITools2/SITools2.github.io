@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.plugins.setLang(&quot;specialchar&quot;,&quot;pl&quot;,{euro:&quot;Znak euro&quot;,lsquo:&quot;Cudzysłów pojedynczy otwierający&quot;,rsquo:&quot;Cudzysłów pojedynczy zamykający&quot;,ldquo:&quot;Cudzysłów apostrofowy otwierający&quot;,rdquo:&quot;Cudzysłów apostrofowy zamykający&quot;,ndash:&quot;Półpauza&quot;,mdash:&quot;Pauza&quot;,iexcl:&quot;Odwrócony wykrzyknik&quot;,cent:&quot;Znak centa&quot;,pound:&quot;Znak funta&quot;,curren:&quot;Znak waluty&quot;,yen:&quot;Znak jena&quot;,brvbar:&quot;Przerwana pionowa kreska&quot;,sect:&quot;Paragraf&quot;,uml:&quot;Diereza&quot;,copy:&quot;Znak praw autorskich&quot;,ordf:&quot;Wskaźnik rodzaju żeńskiego liczebnika porządkowego&quot;,
+laquo:&quot;Lewy cudzysłów ostrokątny&quot;,not:&quot;Znak negacji&quot;,reg:&quot;Zastrzeżony znak towarowy&quot;,macr:&quot;Makron&quot;,deg:&quot;Znak stopnia&quot;,sup2:&quot;Druga potęga&quot;,sup3:&quot;Trzecia potęga&quot;,acute:&quot;Akcent ostry&quot;,micro:&quot;Znak mikro&quot;,para:&quot;Znak akapitu&quot;,middot:&quot;Kropka środkowa&quot;,cedil:&quot;Cedylla&quot;,sup1:&quot;Pierwsza potęga&quot;,ordm:&quot;Wskaźnik rodzaju męskiego liczebnika porządkowego&quot;,raquo:&quot;Prawy cudzysłów ostrokątny&quot;,frac14:&quot;Ułamek zwykły jedna czwarta&quot;,frac12:&quot;Ułamek zwykły jedna druga&quot;,frac34:&quot;Ułamek zwykły trzy czwarte&quot;,iquest:&quot;Odwrócony znak zapytania&quot;,
+Agrave:&quot;Wielka litera A z akcentem ciężkim&quot;,Aacute:&quot;Wielka litera A z akcentem ostrym&quot;,Acirc:&quot;Wielka litera A z akcentem przeciągłym&quot;,Atilde:&quot;Wielka litera A z tyldą&quot;,Auml:&quot;Wielka litera A z dierezą&quot;,Aring:&quot;Wielka litera A z kółkiem&quot;,AElig:&quot;Wielka ligatura Æ&quot;,Ccedil:&quot;Wielka litera C z cedyllą&quot;,Egrave:&quot;Wielka litera E z akcentem ciężkim&quot;,Eacute:&quot;Wielka litera E z akcentem ostrym&quot;,Ecirc:&quot;Wielka litera E z akcentem przeciągłym&quot;,Euml:&quot;Wielka litera E z dierezą&quot;,Igrave:&quot;Wielka litera I z akcentem ciężkim&quot;,
+Iacute:&quot;Wielka litera I z akcentem ostrym&quot;,Icirc:&quot;Wielka litera I z akcentem przeciągłym&quot;,Iuml:&quot;Wielka litera I z dierezą&quot;,ETH:&quot;Wielka litera Eth&quot;,Ntilde:&quot;Wielka litera N z tyldą&quot;,Ograve:&quot;Wielka litera O z akcentem ciężkim&quot;,Oacute:&quot;Wielka litera O z akcentem ostrym&quot;,Ocirc:&quot;Wielka litera O z akcentem przeciągłym&quot;,Otilde:&quot;Wielka litera O z tyldą&quot;,Ouml:&quot;Wielka litera O z dierezą&quot;,times:&quot;Znak mnożenia wektorowego&quot;,Oslash:&quot;Wielka litera O z przekreśleniem&quot;,Ugrave:&quot;Wielka litera U z akcentem ciężkim&quot;,Uacute:&quot;Wielka litera U z akcentem ostrym&quot;,
+Ucirc:&quot;Wielka litera U z akcentem przeciągłym&quot;,Uuml:&quot;Wielka litera U z dierezą&quot;,Yacute:&quot;Wielka litera Y z akcentem ostrym&quot;,THORN:&quot;Wielka litera Thorn&quot;,szlig:&quot;Mała litera ostre s (eszet)&quot;,agrave:&quot;Mała litera a z akcentem ciężkim&quot;,aacute:&quot;Mała litera a z akcentem ostrym&quot;,acirc:&quot;Mała litera a z akcentem przeciągłym&quot;,atilde:&quot;Mała litera a z tyldą&quot;,auml:&quot;Mała litera a z dierezą&quot;,aring:&quot;Mała litera a z kółkiem&quot;,aelig:&quot;Mała ligatura æ&quot;,ccedil:&quot;Mała litera c z cedyllą&quot;,egrave:&quot;Mała litera e z akcentem ciężkim&quot;,
+eacute:&quot;Mała litera e z akcentem ostrym&quot;,ecirc:&quot;Mała litera e z akcentem przeciągłym&quot;,euml:&quot;Mała litera e z dierezą&quot;,igrave:&quot;Mała litera i z akcentem ciężkim&quot;,iacute:&quot;Mała litera i z akcentem ostrym&quot;,icirc:&quot;Mała litera i z akcentem przeciągłym&quot;,iuml:&quot;Mała litera i z dierezą&quot;,eth:&quot;Mała litera eth&quot;,ntilde:&quot;Mała litera n z tyldą&quot;,ograve:&quot;Mała litera o z akcentem ciężkim&quot;,oacute:&quot;Mała litera o z akcentem ostrym&quot;,ocirc:&quot;Mała litera o z akcentem przeciągłym&quot;,otilde:&quot;Mała litera o z tyldą&quot;,ouml:&quot;Mała litera o z dierezą&quot;,
+divide:&quot;Anglosaski znak dzielenia&quot;,oslash:&quot;Mała litera o z przekreśleniem&quot;,ugrave:&quot;Mała litera u z akcentem ciężkim&quot;,uacute:&quot;Mała litera u z akcentem ostrym&quot;,ucirc:&quot;Mała litera u z akcentem przeciągłym&quot;,uuml:&quot;Mała litera u z dierezą&quot;,yacute:&quot;Mała litera y z akcentem ostrym&quot;,thorn:&quot;Mała litera thorn&quot;,yuml:&quot;Mała litera y z dierezą&quot;,OElig:&quot;Wielka ligatura OE&quot;,oelig:&quot;Mała ligatura oe&quot;,372:&quot;Wielka litera W z akcentem przeciągłym&quot;,374:&quot;Wielka litera Y z akcentem przeciągłym&quot;,373:&quot;Mała litera w z akcentem przeciągłym&quot;,
+375:&quot;Mała litera y z akcentem przeciągłym&quot;,sbquo:&quot;Pojedynczy apostrof dolny&quot;,8219:&quot;Pojedynczy apostrof górny&quot;,bdquo:&quot;Podwójny apostrof dolny&quot;,hellip:&quot;Wielokropek&quot;,trade:&quot;Znak towarowy&quot;,9658:&quot;Czarny wskaźnik wskazujący w prawo&quot;,bull:&quot;Punktor&quot;,rarr:&quot;Strzałka w prawo&quot;,rArr:&quot;Podwójna strzałka w prawo&quot;,hArr:&quot;Podwójna strzałka w lewo&quot;,diams:&quot;Czarny znak karo&quot;,asymp:&quot;Znak prawie równe&quot;});</pre>
+</body>
+</html>

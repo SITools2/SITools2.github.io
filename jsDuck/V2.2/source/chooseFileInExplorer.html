@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/*******************************************************************************
+</span> * Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * 
+ * This file is part of SITools2.
+ * 
+ * SITools2 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * SITools2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * SITools2. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ******************************************************************************/
+/*global Ext, sitools, i18n, loadUrl */
+
+Ext.namespace('sitools.user.modules');
+<span id='sitools-user-modules-cmsContextMenu-cfg-action'><span id='sitools-user-modules-cmsContextMenu-cfg-node'><span id='sitools-user-modules-cmsContextMenu-cfg-datastorageUrl'><span id='sitools-user-modules-cmsContextMenu-cfg-cms'><span id='sitools-user-modules-cmsContextMenu'>/**
+</span></span></span></span></span> * 
+ * @class sitools.user.modules.cmsContextMenu
+ * @cfg cms the parent cms of the toolbar
+ * @cfg datastorageUrl the url of the datastorage
+ * @cfg node the node selected
+ * @cfg action the action to perfom, &quot;create&quot; or &quot;edit&quot; the node
+ * @extends Ext.Window
+ */
+sitools.user.modules.chooseFileInExplorer = Ext.extend(Ext.Window, {
+    
+    
+    
+    height : 250,
+    width : 410,
+    layout : {
+        type : 'vbox',
+        align : 'stretch'
+    },
+    
+    initComponent : function () {
+        
+        this.title = i18n.get(&quot;label.addContent&quot;);
+        
+        this.nodeText = this.node.text;
+        
+        var browseField = new Ext.form.TriggerField({
+            name : 'link',
+            fieldLabel : i18n.get('label.content'),
+            datastorageUrl : this.datastorageUrl,
+            onTriggerClick : function () {
+		        if (!this.disabled) {
+                    
+		            var browser = new sitools.user.modules.datastorageBrowser({
+                        datastorageUrl : this.datastorageUrl,
+                        field : this,
+                        formatValue : function (value) {
+                            var indexDatastorageUrl = value.indexOf(this.datastorageUrl);
+					        if (indexDatastorageUrl !== -1) {
+					            value = value.substr(indexDatastorageUrl + this.datastorageUrl.length, value.length);
+					        }
+                            return value;
+                        }
+                        
+		            });
+                    browser.show();
+		        }
+		    }
+        });
+        
+        
+        this.form = new Ext.form.FormPanel({
+            flex : 1,
+            defaults : {
+                anchor : &quot;100%&quot;
+            },
+            padding : 5,
+            items : [{
+                
+                fieldLabel : i18n.get('label.contentTitle'),
+                name : 'text',
+                xtype : 'textfield',
+                allowBlank : false                
+                        
+            }, {
+                fieldLabel : i18n.get('label.type'),
+                name : 'type',
+                xtype : 'radiogroup',
+                columns : 2,
+                items : [ {
+                    boxLabel : i18n.get(&quot;label.category&quot;),
+                    name : 'type',
+                    inputValue : &quot;category&quot;,
+                    checked : true
+                }, {
+                    boxLabel : i18n.get(&quot;label.page&quot;),
+                    name : 'type',
+                    inputValue : &quot;page&quot;
+                }],
+                disabled : (this.action === &quot;edit&quot;) 
+            }, browseField]
+        });
+        
+        
+        this.items = [this.form];
+        
+        this.buttonOK = new Ext.Button({
+            text : i18n.get('label.ok'),
+            scope : this,
+	        disabled : false,
+            handler : this.onValidate
+        });
+        
+
+
+        this.buttons = [ this.buttonOK, {
+            text : i18n.get('label.cancel'),
+            scope : this,
+            handler : function () {
+                this.close();
+            }
+        } ];
+    
+        
+        sitools.user.modules.chooseFileInExplorer.superclass.initComponent.call(this);
+    },
+    
+    onRender : function () {
+        sitools.user.modules.chooseFileInExplorer.superclass.onRender.apply(this, arguments);
+        if (this.action === &quot;edit&quot;) {
+	        var form = this.form.getForm();
+	        var attributes = this.node.attributes;
+	        var rec = {};
+	        rec.text = attributes.text;
+	        rec.link = attributes.link;
+	        if (this.node.isLeaf()) {
+	            rec.type = &quot;page&quot;;
+	        } else {
+	            rec.type = &quot;category&quot;;
+	        }
+	        var record = new Ext.data.Record(rec);
+	        form.loadRecord(record);   
+        }
+    },
+    
+
+    findOldNode : function (nodeName) {
+        return selectNode = this.cms.tree.getRootNode().findChild('text', nodeName, true);
+    },
+    
+    onValidate : function () {
+        
+        var form = this.form.getForm();
+        if (!form.isValid()) {
+            return;
+        }
+        var forceRefresh = (this.action === &quot;create&quot;);
+        var link = form.findField(&quot;link&quot;).getValue();
+        if (Ext.isEmpty(link)) {
+            Ext.Msg.show({
+                title : i18n.get('label.warning'),
+                msg : i18n.get('label.noLinkDefineCreateFile'),
+                buttons : {
+                    yes : i18n.get('label.yes'),
+                    no : i18n.get('label.no'),
+                    cancel : i18n.get('label.cancel')
+                },
+                fn : function (btnId, textButton, opt) {
+                    if (btnId === &quot;yes&quot;) {
+                        var language = this.cms.getChosenLanguage();
+                        var form = this.form.getForm();
+                        var text = form.findField(&quot;text&quot;).getValue();
+                        var link = &quot;/&quot; + language + &quot;/&quot; + text + &quot;.html&quot;;
+                        this.onSave(link, true, forceRefresh);
+                    } 
+                    else if (btnId === &quot;no&quot;) {
+                        this.onSave(undefined, false, forceRefresh);
+                    }                    
+                    
+                },
+                animEl : 'elId',
+                scope : this,
+                icon : Ext.MessageBox.QUESTION
+            });
+        } else {
+            this.onSave(link, false, forceRefresh);
+        }
+        
+        
+    },
+<span id='sitools-user-modules-cmsContextMenu-method-onSave'>    /**
+</span>     * Method to add a file from its link. If createFile is true, also create the file on the server
+     * @param {String} link the link of the file
+     * @param {boolean} createFile true to create the file on the server, false otherwise
+     */
+    onSave : function (link, createFile, forceRefresh) {
+        if (forceRefresh) {
+            this.cms.refreshTree();
+                Ext.Msg.show({
+	                title : i18n.get('label.info'),
+	                msg : i18n.get('label.refreshNeededBeforeCreate'),
+	                buttons : {
+	                    yes : i18n.get('label.yes'),
+	                    no : i18n.get('label.no')
+	                },
+	                fn : function (btnId, textButton, opt) {
+	                    if (btnId === &quot;yes&quot;) {
+	                        this.performSave(link, createFile);
+	                    }
+	                    
+	                },
+	                animEl : 'elId',
+	                scope : this,
+	                icon : Ext.MessageBox.INFO,
+                    width : 300
+	           });
+        }
+        else {
+            this.performSave(link, createFile);
+        }
+    },
+    
+    performSave : function (link, createFile){
+        var form = this.form.getForm();
+        var text = form.findField(&quot;text&quot;).getValue();
+        var type = form.findField(&quot;type&quot;).getValue().getGroupValue();
+        var leaf = &quot;page&quot; === type;
+        
+        this.node = this.findOldNode(this.nodeText);
+        
+        if (this.action === &quot;create&quot;) {
+            this.cms.addNode(this.node, leaf, text, link, createFile, true);
+        } else {
+            this.cms.editNode(this.node, text, link, createFile, true);
+        }
+        this.close();
+    }
+    
+});
+    
+
+
+
+
+    
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, window, showVersion, publicStorage, userLogin, projectGlobal, SitoolsDesk, showResponse, i18n, extColModelToJsonColModel, loadUrl*/
+
+Ext.namespace('sitools.user.component.entete');
+<span id='sitools-user-component-entete-NavBarButtons-cfg-modules'><span id='sitools-user-component-entete-NavBarButtons'>/**
+</span></span> * @cfg {Array} modules la liste des modules
+ * @class sitools.user.component.entete.NavBarButtons
+ * @extends Ext.Toolbar
+ */
+sitools.user.component.entete.NavBarButtons = Ext.extend(Ext.Toolbar, {
+<span id='sitools-user-component-entete-NavBarButtons-property-profileButtonId'>    /**
+</span>     * The id of the button to open the profile window
+     */
+    profileButtonId : &quot;profileButtonId&quot;, 
+    
+    initComponent : function () {
+        
+        var itemsButtons = [];
+        
+        if (!Ext.isEmpty(userLogin)) {
+            // width with save button
+            this.width = '204px';
+        }
+        
+        
+<span id='sitools-user-component-entete-NavBarButtons-property-profilButton'>        /**
+</span>         * The btn to open profileWindow
+         */
+        this.profilButton = new Ext.Button({
+            scope : this, 
+            handler : this.showProfil, 
+            iconCls : 'navBarButtons-icon',
+            cls : 'navBarTransition',
+//            scale : &quot;medium&quot;, 
+            icon : &quot;/sitools/common/res/images/icons/navBarButtons/user-icon.png&quot;, 
+            tooltip : {
+                html : i18n.get('label.profil'), 
+                anchor : 'bottom', 
+                trackMouse : false
+            }, 
+            id : this.profileButtonId
+        });
+        itemsButtons.push(this.profilButton);
+        
+        this.versionButton = new Ext.Button({
+            iconCls : 'navBarButtons-icon',
+//            scale : &quot;medium&quot;, 
+            id : &quot;versionBtnId&quot;,
+            icon : &quot;/sitools/common/res/images/icons/navBarButtons/version-icon.png&quot;, 
+            handler : function () {
+                showVersion();
+            }, 
+            tooltip : {
+                html : i18n.get('label.version'), 
+                anchor : 'bottom', 
+                trackMouse : false
+            }
+        });
+        itemsButtons.push(this.versionButton);
+        
+        if (!Ext.isEmpty(userLogin)) {
+            this.saveButton = new Ext.Button({
+                scope : this, 
+                iconCls : 'navBarButtons-icon',
+                handler : this.saveAction, 
+//                scale : &quot;medium&quot;, 
+                icon : &quot;/sitools/common/res/images/icons/navBarButtons/save-icon.png&quot;, 
+                tooltip : {
+                    html : i18n.get('label.save'), 
+                    anchor : 'bottom', 
+                    trackMouse : false
+                }, 
+                id : &quot;saveBtnId&quot;
+            });
+            itemsButtons.push(this.saveButton);
+        }
+        
+        this.helpButton = new Ext.Button({
+            iconCls : 'navBarButtons-icon',
+//            scale : &quot;medium&quot;, 
+            scope : this, 
+            icon : &quot;/sitools/common/res/images/icons/navBarButtons/help-icon.png&quot;, 
+            handler : SitoolsDesk.showHelp, 
+            tooltip : {
+                html : i18n.get('label.help'), 
+                anchor : 'bottom', 
+                trackMouse : false
+            }
+        });
+        itemsButtons.push(this.helpButton);
+        
+<span id='sitools-user-component-entete-NavBarButtons-property-maximizeButton'>        /**A specialized btn to switch between normal and maximize mode */
+</span>        this.maximizeButton = new Ext.Button({
+//            scope : this, 
+            iconCls : 'navBarButtons-icon',
+            handler : function () {
+                if (SitoolsDesk.desktopMaximizeMode) {
+                    SitoolsDesk.getDesktop().minimize(); 
+                }
+                else {
+                    SitoolsDesk.getDesktop().maximize();    
+                }
+            }, 
+            icon : SitoolsDesk.desktopMaximizeMode ? &quot;/sitools/common/res/images/icons/navBarButtons/mini-icon.png&quot; : &quot;/sitools/common/res/images/icons/navBarButtons/maxi-icon.png&quot;,  
+            tooltip : {
+            	id : 'tooltipId',
+                html : SitoolsDesk.desktopMaximizeMode ? i18n.get('label.maximize') : i18n.get('label.minimize'), 
+                anchor : 'bottom',
+                trackMouse : false,
+                listeners : {
+                	show : function (tooltip){
+		                if (SitoolsDesk.desktopMaximizeMode) {
+                			tooltip.update(i18n.get('label.minimize'));
+		                }
+		                else {
+	                		tooltip.update(i18n.get('label.maximize'));
+		                }
+                	}
+                }
+            }
+        });
+        itemsButtons.push(this.maximizeButton);
+        
+        sitools.user.component.entete.NavBarButtons.superclass.initComponent.call(Ext.apply(this,  {
+            id : 'navBarButtonsId',
+            enableOverflow: true,
+            defaults : {
+                overCls : &quot;x-navBar-items-over&quot;, 
+                ctCls : &quot;x-navBar-items-ct&quot;
+            }, 
+            items : itemsButtons, 
+            cls : &quot;x-navBar-buttons&quot;, 
+            overCls : &quot;x-navBar-over&quot;, 
+            ctCls : &quot;x-navBar-ct&quot;, 
+            width : this.width,
+            listeners : {
+                scope : this, 
+                maximizeDesktop : this.onMaximizeDesktop, 
+                minimizeDesktop : this.onMinimizeDesktop 
+            }, 
+            border : false
+        }));
+    }, 
+    
+<span id='sitools-user-component-entete-NavBarButtons-method-onMaximizeDesktop'>    /**
+</span>     * listeners of maximizeDesktop event
+     */
+    onMaximizeDesktop : function () {
+        this.maximizeButton.setIcon(&quot;/sitools/common/res/images/icons/navBarButtons/mini-icon.png&quot;);
+        SitoolsDesk.desktopMaximizeMode = true;
+        this.maximizeButton.tooltip.html = i18n.get('label.minimize');
+    },
+    
+<span id='sitools-user-component-entete-NavBarButtons-method-onMinimizeDesktop'>    /**
+</span>     * listeners of minimizeDesktop event
+     */
+    onMinimizeDesktop : function () {
+        this.maximizeButton.setIcon(&quot;/sitools/common/res/images/icons/navBarButtons/maxi-icon.png&quot;);
+        SitoolsDesk.desktopMaximizeMode = false;
+        this.maximizeButton.tooltip.html = i18n.get('label.maximize');
+    },
+    
+<span id='sitools-user-component-entete-NavBarButtons-method-getMaximizeButton'>    /**
+</span>     * Returns the maximizeBtn
+     * @returns {Ext.Button}
+     */
+    getMaximizeButton : function () {
+        return this.maximizeButton;
+    }, 
+    
+<span id='sitools-user-component-entete-NavBarButtons-method-showProfil'>    /**
+</span>     * Handler of profileBtn : Open the sitools.user.component.entete.UserProfile window
+     * @param {Ext.Button} b The pressed btn
+     * @param {Ext.event} e the click Event. 
+     * @returns
+     */
+    showProfil : function (b, e) {
+        var win = new sitools.user.component.entete.UserProfile({
+            buttonId : this.profileButtonId
+        });
+        win.show();
+    }, 
+
+<span id='sitools-user-component-entete-NavBarButtons-method-saveAction'>    /**
+</span>     * Handler of Save Btn. If admin Role : open a menu, else save desktop. 
+     * @param {Ext.Button} btn The pressed btn
+     * @param {Ext.event} event the click Event. 
+     * @returns
+     */
+    saveAction : function (btn, event) {
+        if (!Ext.isEmpty(userLogin) &amp;&amp; projectGlobal &amp;&amp; projectGlobal.isAdmin) {
+            var ctxMenu = new Ext.menu.Menu({
+                items: ['&lt;b class=&quot;menu-title&quot;&gt;' + i18n.get('label.chooseSaveType') + '&lt;/b&gt;', '-',
+                {
+                    text: i18n.get(&quot;label.myself&quot;),
+                    handler : function () {
+                        SitoolsDesk.app.saveWindowSettings();
+                    }
+                }, {
+                    text: i18n.get(&quot;label.publicUser&quot;),
+                    handler : function () {
+                        SitoolsDesk.app.saveWindowSettings(true);
+                    }
+                }, {
+                    text : i18n.get('label.deletePublicPref'),
+                    handler : function () {
+                        publicStorage.remove();
+                    }
+                }] 
+            });
+            ctxMenu.showAt([event.getXY()[0], SitoolsDesk.getEnteteEl().getHeight()]);
+        }
+        else {
+            SitoolsDesk.app.saveWindowSettings();
+        }
+    }
+    
+});
+
+Ext.reg('sitools.user.component.entete.NavBarButtons', sitools.user.component.entete.NavBarButtons);
+</pre>
+</body>
+</html>

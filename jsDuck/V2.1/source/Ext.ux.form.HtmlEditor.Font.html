@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-ux-form-HtmlEditor-Font'>/**
+</span> * @author Shea Frederick - http://www.vinylfox.com
+ * @class Ext.ux.form.HtmlEditor.Font
+ * @extends Ext.util.Observable
+ * &lt;p&gt;A plugin that creates a menu on the HtmlEditor for selecting a font. Uses the HtmlEditors default font settings which can be overriden on that component to change the list of fonts or default font.&lt;/p&gt;
+ */
+Ext.ux.form.HtmlEditor.Font = Ext.extend(Ext.util.Observable, {
+    init: function(cmp){
+        this.cmp = cmp;
+        this.cmp.on('render', this.onRender, this);
+    },
+    // private
+    onRender: function(){
+        var cmp = this.cmp;
+        var fonts = function(){
+            var fnts = [];
+            Ext.each(cmp.fontFamilies, function(itm){
+                fnts.push([itm.toLowerCase(),itm]);
+            });
+            return fnts;
+        }(); 
+        var btn = this.cmp.getToolbar().addItem({
+            xtype: 'combo',
+            displayField: 'display',
+            valueField: 'value',
+            name: 'fontfamily',
+            forceSelection: true,
+            mode: 'local',
+            triggerAction: 'all',
+            width: 80,
+            emptyText: 'Font',
+            tpl: '&lt;tpl for=&quot;.&quot;&gt;&lt;div class=&quot;x-combo-list-item&quot; style=&quot;font-family:{value};&quot;&gt;{display}&lt;/div&gt;&lt;/tpl&gt;',
+            store: {
+                xtype: 'arraystore',
+                autoDestroy: true,
+                fields: ['value','display'],
+                data: fonts
+            },
+            listeners: {
+                'select': function(combo,rec){
+                    this.relayCmd('fontname', rec.get('value'));
+                    this.deferFocus();
+                    combo.reset();
+                },
+                scope: cmp
+            }
+        });
+    }
+});</pre>
+</body>
+</html>

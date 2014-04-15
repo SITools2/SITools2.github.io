@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser, 
+ showHelp*/
+Ext.namespace('sitools.component.projects');
+
+sitools.component.graphs.graphsNodeWin = Ext.extend(Ext.Window, {
+    // url + mode + storeref
+    width : 350,
+    modal : true,
+    closable : false,
+
+    initComponent : function () {
+        this.title = i18n.get('label.nodeDescription');
+
+        /* paramétres du formulaire */
+        this.itemsForm = [ {
+            fieldLabel : i18n.get('label.name'),
+            name : 'name',
+            anchor : '100%',
+            allowBlank : false
+        }, {
+            fieldLabel : i18n.get('label.description'),
+            name : 'description',
+            anchor : '100%'
+        }, {
+            xtype : 'sitoolsSelectImage',
+            name : 'image',
+            fieldLabel : i18n.get('label.image'),
+            anchor : '100%',
+            growMax : 400
+        } ];
+
+        this.bbar = {
+            xtype : 'toolbar',
+            defaults : {
+                scope : this
+            },
+            items : [ '-&gt;', {
+                text : i18n.get('label.ok'),
+                handler : this._onOK
+            }, {
+                text : i18n.get('label.cancel'),
+                handler : this._onCancel
+            } ]
+        };
+
+        this.formPanel = new Ext.FormPanel({
+            labelWidth : 100, // label settings here cascade unless overridden
+            frame : true,
+            defaultType : 'textfield',
+            items : this.itemsForm
+
+        });
+
+        this.items = [ this.formPanel ];
+        // this.relayEvents(this.store, ['destroy', 'save', 'update']);
+        sitools.component.graphs.graphsNodeWin.superclass.initComponent.call(this);
+    },
+
+    onRender : function () {
+        sitools.component.graphs.graphsNodeWin.superclass.onRender.apply(this, arguments);
+    },
+
+    afterRender : function () {
+
+        sitools.component.graphs.graphsNodeWin.superclass.afterRender.apply(this, arguments);
+
+        if (this.mode == 'edit') {
+            var node = this.node;
+            var form = this.formPanel.getForm();
+            var rec = {};
+            rec.name = node.text;
+            rec.image = node.attributes.image.url;
+            rec.description = node.attributes.description;
+
+            var record = new Ext.data.Record(rec);
+            form.loadRecord(record);
+        }
+    },
+
+    _onOK : function () {
+        var form = this.formPanel.getForm();
+        var values = form.getValues();
+        var image = {};
+        if (!Ext.isEmpty(values.image)) {
+            image.url = values.image;
+            image.type = &quot;Image&quot;;
+            image.mediaType = &quot;Image&quot;;
+        }
+
+        if (this.mode == 'edit') {
+            this.node.setText(values.name);
+            this.node.attributes.description = values.description;
+            this.node.attributes.image = image;
+
+        } else {
+            var newNode = {
+                text : values.name,
+                image : image,
+                description : values.description,
+                type : &quot;node&quot;,
+                children : []
+            };
+            if (!this.node.isExpanded()) {
+                this.node.expand();
+            }
+            this.node.appendChild(newNode);
+        }
+
+        this.close();
+    },
+
+    _onCancel : function () {
+        this.destroy();
+    },
+
+    _onUpload : function () {
+        Ext.msg.alert(&quot;Information&quot;, &quot;TODO&quot;);
+    }
+
+});
+</pre>
+</body>
+</html>

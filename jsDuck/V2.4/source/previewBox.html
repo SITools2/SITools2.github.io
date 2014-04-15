@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.ns(&quot;sitools.common&quot;);
+
+sitools.common._PreviewBox = Ext.extend(Ext.BoxComponent, {
+	inited : false,
+	defaultZIndex : 13000,
+	defaultLeft : 0,
+	defaultTop : 35,
+	hideTop : 25,
+	boxWidth : 250,
+	cloneWinMaxWidth : 220,
+	cloneWinMaxHeight : 116,
+	hideDelay : 500,
+	showDelay : 500,
+	constructor : function() {
+		sitools.common._PreviewBox.superclass.constructor.call(this, {
+			renderTo : document.body,
+			cls : &quot;taskbar-previewbox&quot;,
+			hidden : true
+		});
+		this.inited = false;
+		this.hoverCount = 0
+	},
+	createBoxElements : function() {
+		var el = this.getEl(), box;
+		this.boxMl = el.createChild( {
+			tag : &quot;div&quot;,
+			cls : &quot;taskbar-previewbox-ml&quot;
+		});
+		this.boxMr = this.boxMl.createChild( {
+			tag : &quot;div&quot;,
+			cls : &quot;taskbar-previewbox-mr&quot;
+		});
+		this.boxMc = this.boxMr.createChild( {
+			tag : &quot;div&quot;,
+			cls : &quot;taskbar-previewbox-mc&quot;
+		});
+		this.arrow = el.createChild( {
+			tag : &quot;div&quot;,
+			cls : &quot;taskbar-previewbox-arrow&quot;
+		});
+		box = this.boxMc;
+		this.desc = box.createChild( {
+			tag : &quot;div&quot;,
+			cls : &quot;taskbar-previewbox-desc&quot;
+		});
+		box.createChild( {
+			tag : &quot;hr&quot;
+		});
+		this.win = box.createChild( {
+			tag : &quot;div&quot;,
+			cls : &quot;taskbar-previewbox-win&quot;
+		});
+		this.inited = true;
+	},
+//	onTaskbarClick : function() {
+//		this.hideBox(true)
+//	},
+	showBox : function(boxConfig) {
+		if (!this.isEnabled()) {
+			return
+		}
+		this.needShowBox = true;
+		this.hoverCount += 1;
+		this.doShowBox.defer(300, this, [ boxConfig, this.hoverCount ]);
+	},
+	doShowBox : function(boxConfig, hoverCount) {
+		var win, winEl, previewBox, center;
+		if (!boxConfig || !boxConfig.win || !boxConfig.centerX) {
+			return;
+		}
+		if (this.hoverCount !== hoverCount) {
+			return;
+		}
+		if (!this.needShowBox) {
+			return;
+		}
+		if (!this.inited) {
+			this.createBoxElements()
+		}
+		center = Ext.isNumber(boxConfig.centerX) ? boxConfig.centerX : this.defaultLeft;
+		win = boxConfig.win;
+		winEl = win.getEl();
+
+		this.desc.update(boxConfig.win.title);
+		if (this.clonedEl) {
+			this.clonedEl.remove()
+		}
+		this.clonedEl = this.getClonedEl(win);
+		
+		this.clonedEl.show();
+		
+		this.win.appendChild(this.clonedEl);
+		previewBox = this.getEl();
+		var top = Ext.get(&quot;ux-taskbar&quot;).getTop() - previewBox.getHeight() - 10;
+		if (this.isVisible()) {
+			previewBox.setTop(top);
+			this.show();
+			previewBox.shift( {
+				left : center - (this.boxWidth / 2),
+				opacity : 1,
+				duration : 0.3
+			})
+		} else {
+			previewBox.setLeftTop(center - (this.boxWidth / 2), top - 200);
+			previewBox.setOpacity(0);
+			this.show();
+			top = Ext.get(&quot;ux-taskbar&quot;).getTop() - previewBox.getHeight() - 10;
+			previewBox.shift( {
+				top : top,
+				opacity : 1,
+				duration : 0.8
+			});
+		}
+		this.hoverCount = 0;
+	},
+	hideBox : function(a) {
+		if (!this.isEnabled()) {
+			return
+		}
+		this.needShowBox = false;
+		(function() {
+			if (this.needShowBox) {
+				return
+			}
+			this.doHideBox(a)
+		}).defer((a === true) ? 0 : 300, this);
+	},
+	doHideBox : function(b) {
+		var c;
+		var a = function() {
+			if (this.needShowBox) {
+				return
+			}
+			this.hide();
+		};
+		if (this.clonedEl) {
+			this.clonedEl.remove()
+		}
+		this.hoverCount = 0;
+		if (b === true) {
+			a.call(this);
+			return
+		}
+		c = this.getEl();
+		var top = Ext.get(&quot;ux-taskbar&quot;).getTop() - c.getHeight() - 20;
+		
+		c.shift( {
+			top : top,
+			opacity : 0,
+			duration : 0.2,
+			scope : this,
+			callback : a
+		});
+	},
+	getClonedEl : function(win) {
+		var c = 0;
+		var h = 0;
+		var el = win.getEl();
+		var newHtmlEl = el.dom.cloneNode(true);
+		newHtmlEl.removeAttribute(&quot;id&quot;);
+		var newEl = Ext.get(newHtmlEl);
+		newEl.visibilityCls = &quot;x-hide-display&quot;;
+		newEl._previewMask = newEl.createChild( {
+			tag : &quot;div&quot;,
+			cls : &quot;taskbar-previewbox-win-mask&quot;
+		});
+
+		var size = el.getSize();
+		if (size.height === 0 &amp;&amp; size.width === 0) {
+			size = SitoolsDesk.getDesktop().getDesktopEl().getSize();
+		}
+		var d = this.cloneWinMaxWidth / size.width;
+		c = (this.cloneWinMaxHeight - size.height * d) / 2;
+		if ((size.height * d) &gt; this.cloneWinMaxHeight) {
+			d = this.cloneWinMaxHeight / size.height;
+			c = 0;
+			h = (this.cloneWinMaxWidth - size.width * d) / 2
+		}
+		d = Math.min(d, 1);
+		newEl.addClass(&quot;taskbar-previewbox-win-transform&quot;);
+		newEl.setStyle(&quot;-webkit-transform&quot;, String.format(&quot;scale({0})&quot;, d));
+		newEl.setStyle(&quot;-moz-transform&quot;, String.format(&quot;scale({0})&quot;, d));
+		newEl.setStyle(&quot;-o-transform&quot;, String.format(&quot;scale({0})&quot;, d));
+		newEl.setStyle(&quot;transform&quot;, String.format(&quot;scale({0})&quot;, d));
+		newEl.setLeftTop(h, c);
+		return newEl;
+	},
+	isEnabled : function() {
+		return true;
+	}
+});</pre>
+</body>
+</html>

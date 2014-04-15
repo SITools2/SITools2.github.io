@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, MULTIDS_TIME_DELAY, sitools, i18n, commonTreeUtils, projectGlobal, showResponse, document, SitoolsDesk, alertFailure, loadUrl*/
+/*
+ * @include &quot;../../components/forms/forms.js&quot;  
+ */
+
+Ext.namespace('sitools.user.component.forms');
+
+<span id='sitools-user-component-forms-overviewResultsProjectForm-cfg-datasets'><span id='sitools-user-component-forms-overviewResultsProjectForm-cfg-formMultiDsParams'><span id='sitools-user-component-forms-overviewResultsProjectForm-cfg-formName'><span id='sitools-user-component-forms-overviewResultsProjectForm-cfg-formId'><span id='sitools-user-component-forms-overviewResultsProjectForm-cfg-urlTask'><span id='sitools-user-component-forms-overviewResultsProjectForm'>/**
+</span></span></span></span></span></span> * Displays The result of a multiDatasets Reasearch. 
+ * @cfg {string} urlTask The url to request 
+ * @cfg {string} formId The form Id
+ * @cfg {string} formName The form Name
+ * @cfg {Array} formMultiDsParams an array of formParams (represent concepts selection)
+ * @cfg {Array} datasets Array of Datasets Ids
+ * @class sitools.user.component.forms.overviewResultsProjectForm
+ * @extends Ext.Panel
+ */
+sitools.user.component.forms.overviewResultsProjectForm = Ext.extend(Ext.Panel, {
+    initComponent : function () {
+
+		var results = new sitools.user.component.forms.resultsProjectForm(this);
+		Ext.apply(results, {
+			region : &quot;center&quot;
+		});
+		
+		var description = i18n.get('label.descriptionMultiDS');
+		
+		this.southPanel = new Ext.TabPanel({
+        	title : i18n.get('label.results'), 
+			region : &quot;south&quot;, 
+        	height : 300, 
+        	split : true, 
+        	autoScroll : false, 
+        	collapsible : false, 
+        	collapsed : true
+		});
+		Ext.apply(this, {
+			layout : &quot;border&quot;, 
+			items : [results, this.southPanel]
+		});
+		
+		if (description !== &quot;label.descriptionMultiDS&quot;) {
+			this.items.unshift({
+				xtype : 'panel',
+				height : 100, 
+				html : description, 
+				padding : &quot;10px&quot;, 
+				region : &quot;north&quot;, 
+				collapsible : true, 
+				split : true, 
+				autoScroll : true, 
+				title : i18n.get('label.description')
+			});
+		}
+
+		sitools.user.component.forms.overviewResultsProjectForm.superclass.initComponent.call(this);
+    } 
+    
+
+});
+
+Ext.reg('sitools.user.component.forms.overviewResultsProjectForm', sitools.user.component.forms.overviewResultsProjectForm);
+
+</pre>
+</body>
+</html>

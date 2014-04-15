@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*!
+ * Ext JS Library 3.3.0
+ * Copyright(c) 2006-2010 Ext JS, Inc.
+ * licensing@extjs.com
+ * http://www.extjs.com/license
+ */
+<span id='Ext-ux-tree-TreeGridNodeUI'>/**
+</span> * @class Ext.ux.tree.TreeGridNodeUI
+ * @extends Ext.tree.TreeNodeUI
+ */
+Ext.ux.tree.TreeGridNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
+    isTreeGridNodeUI: true,
+
+    renderElements : function(n, a, targetNode, bulkRender){
+        var t = n.getOwnerTree(),
+            cols = t.columns,
+            c = cols[0],
+            i, buf, len;
+
+        this.indentMarkup = n.parentNode ? n.parentNode.ui.getChildIndent() : '';
+
+        buf = [
+             '&lt;tbody class=&quot;x-tree-node&quot;&gt;',
+                '&lt;tr ext:tree-node-id=&quot;', n.id ,'&quot; class=&quot;x-tree-node-el x-tree-node-leaf ', a.cls, '&quot;&gt;',
+                    '&lt;td class=&quot;x-treegrid-col&quot;&gt;',
+                        '&lt;span class=&quot;x-tree-node-indent&quot;&gt;', this.indentMarkup, &quot;&lt;/span&gt;&quot;,
+                        '&lt;img src=&quot;', this.emptyIcon, '&quot; class=&quot;x-tree-ec-icon x-tree-elbow&quot; /&gt;',
+                        '&lt;img src=&quot;', a.icon || this.emptyIcon, '&quot; class=&quot;x-tree-node-icon', (a.icon ? &quot; x-tree-node-inline-icon&quot; : &quot;&quot;), (a.iconCls ? &quot; &quot;+a.iconCls : &quot;&quot;), '&quot; unselectable=&quot;on&quot; /&gt;',
+                        '&lt;a hidefocus=&quot;on&quot; class=&quot;x-tree-node-anchor&quot; href=&quot;', a.href ? a.href : '#', '&quot; tabIndex=&quot;1&quot; ',
+                            a.hrefTarget ? ' target=&quot;'+a.hrefTarget+'&quot;' : '', '&gt;',
+                        '&lt;span unselectable=&quot;on&quot;&gt;', (c.tpl ? c.tpl.apply(a) : a[c.dataIndex] || c.text), '&lt;/span&gt;&lt;/a&gt;',
+                    '&lt;/td&gt;'
+        ];
+
+        for(i = 1, len = cols.length; i &lt; len; i++){
+            c = cols[i];
+            buf.push(
+                    '&lt;td class=&quot;x-treegrid-col ', (c.cls ? c.cls : ''), '&quot;&gt;',
+                        '&lt;div unselectable=&quot;on&quot; class=&quot;x-treegrid-text&quot;', (c.align ? ' style=&quot;text-align: ' + c.align + ';&quot;' : ''), '&gt;',
+                            (c.tpl ? c.tpl.apply(a) : a[c.dataIndex]),
+                        '&lt;/div&gt;',
+                    '&lt;/td&gt;'
+            );
+        }
+
+        buf.push(
+            '&lt;/tr&gt;&lt;tr class=&quot;x-tree-node-ct&quot;&gt;&lt;td colspan=&quot;', cols.length, '&quot;&gt;',
+            '&lt;table class=&quot;x-treegrid-node-ct-table&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; style=&quot;table-layout: fixed; display: none; width: ', t.innerCt.getWidth() ,'px;&quot;&gt;&lt;colgroup&gt;'
+        );
+        for(i = 0, len = cols.length; i&lt;len; i++) {
+            buf.push('&lt;col style=&quot;width: ', (cols[i].hidden ? 0 : cols[i].width) ,'px;&quot; /&gt;');
+        }
+        buf.push('&lt;/colgroup&gt;&lt;/table&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;');
+
+        if(bulkRender !== true &amp;&amp; n.nextSibling &amp;&amp; n.nextSibling.ui.getEl()){
+            this.wrap = Ext.DomHelper.insertHtml(&quot;beforeBegin&quot;, n.nextSibling.ui.getEl(), buf.join(''));
+        }else{
+            this.wrap = Ext.DomHelper.insertHtml(&quot;beforeEnd&quot;, targetNode, buf.join(''));
+        }
+
+        this.elNode = this.wrap.childNodes[0];
+        this.ctNode = this.wrap.childNodes[1].firstChild.firstChild;
+        var cs = this.elNode.firstChild.childNodes;
+        this.indentNode = cs[0];
+        this.ecNode = cs[1];
+        this.iconNode = cs[2];
+        this.anchor = cs[3];
+        this.textNode = cs[3].firstChild;
+    },
+
+    // private
+    animExpand : function(cb){
+        this.ctNode.style.display = &quot;&quot;;
+        Ext.ux.tree.TreeGridNodeUI.superclass.animExpand.call(this, cb);
+    }
+});
+
+Ext.ux.tree.TreeGridRootNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
+    isTreeGridNodeUI: true,
+
+    // private
+    render : function(){
+        if(!this.rendered){
+            this.wrap = this.ctNode = this.node.ownerTree.innerCt.dom;
+            this.node.expanded = true;
+        }
+
+        if(Ext.isWebKit) {
+            // weird table-layout: fixed issue in webkit
+            var ct = this.ctNode;
+            ct.style.tableLayout = null;
+            (function() {
+                ct.style.tableLayout = 'fixed';
+            }).defer(1);
+        }
+    },
+
+    destroy : function(){
+        if(this.elNode){
+            Ext.dd.Registry.unregister(this.elNode.id);
+        }
+        delete this.node;
+    },
+
+    collapse : Ext.emptyFn,
+    expand : Ext.emptyFn
+});
+</pre>
+</body>
+</html>

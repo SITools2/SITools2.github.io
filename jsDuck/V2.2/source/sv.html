@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.plugins.setLang(&quot;specialchar&quot;,&quot;sv&quot;,{euro:&quot;Eurotecken&quot;,lsquo:&quot;Enkelt vänster citattecken&quot;,rsquo:&quot;Enkelt höger citattecken&quot;,ldquo:&quot;Dubbelt vänster citattecken&quot;,rdquo:&quot;Dubbelt höger citattecken&quot;,ndash:&quot;Snedstreck&quot;,mdash:&quot;Långt tankstreck&quot;,iexcl:&quot;Inverterad utropstecken&quot;,cent:&quot;Centtecken&quot;,pound:&quot;Pundtecken&quot;,curren:&quot;Valutatecken&quot;,yen:&quot;Yentecken&quot;,brvbar:&quot;Brutet lodrätt streck&quot;,sect:&quot;Paragraftecken&quot;,uml:&quot;Diaeresis&quot;,copy:&quot;Upphovsrättstecken&quot;,ordf:&quot;Feminit ordningstalsindikator&quot;,laquo:&quot;Vänsterställt dubbelt vinkelcitationstecken&quot;,
+not:&quot;Icke-tecken&quot;,reg:&quot;Registrerad&quot;,macr:&quot;Macron&quot;,deg:&quot;Grader&quot;,sup2:&quot;Upphöjt två&quot;,sup3:&quot;Upphöjt tre&quot;,acute:&quot;Akut accent&quot;,micro:&quot;Mikrotecken&quot;,para:&quot;Alinea&quot;,middot:&quot;Centrerad prick&quot;,cedil:&quot;Cedilj&quot;,sup1:&quot;Upphöjt en&quot;,ordm:&quot;Maskulina ordningsändelsen&quot;,raquo:&quot;Högerställt dubbelt vinkelcitationstecken&quot;,frac14:&quot;Bråktal - en kvart&quot;,frac12:&quot;Bråktal - en halv&quot;,frac34:&quot;Bråktal - tre fjärdedelar&quot;,iquest:&quot;Inverterat frågetecken&quot;,Agrave:&quot;Stort A med grav accent&quot;,Aacute:&quot;Stort A med akutaccent&quot;,Acirc:&quot;Stort A med circumflex&quot;,
+Atilde:&quot;Stort A med tilde&quot;,Auml:&quot;Stort A med diaresis&quot;,Aring:&quot;Stort A med ring ovan&quot;,AElig:&quot;Stort Æ&quot;,Ccedil:&quot;Stort C med cedilj&quot;,Egrave:&quot;Stort E med grav accent&quot;,Eacute:&quot;Stort E med aktuaccent&quot;,Ecirc:&quot;Stort E med circumflex&quot;,Euml:&quot;Stort E med diaeresis&quot;,Igrave:&quot;Stort I med grav accent&quot;,Iacute:&quot;Stort I med akutaccent&quot;,Icirc:&quot;Stort I med circumflex&quot;,Iuml:&quot;Stort I med diaeresis&quot;,ETH:&quot;Stort Eth&quot;,Ntilde:&quot;Stort N med tilde&quot;,Ograve:&quot;Stort O med grav accent&quot;,Oacute:&quot;Stort O med aktuaccent&quot;,Ocirc:&quot;Stort O med circumflex&quot;,
+Otilde:&quot;Stort O med tilde&quot;,Ouml:&quot;Stort O med diaeresis&quot;,times:&quot;Multiplicera&quot;,Oslash:&quot;Stor Ø&quot;,Ugrave:&quot;Stort U med grav accent&quot;,Uacute:&quot;Stort U med akutaccent&quot;,Ucirc:&quot;Stort U med circumflex&quot;,Uuml:&quot;Stort U med diaeresis&quot;,Yacute:&quot;Stort Y med akutaccent&quot;,THORN:&quot;Stort Thorn&quot;,szlig:&quot;Litet dubbel-s/Eszett&quot;,agrave:&quot;Litet a med grav accent&quot;,aacute:&quot;Litet a med akutaccent&quot;,acirc:&quot;Litet a med circumflex&quot;,atilde:&quot;Litet a med tilde&quot;,auml:&quot;Litet a med diaeresis&quot;,aring:&quot;Litet a med ring ovan&quot;,aelig:&quot;Bokstaven æ&quot;,
+ccedil:&quot;Litet c med cedilj&quot;,egrave:&quot;Litet e med grav accent&quot;,eacute:&quot;Litet e med akutaccent&quot;,ecirc:&quot;Litet e med circumflex&quot;,euml:&quot;Litet e med diaeresis&quot;,igrave:&quot;Litet i med grav accent&quot;,iacute:&quot;Litet i med akutaccent&quot;,icirc:&quot;LItet i med circumflex&quot;,iuml:&quot;Litet i med didaeresis&quot;,eth:&quot;Litet eth&quot;,ntilde:&quot;Litet n med tilde&quot;,ograve:&quot;LItet o med grav accent&quot;,oacute:&quot;LItet o med akutaccent&quot;,ocirc:&quot;Litet o med circumflex&quot;,otilde:&quot;LItet o med tilde&quot;,ouml:&quot;Litet o med diaeresis&quot;,divide:&quot;Division&quot;,oslash:&quot;ø&quot;,
+ugrave:&quot;Litet u med grav accent&quot;,uacute:&quot;Litet u med akutaccent&quot;,ucirc:&quot;LItet u med circumflex&quot;,uuml:&quot;Litet u med diaeresis&quot;,yacute:&quot;Litet y med akutaccent&quot;,thorn:&quot;Litet thorn&quot;,yuml:&quot;Litet y med diaeresis&quot;,OElig:&quot;Stor ligatur av OE&quot;,oelig:&quot;Liten ligatur av oe&quot;,372:&quot;Stort W med circumflex&quot;,374:&quot;Stort Y med circumflex&quot;,373:&quot;Litet w med circumflex&quot;,375:&quot;Litet y med circumflex&quot;,sbquo:&quot;Enkelt lågt 9-citationstecken&quot;,8219:&quot;Enkelt högt bakvänt 9-citationstecken&quot;,bdquo:&quot;Dubbelt lågt 9-citationstecken&quot;,hellip:&quot;Horisontellt uteslutningstecken&quot;,
+trade:&quot;Varumärke&quot;,9658:&quot;Svart högervänd pekare&quot;,bull:&quot;Listpunkt&quot;,rarr:&quot;Högerpil&quot;,rArr:&quot;Dubbel högerpil&quot;,hArr:&quot;Dubbel vänsterpil&quot;,diams:&quot;Svart ruter&quot;,asymp:&quot;Ungefär lika med&quot;});</pre>
+</body>
+</html>

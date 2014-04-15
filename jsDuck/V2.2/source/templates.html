@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+(function(){CKEDITOR.dialog.add(&quot;templates&quot;,function(c){function o(a,b){var k=CKEDITOR.dom.element.createFromHtml('&lt;a href=&quot;javascript:void(0)&quot; tabIndex=&quot;-1&quot; role=&quot;option&quot; &gt;&lt;div class=&quot;cke_tpl_item&quot;&gt;&lt;/div&gt;&lt;/a&gt;'),d='&lt;table style=&quot;width:350px;&quot; class=&quot;cke_tpl_preview&quot; role=&quot;presentation&quot;&gt;&lt;tr&gt;';a.image&amp;&amp;b&amp;&amp;(d+='&lt;td class=&quot;cke_tpl_preview_img&quot;&gt;&lt;img src=&quot;'+CKEDITOR.getUrl(b+a.image)+'&quot;'+(CKEDITOR.env.ie6Compat?' onload=&quot;this.width=this.width&quot;':&quot;&quot;)+' alt=&quot;&quot; title=&quot;&quot;&gt;&lt;/td&gt;');d+='&lt;td style=&quot;white-space:normal;&quot;&gt;&lt;span class=&quot;cke_tpl_title&quot;&gt;'+
+a.title+&quot;&lt;/span&gt;&lt;br/&gt;&quot;;a.description&amp;&amp;(d+=&quot;&lt;span&gt;&quot;+a.description+&quot;&lt;/span&gt;&quot;);k.getFirst().setHtml(d+&quot;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&quot;);k.on(&quot;click&quot;,function(){p(a.html)});return k}function p(a){var b=CKEDITOR.dialog.getCurrent();b.getValueOf(&quot;selectTpl&quot;,&quot;chkInsertOpt&quot;)?(c.fire(&quot;saveSnapshot&quot;),c.setData(a,function(){b.hide();var a=c.createRange();a.moveToElementEditStart(c.editable());a.select();setTimeout(function(){c.fire(&quot;saveSnapshot&quot;)},0)})):(c.insertHtml(a),b.hide())}function i(a){var b=a.data.getTarget(),
+c=g.equals(b);if(c||g.contains(b)){var d=a.data.getKeystroke(),f=g.getElementsByTag(&quot;a&quot;),e;if(f){if(c)e=f.getItem(0);else switch(d){case 40:e=b.getNext();break;case 38:e=b.getPrevious();break;case 13:case 32:b.fire(&quot;click&quot;)}e&amp;&amp;(e.focus(),a.data.preventDefault())}}}var h=CKEDITOR.plugins.get(&quot;templates&quot;);CKEDITOR.document.appendStyleSheet(CKEDITOR.getUrl(h.path+&quot;dialogs/templates.css&quot;));var g,h=&quot;cke_tpl_list_label_&quot;+CKEDITOR.tools.getNextNumber(),f=c.lang.templates,l=c.config;return{title:c.lang.templates.title,
+minWidth:CKEDITOR.env.ie?440:400,minHeight:340,contents:[{id:&quot;selectTpl&quot;,label:f.title,elements:[{type:&quot;vbox&quot;,padding:5,children:[{id:&quot;selectTplText&quot;,type:&quot;html&quot;,html:&quot;&lt;span&gt;&quot;+f.selectPromptMsg+&quot;&lt;/span&gt;&quot;},{id:&quot;templatesList&quot;,type:&quot;html&quot;,focus:!0,html:'&lt;div class=&quot;cke_tpl_list&quot; tabIndex=&quot;-1&quot; role=&quot;listbox&quot; aria-labelledby=&quot;'+h+'&quot;&gt;&lt;div class=&quot;cke_tpl_loading&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;cke_voice_label&quot; id=&quot;'+h+'&quot;&gt;'+f.options+&quot;&lt;/span&gt;&quot;},{id:&quot;chkInsertOpt&quot;,type:&quot;checkbox&quot;,label:f.insertOption,
+&quot;default&quot;:l.templates_replaceContent}]}]}],buttons:[CKEDITOR.dialog.cancelButton],onShow:function(){var a=this.getContentElement(&quot;selectTpl&quot;,&quot;templatesList&quot;);g=a.getElement();CKEDITOR.loadTemplates(l.templates_files,function(){var b=(l.templates||&quot;default&quot;).split(&quot;,&quot;);if(b.length){var c=g;c.setHtml(&quot;&quot;);for(var d=0,h=b.length;d&lt;h;d++)for(var e=CKEDITOR.getTemplates(b[d]),i=e.imagesPath,e=e.templates,n=e.length,j=0;j&lt;n;j++){var m=o(e[j],i);m.setAttribute(&quot;aria-posinset&quot;,j+1);m.setAttribute(&quot;aria-setsize&quot;,
+n);c.append(m)}a.focus()}else g.setHtml('&lt;div class=&quot;cke_tpl_empty&quot;&gt;&lt;span&gt;'+f.emptyListMsg+&quot;&lt;/span&gt;&lt;/div&gt;&quot;)});this._.element.on(&quot;keydown&quot;,i)},onHide:function(){this._.element.removeListener(&quot;keydown&quot;,i)}}})})();</pre>
+</body>
+</html>

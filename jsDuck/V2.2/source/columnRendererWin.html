@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser, 
+ showHelp, loadUrl, ColumnRendererEnum*/
+ /*
+ * @include &quot;columnRender/ColumnRenderEnum.js&quot; 
+ */
+Ext.namespace('sitools.admin.datasets');
+
+<span id='sitools-admin-datasets-columnRendererWin-cfg-lastColumnRendererType'><span id='sitools-admin-datasets-columnRendererWin-cfg-columnRendererType'><span id='sitools-admin-datasets-columnRendererWin-cfg-datasetColumnStore'><span id='sitools-admin-datasets-columnRendererWin-cfg-gridView'><span id='sitools-admin-datasets-columnRendererWin-cfg-selectedRecord'><span id='sitools-admin-datasets-columnRendererWin'>/**
+</span></span></span></span></span></span> * This window is used when the administrator needs to configure a columnRenderer 
+ * (aka featureType) on a particular column.
+ * @cfg {Ext.data.Record} selectedRecord (required) the selected Column
+ * @cfg {Ext.grid.GridView} gridView (required) : the view to refresh when saving
+ * @cfg {Ext.data.JsonStore} datasetColumnStore (required) : the store of the column chosen for the current dataset 
+ * @cfg {String} columnRendererType (required) : the type of the columnRenderer (Image, URL or datasetLink)
+ * @cfg {String} lastColumnRendererType (required) : the type of columnRenderer configured before calling this window
+ * @class sitools.admin.datasets.columnRendererWin
+ * @extends Ext.Window
+ */
+sitools.admin.datasets.columnRendererWin = Ext.extend(Ext.Window, {
+    
+    width : 400,
+    height : 600,
+    modal : true,
+    layout : {
+        type : 'vbox',
+        align : 'stretch'
+    },
+
+
+    initComponent : function () {
+        
+        this.title = this.columnRendererType + &quot; &quot; + i18n.get('label.detailColumnDefinition');
+        
+        var behaviorData;
+        
+        switch (this.columnRendererType) {
+		case &quot;URL&quot; :
+			behaviorData = [[i18n.get(&quot;label.url_local&quot;), ColumnRendererEnum.URL_LOCAL],
+						[i18n.get(&quot;label.url_ext_new_tab&quot;), ColumnRendererEnum.URL_EXT_NEW_TAB],
+						[i18n.get(&quot;label.url_ext_desktop&quot;), ColumnRendererEnum.URL_EXT_DESKTOP]];
+			break;
+		case &quot;Image&quot; :
+			behaviorData = [[i18n.get(&quot;label.image_no_thumb&quot;), ColumnRendererEnum.IMAGE_NO_THUMB],
+						[i18n.get(&quot;label.image_thumb_from_image&quot;), ColumnRendererEnum.IMAGE_THUMB_FROM_IMAGE],
+						[i18n.get(&quot;label.image_from_sql&quot;), ColumnRendererEnum.IMAGE_FROM_SQL]];
+			break;
+		case &quot;DataSetLink&quot; :
+            behaviorData = [[i18n.get(&quot;label.dataset_link&quot;), ColumnRendererEnum.DATASET_LINK],
+						[i18n.get(&quot;label.dataset_icon_link&quot;), ColumnRendererEnum.DATASET_ICON_LINK]];
+			break;
+        case &quot;Other&quot; :
+            behaviorData = [[i18n.get(&quot;label.noClientAccess&quot;), ColumnRendererEnum.NO_CLIENT_ACCESS]];
+            break;
+		default :
+			break;
+        }
+        
+        
+        var storeBehavior = new Ext.data.ArrayStore({
+            fields : [ {
+                name : 'name'
+            }, {
+                name : 'behavior'
+            } ],
+            data : behaviorData
+        });
+        
+        
+        this.comboBehavior = new Ext.form.ComboBox({
+            store : storeBehavior,
+            displayField : 'name',
+            valueField : 'behavior',
+            typeAhead : true,
+            mode : 'local',
+            forceSelection : true,
+            triggerAction : 'all',
+            emptyText : i18n.get(&quot;label.selectABehavior&quot;),
+            fieldLabel : i18n.get('label.behavior'),
+            anchor : &quot;100%&quot;,
+            selectOnFocus : true,
+            allowBlank : false,
+            listeners : {
+                scope : this,
+                select : function (combo, rec, index) {
+                    if (!Ext.isEmpty(this.panelDetails)) {
+						this.remove(this.panelDetails);
+                        this.panelDetails = null;
+					}
+                    var value = rec.get(&quot;behavior&quot;);
+                    //if we modify the columnRenderer it will not be null
+                    var columnRenderer = this.selectedRecord.get(&quot;columnRenderer&quot;);
+                    switch (this.columnRendererType) {
+				    case &quot;URL&quot; :
+                        this.panelDetails = new sitools.admin.datasets.columnRenderer.urlPanel({
+                            behaviorType : value,
+                            title : i18n.get(&quot;label.behaviorDetails&quot;),
+                            columnRenderer : columnRenderer
+                        });
+				        break;
+				    case &quot;Image&quot; :
+				        this.panelDetails = new sitools.admin.datasets.columnRenderer.imagePanel({
+                            behaviorType : value,
+                            title : i18n.get(&quot;label.behaviorDetails&quot;),
+                            datasetColumnStore : this.datasetColumnStore,
+                            columnRenderer : columnRenderer
+                        });                     
+                        break;				        
+				    case &quot;DataSetLink&quot; :
+				        this.panelDetails = new sitools.admin.datasets.columnRenderer.datasetLinkPanel({
+                            behaviorType : value,
+                            title : i18n.get(&quot;label.behaviorDetails&quot;),
+                            columnRenderer : columnRenderer
+                        });                     
+				        break;
+				    default :
+				        break;
+				    }
+                    if (!Ext.isEmpty(this.panelDetails)) {
+                        this.add(this.panelDetails);
+                        this.doLayout();
+                    }
+                }
+
+            }
+        });
+        
+        
+        this.behaviorForm = new Ext.form.FormPanel({
+            title : i18n.get('label.behavior'),
+            height : 80,
+            padding : 5,
+            items : [this.comboBehavior , {
+                fieldLabel : i18n.get('label.tooltip'),
+                name : 'toolTip',
+                xtype : 'textfield',
+            }]
+        });
+        
+        this.items = [this.behaviorForm];
+        
+        this.buttons = [ {
+                text : i18n.get('label.ok'),
+                scope : this,
+                handler : this.onValidate
+
+            }, {
+                text : i18n.get('label.cancel'),
+                scope : this,
+                handler : function () {
+                    this.close();
+                }
+            } ];
+            
+        this.listeners = {
+			scope : this,
+			beforeclose : function () {
+                if (!this.validAction) {
+					// clear the grid record
+                    var  colRendererCategory = this.lastColumnRendererType;
+                    this.selectedRecord.set(&quot;columnRendererCategory&quot;, colRendererCategory);
+                    this.gridView.refresh();
+                }
+			}
+		};
+
+        
+        sitools.admin.datasets.columnRendererWin.superclass.initComponent.call(this);
+    },
+    
+    afterRender : function () {
+        sitools.admin.datasets.columnRendererWin.superclass.afterRender.apply(this, arguments);
+        var columnRenderer = this.selectedRecord.get(&quot;columnRenderer&quot;);
+        if (!Ext.isEmpty(columnRenderer)) {
+            var behavior = columnRenderer.behavior;
+            var toolTip = columnRenderer.toolTip;
+            this.behaviorForm.getForm().findField('toolTip').setValue(toolTip);
+            
+            var index = this.comboBehavior.getStore().find(&quot;behavior&quot;, behavior);
+            if (index != -1) {
+	            this.comboBehavior.setValue(behavior);
+	            var record = this.comboBehavior.getStore().getAt(index);            
+	            this.comboBehavior.fireEvent(&quot;select&quot;, this.comboBehavior, record, index);
+            }
+            
+        }
+                
+    },
+    
+    onValidate : function () {
+        var behavior = this.comboBehavior.getValue();
+        var tooltip = this.behaviorForm.getForm().findField('toolTip').getValue();
+        var ok = true;
+        
+        if (this.behaviorForm.getForm().isValid()) {
+	        var columnRenderer = {};
+	        columnRenderer.behavior = behavior;
+	        columnRenderer.toolTip = tooltip;
+	        if (!Ext.isEmpty(this.panelDetails)) {
+	            if (this.panelDetails.isValid()) {
+		            this.panelDetails.fillSpecificValue(columnRenderer);		            
+	            } else {
+                    ok = false;
+                }
+	        }
+            
+            if (ok) {
+                this.selectedRecord.set(&quot;columnRenderer&quot;, columnRenderer);
+                this.gridView.refresh();
+                this.validAction = true;
+                this.close();
+            }
+        }
+    }
+    
+    
+});
+
+</pre>
+</body>
+</html>

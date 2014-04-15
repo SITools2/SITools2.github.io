@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.dialog.add(&quot;checkspell&quot;,function(a){function c(a,c){var d=0;return function(){&quot;function&quot;==typeof window.doSpell?(&quot;undefined&quot;!=typeof e&amp;&amp;window.clearInterval(e),j(a)):180==d++&amp;&amp;window._cancelOnError(c)}}function j(c){var f=new window._SP_FCK_LangCompare,b=CKEDITOR.getUrl(a.plugins.wsc.path+&quot;dialogs/&quot;),e=b+&quot;tmpFrameset.html&quot;;window.gFCKPluginName=&quot;wsc&quot;;f.setDefaulLangCode(a.config.defaultLanguage);window.doSpell({ctrl:g,lang:a.config.wsc_lang||f.getSPLangCode(a.langCode),intLang:a.config.wsc_uiLang||
+f.getSPLangCode(a.langCode),winType:d,onCancel:function(){c.hide()},onFinish:function(b){a.focus();c.getParentEditor().setData(b.value);c.hide()},staticFrame:e,framesetPath:e,iframePath:b+&quot;ciframe.html&quot;,schemaURI:b+&quot;wsc.css&quot;,userDictionaryName:a.config.wsc_userDictionaryName,customDictionaryName:a.config.wsc_customDictionaryIds&amp;&amp;a.config.wsc_customDictionaryIds.split(&quot;,&quot;),domainName:a.config.wsc_domainName});CKEDITOR.document.getById(h).setStyle(&quot;display&quot;,&quot;none&quot;);CKEDITOR.document.getById(d).setStyle(&quot;display&quot;,
+&quot;block&quot;)}var b=CKEDITOR.tools.getNextNumber(),d=&quot;cke_frame_&quot;+b,g=&quot;cke_data_&quot;+b,h=&quot;cke_error_&quot;+b,e,b=document.location.protocol||&quot;http:&quot;,i=a.lang.wsc.notAvailable,k='&lt;textarea style=&quot;display: none&quot; id=&quot;'+g+'&quot; rows=&quot;10&quot; cols=&quot;40&quot;&gt; &lt;/textarea&gt;&lt;div id=&quot;'+h+'&quot; style=&quot;display:none;color:red;font-size:16px;font-weight:bold;padding-top:160px;text-align:center;z-index:11;&quot;&gt;&lt;/div&gt;&lt;iframe src=&quot;&quot; style=&quot;width:100%;background-color:#f1f1e3;&quot; frameborder=&quot;0&quot; name=&quot;'+d+'&quot; id=&quot;'+d+'&quot; allowtransparency=&quot;1&quot;&gt;&lt;/iframe&gt;',
+l=a.config.wsc_customLoaderScript||b+&quot;//loader.webspellchecker.net/sproxy_fck/sproxy.php?plugin=fck2&amp;customerid=&quot;+a.config.wsc_customerId+&quot;&amp;cmd=script&amp;doc=wsc&amp;schema=22&quot;;a.config.wsc_customLoaderScript&amp;&amp;(i+='&lt;p style=&quot;color:#000;font-size:11px;font-weight: normal;text-align:center;padding-top:10px&quot;&gt;'+a.lang.wsc.errorLoading.replace(/%s/g,a.config.wsc_customLoaderScript)+&quot;&lt;/p&gt;&quot;);window._cancelOnError=function(c){if(&quot;undefined&quot;==typeof window.WSC_Error){CKEDITOR.document.getById(d).setStyle(&quot;display&quot;,
+&quot;none&quot;);var b=CKEDITOR.document.getById(h);b.setStyle(&quot;display&quot;,&quot;block&quot;);b.setHtml(c||a.lang.wsc.notAvailable)}};return{title:a.config.wsc_dialogTitle||a.lang.wsc.title,minWidth:485,minHeight:380,buttons:[CKEDITOR.dialog.cancelButton],onShow:function(){var b=this.getContentElement(&quot;general&quot;,&quot;content&quot;).getElement();b.setHtml(k);b.getChild(2).setStyle(&quot;height&quot;,this._.contentSize.height+&quot;px&quot;);&quot;function&quot;!=typeof window.doSpell&amp;&amp;CKEDITOR.document.getHead().append(CKEDITOR.document.createElement(&quot;script&quot;,
+{attributes:{type:&quot;text/javascript&quot;,src:l}}));b=a.getData();CKEDITOR.document.getById(g).setValue(b);e=window.setInterval(c(this,i),250)},onHide:function(){window.ooo=void 0;window.int_framsetLoaded=void 0;window.framesetLoaded=void 0;window.is_window_opened=!1},contents:[{id:&quot;general&quot;,label:a.config.wsc_dialogTitle||a.lang.wsc.title,padding:0,elements:[{type:&quot;html&quot;,id:&quot;content&quot;,html:&quot;&quot;}]}]}});
+CKEDITOR.dialog.on(&quot;resize&quot;,function(a){var a=a.data,c=a.dialog;&quot;checkspell&quot;==c._.name&amp;&amp;((c=(c=c.getContentElement(&quot;general&quot;,&quot;content&quot;).getElement())&amp;&amp;c.getChild(2))&amp;&amp;c.setSize(&quot;height&quot;,a.height),c&amp;&amp;c.setSize(&quot;width&quot;,a.width))});</pre>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">
+/*
+ * Binary Ajax 0.1.10
+ * Copyright (c) 2008 Jacob Seidelin, cupboy@gmail.com, http://blog.nihilogic.dk/
+ * Licensed under the MPL License [http://www.nihilogic.dk/licenses/mpl-license.txt]
+ */
+
+
+var BinaryFile = function(strData, iDataOffset, iDataLength) {
+	var data = strData;
+	var dataOffset = iDataOffset || 0;
+	var dataLength = 0;
+
+	this.getRawData = function() {
+		return data;
+	}
+
+	if (typeof strData == &quot;string&quot;) {
+		dataLength = iDataLength || data.length;
+
+		this.getByteAt = function(iOffset) {
+			return data.charCodeAt(iOffset + dataOffset) &amp; 0xFF;
+		}
+		
+		this.getBytesAt = function(iOffset, iLength) {
+			var aBytes = [];
+			
+			for (var i = 0; i &lt; iLength; i++) {
+				aBytes[i] = data.charCodeAt((iOffset + i) + dataOffset) &amp; 0xFF
+			};
+			
+			return aBytes;
+		}
+	} else if (typeof strData == &quot;unknown&quot;) {
+		dataLength = iDataLength || IEBinary_getLength(data);
+
+		this.getByteAt = function(iOffset) {
+			return IEBinary_getByteAt(data, iOffset + dataOffset);
+		}
+
+		this.getBytesAt = function(iOffset, iLength) {
+			return new VBArray(IEBinary_getBytesAt(data, iOffset + dataOffset, iLength)).toArray();
+		}
+	}
+
+	this.getLength = function() {
+		return dataLength;
+	}
+
+	this.getSByteAt = function(iOffset) {
+		var iByte = this.getByteAt(iOffset);
+		if (iByte &gt; 127)
+			return iByte - 256;
+		else
+			return iByte;
+	}
+
+	this.getShortAt = function(iOffset, bBigEndian) {
+		var iShort = bBigEndian ? 
+			(this.getByteAt(iOffset) &lt;&lt; 8) + this.getByteAt(iOffset + 1)
+			: (this.getByteAt(iOffset + 1) &lt;&lt; 8) + this.getByteAt(iOffset)
+		if (iShort &lt; 0) iShort += 65536;
+		return iShort;
+	}
+	this.getSShortAt = function(iOffset, bBigEndian) {
+		var iUShort = this.getShortAt(iOffset, bBigEndian);
+		if (iUShort &gt; 32767)
+			return iUShort - 65536;
+		else
+			return iUShort;
+	}
+	this.getLongAt = function(iOffset, bBigEndian) {
+		var iByte1 = this.getByteAt(iOffset),
+			iByte2 = this.getByteAt(iOffset + 1),
+			iByte3 = this.getByteAt(iOffset + 2),
+			iByte4 = this.getByteAt(iOffset + 3);
+
+		var iLong = bBigEndian ? 
+			(((((iByte1 &lt;&lt; 8) + iByte2) &lt;&lt; 8) + iByte3) &lt;&lt; 8) + iByte4
+			: (((((iByte4 &lt;&lt; 8) + iByte3) &lt;&lt; 8) + iByte2) &lt;&lt; 8) + iByte1;
+		if (iLong &lt; 0) iLong += 4294967296;
+		return iLong;
+	}
+	this.getSLongAt = function(iOffset, bBigEndian) {
+		var iULong = this.getLongAt(iOffset, bBigEndian);
+		if (iULong &gt; 2147483647)
+			return iULong - 4294967296;
+		else
+			return iULong;
+	}
+
+	this.getStringAt = function(iOffset, iLength) {
+		var aStr = [];
+		
+		var aBytes = this.getBytesAt(iOffset, iLength);
+		for (var j=0; j &lt; iLength; j++) {
+			aStr[j] = String.fromCharCode(aBytes[j]);
+		}
+		return aStr.join(&quot;&quot;);
+	}
+	
+	this.getCharAt = function(iOffset) {
+		return String.fromCharCode(this.getByteAt(iOffset));
+	}
+	this.toBase64 = function() {
+		return window.btoa(data);
+	}
+	this.fromBase64 = function(strBase64) {
+		data = window.atob(strBase64);
+	}
+}
+
+
+var BinaryAjax = (function() {
+
+	function createRequest() {
+		var oHTTP = null;
+		if (window.ActiveXObject) {
+			oHTTP = new ActiveXObject(&quot;Microsoft.XMLHTTP&quot;);
+		} else if (window.XMLHttpRequest) {
+			oHTTP = new XMLHttpRequest();
+		}
+		return oHTTP;
+	}
+
+	function getHead(strURL, fncCallback, fncError) {
+		var oHTTP = createRequest();
+		if (oHTTP) {
+			if (fncCallback) {
+				if (typeof(oHTTP.onload) != &quot;undefined&quot;) {
+					oHTTP.onload = function() {
+						if (oHTTP.status == &quot;200&quot;) {
+							fncCallback(this);
+						} else {
+							if (fncError) fncError();
+						}
+						oHTTP = null;
+					};
+				} else {
+					oHTTP.onreadystatechange = function() {
+						if (oHTTP.readyState == 4) {
+							if (oHTTP.status == &quot;200&quot;) {
+								fncCallback(this);
+							} else {
+								if (fncError) fncError(oHTTP);
+							}
+							oHTTP = null;
+						}
+					};
+				}
+			}
+			oHTTP.open(&quot;HEAD&quot;, strURL, true);
+			oHTTP.send(null);
+		} else {
+			if (fncError) fncError();
+		}
+	}
+
+	function sendRequest(strURL, fncCallback, fncError, aRange, bAcceptRanges, iFileSize) {
+		var oHTTP = createRequest();
+		if (oHTTP) {
+
+			var iDataOffset = 0;
+			if (aRange &amp;&amp; !bAcceptRanges) {
+				iDataOffset = aRange[0];
+			}
+			var iDataLen = 0;
+			if (aRange) {
+				iDataLen = aRange[1]-aRange[0]+1;
+			}
+
+			if (fncCallback) {
+				if (typeof(oHTTP.onload) != &quot;undefined&quot;) {
+					oHTTP.onload = function() {
+						if (oHTTP.status == &quot;200&quot; || oHTTP.status == &quot;206&quot; || oHTTP.status == &quot;0&quot;) {
+							oHTTP.binaryResponse = new BinaryFile(oHTTP.responseText, iDataOffset, iDataLen);
+							oHTTP.fileSize = iFileSize || oHTTP.getResponseHeader(&quot;Content-Length&quot;);
+							fncCallback(oHTTP);
+						} else {
+							if (fncError) fncError();
+						}
+						oHTTP = null;
+					};
+				} else {
+					oHTTP.onreadystatechange = function() {
+						if (oHTTP.readyState == 4) {
+							if (oHTTP.status == &quot;200&quot; || oHTTP.status == &quot;206&quot; || oHTTP.status == &quot;0&quot;) {
+								// IE6 craps if we try to extend the XHR object
+								var oRes = {
+									status : oHTTP.status,
+									// IE needs responseBody, Chrome/Safari needs responseText
+									binaryResponse : new BinaryFile(
+										typeof oHTTP.responseBody == &quot;unknown&quot; ? oHTTP.responseBody : oHTTP.responseText, iDataOffset, iDataLen
+									),
+									fileSize : iFileSize || oHTTP.getResponseHeader(&quot;Content-Length&quot;)
+								};
+								fncCallback(oRes);
+							} else {
+								if (fncError) fncError();
+							}
+							oHTTP = null;
+						}
+					};
+				}
+			}
+			oHTTP.open(&quot;GET&quot;, strURL, true);
+
+			if (oHTTP.overrideMimeType) oHTTP.overrideMimeType('text/plain; charset=x-user-defined');
+
+			if (aRange &amp;&amp; bAcceptRanges) {
+				oHTTP.setRequestHeader(&quot;Range&quot;, &quot;bytes=&quot; + aRange[0] + &quot;-&quot; + aRange[1]);
+			}
+
+//			oHTTP.setRequestHeader(&quot;If-Modified-Since&quot;, &quot;Sat, 1 Jan 1970 00:00:00 GMT&quot;);
+
+			oHTTP.send(null);
+		} else {
+			if (fncError) fncError();
+		}
+	}
+
+	return function(strURL, fncCallback, fncError, aRange) {
+
+		if (aRange) {
+			getHead(
+				strURL, 
+				function(oHTTP) {
+					var iLength = parseInt(oHTTP.getResponseHeader(&quot;Content-Length&quot;),10);
+					var strAcceptRanges = oHTTP.getResponseHeader(&quot;Accept-Ranges&quot;);
+
+					var iStart, iEnd;
+					iStart = aRange[0];
+					if (aRange[0] &lt; 0) 
+						iStart += iLength;
+					iEnd = iStart + aRange[1] - 1;
+
+					sendRequest(strURL, fncCallback, fncError, [iStart, iEnd], (strAcceptRanges == &quot;bytes&quot;), iLength);
+				}
+			);
+
+		} else {
+			sendRequest(strURL, fncCallback, fncError);
+		}
+	}
+
+}());
+
+/*
+document.write(
+	&quot;&lt;script type='text/vbscript'&gt;\r\n&quot;
+	+ &quot;Function IEBinary_getByteAt(strBinary, iOffset)\r\n&quot;
+	+ &quot;	IEBinary_getByteAt = AscB(MidB(strBinary,iOffset+1,1))\r\n&quot;
+	+ &quot;End Function\r\n&quot;
+	+ &quot;Function IEBinary_getLength(strBinary)\r\n&quot;
+	+ &quot;	IEBinary_getLength = LenB(strBinary)\r\n&quot;
+	+ &quot;End Function\r\n&quot;
+	+ &quot;&lt;/script&gt;\r\n&quot;
+);
+*/
+
+document.write(
+	&quot;&lt;script type='text/vbscript'&gt;\r\n&quot;
+	+ &quot;Function IEBinary_getByteAt(strBinary, iOffset)\r\n&quot;
+	+ &quot;	IEBinary_getByteAt = AscB(MidB(strBinary, iOffset + 1, 1))\r\n&quot;
+	+ &quot;End Function\r\n&quot;
+	+ &quot;Function IEBinary_getBytesAt(strBinary, iOffset, iLength)\r\n&quot;
+	+ &quot;  Dim aBytes()\r\n&quot;
+	+ &quot;  ReDim aBytes(iLength - 1)\r\n&quot;
+	+ &quot;  For i = 0 To iLength - 1\r\n&quot;
+	+ &quot;   aBytes(i) = IEBinary_getByteAt(strBinary, iOffset + i)\r\n&quot;  
+	+ &quot;  Next\r\n&quot;
+	+ &quot;  IEBinary_getBytesAt = aBytes\r\n&quot; 
+	+ &quot;End Function\r\n&quot;
+	+ &quot;Function IEBinary_getLength(strBinary)\r\n&quot;
+	+ &quot;	IEBinary_getLength = LenB(strBinary)\r\n&quot;
+	+ &quot;End Function\r\n&quot;
+	+ &quot;&lt;/script&gt;\r\n&quot;
+);</pre>
+</body>
+</html>

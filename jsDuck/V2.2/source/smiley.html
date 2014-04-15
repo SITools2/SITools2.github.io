@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.dialog.add(&quot;smiley&quot;,function(f){for(var e=f.config,a=f.lang.smiley,h=e.smiley_images,g=e.smiley_columns||8,i,k=function(j){var c=j.data.getTarget(),b=c.getName();if(&quot;a&quot;==b)c=c.getChild(0);else if(&quot;img&quot;!=b)return;var b=c.getAttribute(&quot;cke_src&quot;),a=c.getAttribute(&quot;title&quot;),c=f.document.createElement(&quot;img&quot;,{attributes:{src:b,&quot;data-cke-saved-src&quot;:b,title:a,alt:a,width:c.$.width,height:c.$.height}});f.insertElement(c);i.hide();j.data.preventDefault()},n=CKEDITOR.tools.addFunction(function(a,c){var a=
+new CKEDITOR.dom.event(a),c=new CKEDITOR.dom.element(c),b;b=a.getKeystroke();var d=&quot;rtl&quot;==f.lang.dir;switch(b){case 38:if(b=c.getParent().getParent().getPrevious())b=b.getChild([c.getParent().getIndex(),0]),b.focus();a.preventDefault();break;case 40:if(b=c.getParent().getParent().getNext())(b=b.getChild([c.getParent().getIndex(),0]))&amp;&amp;b.focus();a.preventDefault();break;case 32:k({data:a});a.preventDefault();break;case d?37:39:if(b=c.getParent().getNext())b=b.getChild(0),b.focus(),a.preventDefault(!0);
+else if(b=c.getParent().getParent().getNext())(b=b.getChild([0,0]))&amp;&amp;b.focus(),a.preventDefault(!0);break;case d?39:37:if(b=c.getParent().getPrevious())b=b.getChild(0),b.focus(),a.preventDefault(!0);else if(b=c.getParent().getParent().getPrevious())b=b.getLast().getChild(0),b.focus(),a.preventDefault(!0)}}),d=CKEDITOR.tools.getNextId()+&quot;_smiley_emtions_label&quot;,d=['&lt;div&gt;&lt;span id=&quot;'+d+'&quot; class=&quot;cke_voice_label&quot;&gt;'+a.options+&quot;&lt;/span&gt;&quot;,'&lt;table role=&quot;listbox&quot; aria-labelledby=&quot;'+d+'&quot; style=&quot;width:100%;height:100%;border-collapse:separate;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;2&quot;',
+CKEDITOR.env.ie&amp;&amp;CKEDITOR.env.quirks?' style=&quot;position:absolute;&quot;':&quot;&quot;,&quot;&gt;&lt;tbody&gt;&quot;],l=h.length,a=0;a&lt;l;a++){0===a%g&amp;&amp;d.push('&lt;tr role=&quot;presentation&quot;&gt;');var m=&quot;cke_smile_label_&quot;+a+&quot;_&quot;+CKEDITOR.tools.getNextNumber();d.push('&lt;td class=&quot;cke_dark_background cke_centered&quot; style=&quot;vertical-align: middle;&quot; role=&quot;presentation&quot;&gt;&lt;a href=&quot;javascript:void(0)&quot; role=&quot;option&quot;',' aria-posinset=&quot;'+(a+1)+'&quot;',' aria-setsize=&quot;'+l+'&quot;',' aria-labelledby=&quot;'+m+'&quot;',' class=&quot;cke_smile cke_hand&quot; tabindex=&quot;-1&quot; onkeydown=&quot;CKEDITOR.tools.callFunction( ',
+n,', event, this );&quot;&gt;','&lt;img class=&quot;cke_hand&quot; title=&quot;',e.smiley_descriptions[a],'&quot; cke_src=&quot;',CKEDITOR.tools.htmlEncode(e.smiley_path+h[a]),'&quot; alt=&quot;',e.smiley_descriptions[a],'&quot;',' src=&quot;',CKEDITOR.tools.htmlEncode(e.smiley_path+h[a]),'&quot;',CKEDITOR.env.ie?&quot; onload=\&quot;this.setAttribute('width', 2); this.removeAttribute('width');\&quot; &quot;:&quot;&quot;,'&gt;&lt;span id=&quot;'+m+'&quot; class=&quot;cke_voice_label&quot;&gt;'+e.smiley_descriptions[a]+&quot;&lt;/span&gt;&lt;/a&gt;&quot;,&quot;&lt;/td&gt;&quot;);a%g==g-1&amp;&amp;d.push(&quot;&lt;/tr&gt;&quot;)}if(a&lt;g-1){for(;a&lt;g-1;a++)d.push(&quot;&lt;td&gt;&lt;/td&gt;&quot;);d.push(&quot;&lt;/tr&gt;&quot;)}d.push(&quot;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&quot;);
+e={type:&quot;html&quot;,id:&quot;smileySelector&quot;,html:d.join(&quot;&quot;),onLoad:function(a){i=a.sender},focus:function(){var a=this;setTimeout(function(){a.getElement().getElementsByTag(&quot;a&quot;).getItem(0).focus()},0)},onClick:k,style:&quot;width: 100%; border-collapse: separate;&quot;};return{title:f.lang.smiley.title,minWidth:270,minHeight:120,contents:[{id:&quot;tab1&quot;,label:&quot;&quot;,title:&quot;&quot;,expand:!0,padding:0,elements:[e]}],buttons:[CKEDITOR.dialog.cancelButton]}});</pre>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+(function(){function c(b){var c=this instanceof CKEDITOR.ui.dialog.checkbox;b.hasAttribute(this.id)&amp;&amp;(b=b.getAttribute(this.id),c?this.setValue(e[this.id][&quot;true&quot;]==b.toLowerCase()):this.setValue(b))}function d(b){var c=&quot;&quot;===this.getValue(),a=this instanceof CKEDITOR.ui.dialog.checkbox,d=this.getValue();c?b.removeAttribute(this.att||this.id):a?b.setAttribute(this.id,e[this.id][d]):b.setAttribute(this.att||this.id,d)}var e={scrolling:{&quot;true&quot;:&quot;yes&quot;,&quot;false&quot;:&quot;no&quot;},frameborder:{&quot;true&quot;:&quot;1&quot;,&quot;false&quot;:&quot;0&quot;}};
+CKEDITOR.dialog.add(&quot;iframe&quot;,function(b){var f=b.lang.iframe,a=b.lang.common,e=b.plugins.dialogadvtab;return{title:f.title,minWidth:350,minHeight:260,onShow:function(){this.fakeImage=this.iframeNode=null;var a=this.getSelectedElement();a&amp;&amp;(a.data(&quot;cke-real-element-type&quot;)&amp;&amp;&quot;iframe&quot;==a.data(&quot;cke-real-element-type&quot;))&amp;&amp;(this.fakeImage=a,this.iframeNode=a=b.restoreRealElement(a),this.setupContent(a))},onOk:function(){var a;a=this.fakeImage?this.iframeNode:new CKEDITOR.dom.element(&quot;iframe&quot;);var c={},d=
+{};this.commitContent(a,c,d);a=b.createFakeElement(a,&quot;cke_iframe&quot;,&quot;iframe&quot;,!0);a.setAttributes(d);a.setStyles(c);this.fakeImage?(a.replace(this.fakeImage),b.getSelection().selectElement(a)):b.insertElement(a)},contents:[{id:&quot;info&quot;,label:a.generalTab,accessKey:&quot;I&quot;,elements:[{type:&quot;vbox&quot;,padding:0,children:[{id:&quot;src&quot;,type:&quot;text&quot;,label:a.url,required:!0,validate:CKEDITOR.dialog.validate.notEmpty(f.noUrl),setup:c,commit:d}]},{type:&quot;hbox&quot;,children:[{id:&quot;width&quot;,type:&quot;text&quot;,requiredContent:&quot;iframe[width]&quot;,
+style:&quot;width:100%&quot;,labelLayout:&quot;vertical&quot;,label:a.width,validate:CKEDITOR.dialog.validate.htmlLength(a.invalidHtmlLength.replace(&quot;%1&quot;,a.width)),setup:c,commit:d},{id:&quot;height&quot;,type:&quot;text&quot;,requiredContent:&quot;iframe[height]&quot;,style:&quot;width:100%&quot;,labelLayout:&quot;vertical&quot;,label:a.height,validate:CKEDITOR.dialog.validate.htmlLength(a.invalidHtmlLength.replace(&quot;%1&quot;,a.height)),setup:c,commit:d},{id:&quot;align&quot;,type:&quot;select&quot;,requiredContent:&quot;iframe[align]&quot;,&quot;default&quot;:&quot;&quot;,items:[[a.notSet,&quot;&quot;],[a.alignLeft,&quot;left&quot;],[a.alignRight,
+&quot;right&quot;],[a.alignTop,&quot;top&quot;],[a.alignMiddle,&quot;middle&quot;],[a.alignBottom,&quot;bottom&quot;]],style:&quot;width:100%&quot;,labelLayout:&quot;vertical&quot;,label:a.align,setup:function(a,b){c.apply(this,arguments);if(b){var d=b.getAttribute(&quot;align&quot;);this.setValue(d&amp;&amp;d.toLowerCase()||&quot;&quot;)}},commit:function(a,b,c){d.apply(this,arguments);this.getValue()&amp;&amp;(c.align=this.getValue())}}]},{type:&quot;hbox&quot;,widths:[&quot;50%&quot;,&quot;50%&quot;],children:[{id:&quot;scrolling&quot;,type:&quot;checkbox&quot;,requiredContent:&quot;iframe[scrolling]&quot;,label:f.scrolling,setup:c,commit:d},{id:&quot;frameborder&quot;,
+type:&quot;checkbox&quot;,requiredContent:&quot;iframe[frameborder]&quot;,label:f.border,setup:c,commit:d}]},{type:&quot;hbox&quot;,widths:[&quot;50%&quot;,&quot;50%&quot;],children:[{id:&quot;name&quot;,type:&quot;text&quot;,requiredContent:&quot;iframe[name]&quot;,label:a.name,setup:c,commit:d},{id:&quot;title&quot;,type:&quot;text&quot;,requiredContent:&quot;iframe[title]&quot;,label:a.advisoryTitle,setup:c,commit:d}]},{id:&quot;longdesc&quot;,type:&quot;text&quot;,requiredContent:&quot;iframe[longdesc]&quot;,label:a.longDescr,setup:c,commit:d}]},e&amp;&amp;e.createAdvancedTab(b,{id:1,classes:1,styles:1},&quot;iframe&quot;)]}})})();</pre>
+</body>
+</html>

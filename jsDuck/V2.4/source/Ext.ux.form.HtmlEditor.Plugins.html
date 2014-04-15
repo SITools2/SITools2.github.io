@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-ux-form-HtmlEditor-plugins'>/**
+</span> * @author Shea Frederick - http://www.vinylfox.com
+ * @class Ext.ux.form.HtmlEditor.plugins
+ * &lt;p&gt;A convenience function that returns a standard set of HtmlEditor buttons.&lt;/p&gt;
+ * &lt;p&gt;Sample usage:&lt;/p&gt;
+ * &lt;pre&gt;&lt;code&gt;
+    new Ext.FormPanel({
+        ...
+        items : [{
+            ...
+            xtype           : &quot;htmleditor&quot;,
+            plugins         : Ext.ux.form.HtmlEditor.plugins()
+        }]
+    });
+ * &lt;/code&gt;&lt;/pre&gt;
+ */
+Ext.ux.form.HtmlEditor.plugins = function(){
+    return [
+//        new Ext.ux.form.HtmlEditor.Link(),
+//        new Ext.ux.form.HtmlEditor.Divider(),
+//        new Ext.ux.form.HtmlEditor.Word(),
+//        new Ext.ux.form.HtmlEditor.FindAndReplace(),
+        new sitools.widget.HtmlEditor.datasetLink(),
+        new Ext.ux.form.HtmlEditor.UndoRedo(),
+        new Ext.ux.form.HtmlEditor.Divider(),
+        new Ext.ux.form.HtmlEditor.Image(),
+//        new Ext.ux.form.HtmlEditor.Table(),
+        new Ext.ux.form.HtmlEditor.HR(),
+        new Ext.ux.form.HtmlEditor.SpecialCharacters(),
+        new Ext.ux.form.HtmlEditor.HeadingMenu(),
+        new Ext.ux.form.HtmlEditor.IndentOutdent(),
+        new Ext.ux.form.HtmlEditor.SubSuperScript(),
+        new Ext.ux.form.HtmlEditor.RemoveFormat()
+    ];
+};</pre>
+</body>
+</html>

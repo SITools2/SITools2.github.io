@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.plugins.setLang(&quot;specialchar&quot;,&quot;cy&quot;,{euro:&quot;Arwydd yr Ewro&quot;,lsquo:&quot;Dyfynnod chwith unigol&quot;,rsquo:&quot;Dyfynnod dde unigol&quot;,ldquo:&quot;Dyfynnod chwith dwbl&quot;,rdquo:&quot;Dyfynnod dde dwbl&quot;,ndash:&quot;Cysylltnod en&quot;,mdash:&quot;Cysylltnod em&quot;,iexcl:&quot;Ebychnod gwrthdro&quot;,cent:&quot;Arwydd sent&quot;,pound:&quot;Arwydd punt&quot;,curren:&quot;Arwydd arian cyfred&quot;,yen:&quot;Arwydd yen&quot;,brvbar:&quot;Bar toriedig&quot;,sect:&quot;Arwydd adran&quot;,uml:&quot;Didolnod&quot;,copy:&quot;Arwydd hawlfraint&quot;,ordf:&quot;Dangosydd benywaidd&quot;,laquo:&quot;Dyfynnod dwbl ar ongl i'r chwith&quot;,not:&quot;Arwydd Nid&quot;,
+reg:&quot;Arwydd cofrestredig&quot;,macr:&quot;Macron&quot;,deg:&quot;Arwydd gradd&quot;,sup2:&quot;Dau uwchsgript&quot;,sup3:&quot;Tri uwchsgript&quot;,acute:&quot;Acen ddyrchafedig&quot;,micro:&quot;Arwydd micro&quot;,para:&quot;Arwydd pilcrow&quot;,middot:&quot;Dot canol&quot;,cedil:&quot;Sedila&quot;,sup1:&quot;Un uwchsgript&quot;,ordm:&quot;Dangosydd gwrywaidd&quot;,raquo:&quot;Dyfynnod dwbl ar ongl i'r dde&quot;,frac14:&quot;Ffracsiwn cyffredin un cwarter&quot;,frac12:&quot;Ffracsiwn cyffredin un hanner&quot;,frac34:&quot;Ffracsiwn cyffredin tri chwarter&quot;,iquest:&quot;Marc cwestiwn gwrthdroëdig&quot;,Agrave:&quot;Priflythyren A Lladinaidd gydag acen ddisgynedig&quot;,
+Aacute:&quot;Priflythyren A Lladinaidd gydag acen ddyrchafedig&quot;,Acirc:&quot;Priflythyren A Lladinaidd gydag acen grom&quot;,Atilde:&quot;Priflythyren A Lladinaidd gyda thild&quot;,Auml:&quot;Priflythyren A Lladinaidd gyda didolnod&quot;,Aring:&quot;Priflythyren A Lladinaidd gyda chylch uwchben&quot;,AElig:&quot;Priflythyren Æ Lladinaidd&quot;,Ccedil:&quot;Priflythyren C Lladinaidd gyda sedila&quot;,Egrave:&quot;Priflythyren E Lladinaidd gydag acen ddisgynedig&quot;,Eacute:&quot;Priflythyren E Lladinaidd gydag acen ddyrchafedig&quot;,Ecirc:&quot;Priflythyren E Lladinaidd gydag acen grom&quot;,
+Euml:&quot;Priflythyren E Lladinaidd gyda didolnod&quot;,Igrave:&quot;Priflythyren I Lladinaidd gydag acen ddisgynedig&quot;,Iacute:&quot;Priflythyren I Lladinaidd gydag acen ddyrchafedig&quot;,Icirc:&quot;Priflythyren I Lladinaidd gydag acen grom&quot;,Iuml:&quot;Priflythyren I Lladinaidd gyda didolnod&quot;,ETH:&quot;Priflythyren Eth&quot;,Ntilde:&quot;Priflythyren N Lladinaidd gyda thild&quot;,Ograve:&quot;Priflythyren O Lladinaidd gydag acen ddisgynedig&quot;,Oacute:&quot;Priflythyren O Lladinaidd gydag acen ddyrchafedig&quot;,Ocirc:&quot;Priflythyren O Lladinaidd gydag acen grom&quot;,Otilde:&quot;Priflythyren O Lladinaidd gyda thild&quot;,
+Ouml:&quot;Priflythyren O Lladinaidd gyda didolnod&quot;,times:&quot;Arwydd lluosi&quot;,Oslash:&quot;Priflythyren O Lladinaidd gyda strôc&quot;,Ugrave:&quot;Priflythyren U Lladinaidd gydag acen ddisgynedig&quot;,Uacute:&quot;Priflythyren U Lladinaidd gydag acen ddyrchafedig&quot;,Ucirc:&quot;Priflythyren U Lladinaidd gydag acen grom&quot;,Uuml:&quot;Priflythyren U Lladinaidd gyda didolnod&quot;,Yacute:&quot;Priflythyren Y Lladinaidd gydag acen ddyrchafedig&quot;,THORN:&quot;Priflythyren Thorn&quot;,szlig:&quot;Llythyren s fach Lladinaidd siarp &quot;,agrave:&quot;Llythyren a fach Lladinaidd gydag acen ddisgynedig&quot;,
+aacute:&quot;Llythyren a fach Lladinaidd gydag acen ddyrchafedig&quot;,acirc:&quot;Llythyren a fach Lladinaidd gydag acen grom&quot;,atilde:&quot;Llythyren a fach Lladinaidd gyda thild&quot;,auml:&quot;Llythyren a fach Lladinaidd gyda didolnod&quot;,aring:&quot;Llythyren a fach Lladinaidd gyda chylch uwchben&quot;,aelig:&quot;Llythyren æ fach Lladinaidd&quot;,ccedil:&quot;Llythyren c fach Lladinaidd gyda sedila&quot;,egrave:&quot;Llythyren e fach Lladinaidd gydag acen ddisgynedig&quot;,eacute:&quot;Llythyren e fach Lladinaidd gydag acen ddyrchafedig&quot;,ecirc:&quot;Llythyren e fach Lladinaidd gydag acen grom&quot;,
+euml:&quot;Llythyren e fach Lladinaidd gyda didolnod&quot;,igrave:&quot;Llythyren i fach Lladinaidd gydag acen ddisgynedig&quot;,iacute:&quot;Llythyren i fach Lladinaidd gydag acen ddyrchafedig&quot;,icirc:&quot;Llythyren i fach Lladinaidd gydag acen grom&quot;,iuml:&quot;Llythyren i fach Lladinaidd gyda didolnod&quot;,eth:&quot;Llythyren eth fach&quot;,ntilde:&quot;Llythyren n fach Lladinaidd gyda thild&quot;,ograve:&quot;Llythyren o fach Lladinaidd gydag acen ddisgynedig&quot;,oacute:&quot;Llythyren o fach Lladinaidd gydag acen ddyrchafedig&quot;,ocirc:&quot;Llythyren o fach Lladinaidd gydag acen grom&quot;,
+otilde:&quot;Llythyren o fach Lladinaidd gyda thild&quot;,ouml:&quot;Llythyren o fach Lladinaidd gyda didolnod&quot;,divide:&quot;Arwydd rhannu&quot;,oslash:&quot;Llyth&quot;,ugrave:&quot;Llythyren u fach Lladinaidd gydag acen ddisgynedig&quot;,uacute:&quot;Llythyren u fach Lladinaidd gydag acen ddyrchafedig&quot;,ucirc:&quot;Llythyren u fach Lladinaidd gydag acen grom&quot;,uuml:&quot;Llythyren u fach Lladinaidd gyda didolnod&quot;,yacute:&quot;Llythyren y fach Lladinaidd gydag acen ddisgynedig&quot;,thorn:&quot;Llythyren o fach Lladinaidd gyda strôc&quot;,yuml:&quot;Llythyren y fach Lladinaidd gyda didolnod&quot;,
+OElig:&quot;Priflythyren cwlwm OE Lladinaidd &quot;,oelig:&quot;Priflythyren cwlwm oe Lladinaidd &quot;,372:&quot;Priflythyren W gydag acen grom&quot;,374:&quot;Priflythyren Y gydag acen grom&quot;,373:&quot;Llythyren w fach gydag acen grom&quot;,375:&quot;Llythyren y fach gydag acen grom&quot;,sbquo:&quot;Dyfynnod sengl 9-isel&quot;,8219:&quot;Dyfynnod sengl 9-uchel cildro&quot;,bdquo:&quot;Dyfynnod dwbl 9-isel&quot;,hellip:&quot;Coll geiriau llorweddol&quot;,trade:&quot;Arwydd marc masnachol&quot;,9658:&quot;Pwyntydd du i'r dde&quot;,bull:&quot;Bwled&quot;,rarr:&quot;Saeth i'r dde&quot;,rArr:&quot;Saeth ddwbl i'r dde&quot;,hArr:&quot;Saeth ddwbl i'r chwith&quot;,
+diams:&quot;Siwt diemwnt du&quot;,asymp:&quot;Bron yn hafal iddo&quot;});</pre>
+</body>
+</html>

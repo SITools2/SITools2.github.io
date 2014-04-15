@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.plugins.setLang(&quot;specialchar&quot;,&quot;tr&quot;,{euro:&quot;Euro işareti&quot;,lsquo:&quot;Sol tek tırnak işareti&quot;,rsquo:&quot;Sağ tek tırnak işareti&quot;,ldquo:&quot;Sol çift tırnak işareti&quot;,rdquo:&quot;Sağ çift tırnak işareti&quot;,ndash:&quot;En tire&quot;,mdash:&quot;Em tire&quot;,iexcl:&quot;Ters ünlem işareti&quot;,cent:&quot;Cent işareti&quot;,pound:&quot;Pound işareti&quot;,curren:&quot;Para birimi işareti&quot;,yen:&quot;Yen işareti&quot;,brvbar:&quot;Kırık bar&quot;,sect:&quot;Bölüm işareti&quot;,uml:&quot;İki sesli harfin ayrılması&quot;,copy:&quot;Telif hakkı işareti&quot;,ordf:&quot;Dişil sıralı gösterge&quot;,laquo:&quot;Sol-işaret çift açı tırnak işareti&quot;,
+not:&quot;Not işareti&quot;,reg:&quot;Kayıtlı işareti&quot;,macr:&quot;Makron&quot;,deg:&quot;Derece işareti&quot;,sup2:&quot;İkili üstsimge&quot;,sup3:&quot;Üçlü üstsimge&quot;,acute:&quot;Aksan işareti&quot;,micro:&quot;Mikro işareti&quot;,para:&quot;Pilcrow işareti&quot;,middot:&quot;Orta nokta&quot;,cedil:&quot;Kedilla&quot;,sup1:&quot;Üstsimge&quot;,ordm:&quot;Eril sıralı gösterge&quot;,raquo:&quot;Sağ işaret çift açı tırnak işareti&quot;,frac14:&quot;Bayağı kesrin dörtte biri&quot;,frac12:&quot;Bayağı kesrin bir yarım&quot;,frac34:&quot;Bayağı kesrin dörtte üç&quot;,iquest:&quot;Ters soru işareti&quot;,Agrave:&quot;Aksanlı latin harfi&quot;,Aacute:&quot;Aşırı aksanıyla Latin harfi&quot;,
+Acirc:&quot;Çarpık Latin harfi&quot;,Atilde:&quot;Tilde latin harfi&quot;,Auml:&quot;Sesli harf ayrılımlıı latin harfi&quot;,Aring:&quot;Halkalı latin büyük A harfi&quot;,AElig:&quot;Latin büyük Æ harfi&quot;,Ccedil:&quot;Latin büyük C harfi ile kedilla&quot;,Egrave:&quot;Aksanlı latin büyük E harfi&quot;,Eacute:&quot;Aşırı vurgulu latin büyük E harfi&quot;,Ecirc:&quot;Çarpık latin büyük E harfi&quot;,Euml:&quot;Sesli harf ayrılımlıı latin büyük E harfi&quot;,Igrave:&quot;Aksanlı latin büyük I harfi&quot;,Iacute:&quot;Aşırı aksanlı latin büyük I harfi&quot;,Icirc:&quot;Çarpık latin büyük I harfi&quot;,Iuml:&quot;Sesli harf ayrılımlıı latin büyük I harfi&quot;,
+ETH:&quot;Latin büyük Eth harfi&quot;,Ntilde:&quot;Tildeli latin büyük N harfi&quot;,Ograve:&quot;Aksanlı latin büyük O harfi&quot;,Oacute:&quot;Aşırı aksanlı latin büyük O harfi&quot;,Ocirc:&quot;Çarpık latin büyük O harfi&quot;,Otilde:&quot;Tildeli latin büyük O harfi&quot;,Ouml:&quot;Sesli harf ayrılımlı latin büyük O harfi&quot;,times:&quot;Çarpma işareti&quot;,Oslash:&quot;Vurgulu latin büyük O harfi&quot;,Ugrave:&quot;Aksanlı latin büyük U harfi&quot;,Uacute:&quot;Aşırı aksanlı latin büyük U harfi&quot;,Ucirc:&quot;Çarpık latin büyük U harfi&quot;,Uuml:&quot;Sesli harf ayrılımlı latin büyük U harfi&quot;,Yacute:&quot;Aşırı aksanlı latin büyük Y harfi&quot;,
+THORN:&quot;Latin büyük Thorn harfi&quot;,szlig:&quot;Latin küçük keskin s harfi&quot;,agrave:&quot;Aksanlı latin küçük a harfi&quot;,aacute:&quot;Aşırı aksanlı latin küçük a harfi&quot;,acirc:&quot;Çarpık latin küçük a harfi&quot;,atilde:&quot;Tildeli latin küçük a harfi&quot;,auml:&quot;Sesli harf ayrılımlı latin küçük a harfi&quot;,aring:&quot;Halkalı latin küçük a harfi&quot;,aelig:&quot;Latin büyük æ harfi&quot;,ccedil:&quot;Kedillalı latin küçük c harfi&quot;,egrave:&quot;Aksanlı latin küçük e harfi&quot;,eacute:&quot;Aşırı aksanlı latin küçük e harfi&quot;,ecirc:&quot;Çarpık latin küçük e harfi&quot;,euml:&quot;Sesli harf ayrılımlı latin küçük e harfi&quot;,
+igrave:&quot;Aksanlı latin küçük i harfi&quot;,iacute:&quot;Aşırı aksanlı latin küçük i harfi&quot;,icirc:&quot;Çarpık latin küçük i harfi&quot;,iuml:&quot;Sesli harf ayrılımlı latin küçük i harfi&quot;,eth:&quot;Latin küçük eth harfi&quot;,ntilde:&quot;Tildeli latin küçük n harfi&quot;,ograve:&quot;Aksanlı latin küçük o harfi&quot;,oacute:&quot;Aşırı aksanlı latin küçük o harfi&quot;,ocirc:&quot;Çarpık latin küçük o harfi&quot;,otilde:&quot;Tildeli latin küçük o harfi&quot;,ouml:&quot;Sesli harf ayrılımlı latin küçük o harfi&quot;,divide:&quot;Bölme işareti&quot;,oslash:&quot;Vurgulu latin küçük o harfi&quot;,ugrave:&quot;Aksanlı latin küçük u harfi&quot;,
+uacute:&quot;Aşırı aksanlı latin küçük u harfi&quot;,ucirc:&quot;Çarpık latin küçük u harfi&quot;,uuml:&quot;Sesli harf ayrılımlı latin küçük u harfi&quot;,yacute:&quot;Aşırı aksanlı latin küçük y harfi&quot;,thorn:&quot;Latin küçük thorn harfi&quot;,yuml:&quot;Sesli harf ayrılımlı latin küçük y harfi&quot;,OElig:&quot;Latin büyük bağlı OE harfi&quot;,oelig:&quot;Latin küçük bağlı oe harfi&quot;,372:&quot;Çarpık latin büyük W harfi&quot;,374:&quot;Çarpık latin büyük Y harfi&quot;,373:&quot;Çarpık latin küçük w harfi&quot;,375:&quot;Çarpık latin küçük y harfi&quot;,sbquo:&quot;Tek düşük-9 tırnak işareti&quot;,8219:&quot;Tek yüksek-ters-9 tırnak işareti&quot;,
+bdquo:&quot;Çift düşük-9 tırnak işareti&quot;,hellip:&quot;Yatay elips&quot;,trade:&quot;Marka tescili işareti&quot;,9658:&quot;Siyah sağ işaret işaretçisi&quot;,bull:&quot;Koyu nokta&quot;,rarr:&quot;Sağa doğru ok&quot;,rArr:&quot;Sağa doğru çift ok&quot;,hArr:&quot;Sol, sağ çift ok&quot;,diams:&quot;Siyah elmas takımı&quot;,asymp:&quot;Hemen hemen eşit&quot;});</pre>
+</body>
+</html>

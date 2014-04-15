@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.dialog.add(&quot;hiddenfield&quot;,function(d){return{title:d.lang.forms.hidden.title,hiddenField:null,minWidth:350,minHeight:110,onShow:function(){delete this.hiddenField;var a=this.getParentEditor(),b=a.getSelection(),c=b.getSelectedElement();c&amp;&amp;(c.data(&quot;cke-real-element-type&quot;)&amp;&amp;&quot;hiddenfield&quot;==c.data(&quot;cke-real-element-type&quot;))&amp;&amp;(this.hiddenField=c,c=a.restoreRealElement(this.hiddenField),this.setupContent(c),b.selectElement(this.hiddenField))},onOk:function(){var a=this.getValueOf(&quot;info&quot;,&quot;_cke_saved_name&quot;);
+this.getValueOf(&quot;info&quot;,&quot;value&quot;);var b=this.getParentEditor(),a=CKEDITOR.env.ie&amp;&amp;!(8&lt;=CKEDITOR.document.$.documentMode)?b.document.createElement('&lt;input name=&quot;'+CKEDITOR.tools.htmlEncode(a)+'&quot;&gt;'):b.document.createElement(&quot;input&quot;);a.setAttribute(&quot;type&quot;,&quot;hidden&quot;);this.commitContent(a);a=b.createFakeElement(a,&quot;cke_hidden&quot;,&quot;hiddenfield&quot;);this.hiddenField?(a.replace(this.hiddenField),b.getSelection().selectElement(a)):b.insertElement(a);return!0},contents:[{id:&quot;info&quot;,label:d.lang.forms.hidden.title,title:d.lang.forms.hidden.title,
+elements:[{id:&quot;_cke_saved_name&quot;,type:&quot;text&quot;,label:d.lang.forms.hidden.name,&quot;default&quot;:&quot;&quot;,accessKey:&quot;N&quot;,setup:function(a){this.setValue(a.data(&quot;cke-saved-name&quot;)||a.getAttribute(&quot;name&quot;)||&quot;&quot;)},commit:function(a){this.getValue()?a.setAttribute(&quot;name&quot;,this.getValue()):a.removeAttribute(&quot;name&quot;)}},{id:&quot;value&quot;,type:&quot;text&quot;,label:d.lang.forms.hidden.value,&quot;default&quot;:&quot;&quot;,accessKey:&quot;V&quot;,setup:function(a){this.setValue(a.getAttribute(&quot;value&quot;)||&quot;&quot;)},commit:function(a){this.getValue()?a.setAttribute(&quot;value&quot;,this.getValue()):
+a.removeAttribute(&quot;value&quot;)}}]}]}});</pre>
+</body>
+</html>

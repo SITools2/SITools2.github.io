@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, showResponse, i18n, SitoolsDesk, extColModelToJsonColModel, loadUrl*/
+
+Ext.namespace('sitools.user.component.entete');
+
+<span id='sitools-user-component-entete-Entete-cfg-modules'><span id='sitools-user-component-entete-Entete-cfg-htmlContent'><span id='sitools-user-component-entete-Entete'>/**
+</span></span></span> * Populate the div x-headers of the sitools Desktop. 
+ * @cfg {String} htmlContent html content of the headers, 
+ * @cfg {Array} modules the modules list
+ * @class sitools.user.component.entete.Entete
+ * @extends Ext.Panel
+ */
+sitools.user.component.entete.Entete = Ext.extend(Ext.Panel, {
+    heightNormalMode : 0, 
+    heightMaximizeDesktopMode : 0, 
+	
+	initComponent : function () {
+
+		this.navBarModule = new sitools.user.component.entete.NavBar({
+			modules : this.modules, 
+			observer : this
+		});
+		
+		this.navToolbarButtons = new sitools.user.component.entete.NavBarButtons({
+            observer : this,
+            width: '162px' // width without save button
+        });
+
+		this.NavBarsPanel = new Ext.Panel({
+		    border : false, 
+		    layout : 'hbox',
+		    height : 35,
+		    flex : 1, 
+		    listeners : {
+                scope : this, 
+                maximizeDesktop : this.onMaximizeDesktopNavbar, 
+                minimizeDesktop : this.onMinimizeDesktopNavbar 
+            },
+		    items : [ this.navBarModule, this.navToolbarButtons ]
+		});
+
+		this.entetePanel = new Ext.Panel({
+			html : this.htmlContent, 
+			border : false, 
+			layout : &quot;fit&quot;,
+			flex : 1, 
+			listeners : {
+				scope : this, 
+				desktopReady : this.showUserContainer
+			}
+		});
+		
+		sitools.user.component.entete.Entete.superclass.initComponent.call(Ext.apply(this,  {
+			items : [this.entetePanel, this.NavBarsPanel], 
+			border : false, 
+			layout : &quot;vbox&quot;, 
+			layoutConfig : {
+				align : &quot;stretch&quot;
+			}, 
+			listeners : {
+				scope : this, 
+				afterRender : function (me) {
+					var enteteEl = SitoolsDesk.getEnteteEl();
+					me.setHeight(enteteEl.getHeight());
+					me.doLayout();
+					
+					me.heightNormalMode = enteteEl.getHeight();
+					me.heightMaximizeDesktopMode = this.NavBarsPanel.getHeight();
+				}, 
+				
+				maximizeDesktop : this.onMaximizeDesktop, 
+				minimizeDesktop : this.onMinimizeDesktop, 
+//				navBarRendered : function (navBar) {
+//					this.entetePanel.fireEvent(&quot;navBarRendered&quot;, navBar);
+//				}, 
+				windowResize : function (me) {
+					this.userContainer.hide();
+				}, 
+				desktopReady : function (me) {
+					this.entetePanel.fireEvent(&quot;desktopReady&quot;, this.navToolbarButtons);
+				}
+			}
+		}));
+	}, 
+<span id='sitools-user-component-entete-Entete-method-onMaximizeDesktop'>	/**
+</span>	 * listeners of maximizeDesktop event : 
+	 */
+	onMaximizeDesktop : function () {
+		this.entetePanel.hide();
+		this.container.setHeight(this.heightMaximizeDesktopMode);
+		this.setHeight(this.heightMaximizeDesktopMode);
+		this.NavBarsPanel.fireEvent(&quot;maximizeDesktop&quot;);
+//		this.userContainer.setVisible(! SitoolsDesk.desktopMaximizeMode);
+		if (this.userContainer) {
+			this.userContainer.fireEvent(&quot;maximizeDesktop&quot;, this.userContainer, this.navToolbarButtons);
+		}
+		this.doLayout();
+	}, 
+<span id='sitools-user-component-entete-Entete-method-onMinimizeDesktop'>	/**
+</span>	 * listeners of minimizeDesktop event : 
+	 */
+	onMinimizeDesktop : function () {
+		this.entetePanel.setVisible(true);
+		this.container.dom.style.height = &quot;&quot;;
+		this.setHeight(this.heightNormalMode);
+		this.NavBarsPanel.fireEvent(&quot;minimizeDesktop&quot;);
+//		this.userContainer.setVisible(! SitoolsDesk.desktopMaximizeMode);
+		if (this.userContainer) {
+			this.userContainer.fireEvent(&quot;minimizeDesktop&quot;, this.userContainer, this.navToolbarButtons);
+		}
+		this.doLayout();
+		
+	}, 
+	
+	showUserContainer : function (navBar) {
+		var tpl, textToDisplay = i18n.get(&quot;label.welcome&quot;), userContainerHeight, userContainerWidth;
+		if (projectGlobal.user) {
+			textToDisplay += &quot; &quot; + projectGlobal.user.firstName + &quot; &quot; + projectGlobal.user.lastName;
+			userContainerHeight = 30;
+			userContainerWidth = 250;
+		}
+		else {
+			textToDisplay += &quot; &quot; + i18n.get('label.guest') + &quot;&lt;br&gt;&quot; + i18n.get(&quot;label.clickToConnect&quot;);
+			userContainerHeight = 50;
+			userContainerWidth = 250;
+		}
+		
+		if (SitoolsDesk.desktopMaximizeMode) {
+			tpl = new Ext.XTemplate(&quot;&lt;div style='left:{width - 60}px;' class='sitools-userContainer-arrow-border-up'&gt;&lt;/div&gt;&quot;, 
+				&quot;&lt;div style='left:{width - 60}px;' class='sitools-userContainer-arrow-up'&gt;&lt;/div&gt;&quot;, 
+				&quot;&lt;div&gt;&lt;img class='sitools-userContainer-icon' src='/sitools/cots/extjs/resources/images/default/window/icon-info.gif'&gt;{text}&lt;/div&gt;&quot;);
+		}
+		else {
+			tpl = new Ext.XTemplate(&quot;&lt;div&gt;&lt;img class='sitools-userContainer-icon' src='/sitools/cots/extjs/resources/images/default/window/icon-info.gif'&gt;{text}&lt;/div&gt;&quot;, 
+					&quot;&lt;div style='left:{width - 60}px;' class='sitools-userContainer-arrow-border-down'&gt;&lt;/div&gt;&quot;, 
+					&quot;&lt;div style='left:{width - 60}px;' class='sitools-userContainer-arrow-down'&gt;&lt;/div&gt;&quot;);
+		}
+		this.userContainer = new Ext.BoxComponent({
+			data : {
+				text : textToDisplay, 
+				height : userContainerHeight, 
+				width : userContainerWidth
+			}, 
+			cls : &quot;sitools-userContainer&quot;, 
+			width : userContainerWidth, 
+			height : userContainerHeight, 
+			renderTo : SitoolsDesk.getEnteteEl(), 
+			tpl : tpl, 
+			listeners : {
+				scope : this, 
+				afterRender : function (me) {
+					var el = Ext.get(me.id);
+					el.on(&quot;click&quot;, function (e, t, o) {
+							this.getEl().fadeOut({
+							    easing: 'easeOut',
+							    duration: 1,
+							    endOpacity : 0,
+							    useDisplay: false
+							});
+					}, me);
+				}, 
+				maximizeDesktop : function (me, navBar) {
+//					me.setPosition(me.getPosition()[0], this.calcUserContainerYPos(navBar));
+					if (me.isVisible()) {
+						me.destroy();
+//						this.showUserContainer(navBar);
+					}
+				}, 
+				minimizeDesktop : function (me, navBar) {
+					if (me.isVisible()) {
+						me.destroy();
+//						this.showUserContainer(navBar);
+					}
+				}
+			}
+		});
+		
+		var enteteEl = SitoolsDesk.getEnteteEl();
+		var userContEl = this.userContainer.getEl();
+		var x, y;
+		x = Ext.getBody().getWidth() - this.userContainer.getWidth();
+		
+		y = this.calcUserContainerYPos(navBar);
+		
+		this.userContainer.setPosition([x, y]);
+		userContEl.highlight(&quot;948B8B&quot;, { 
+			attr: 'background-color', 
+			duration: 1
+		});
+		userContEl.fadeOut({
+		    easing: 'easeOut',
+		    duration: 1,
+		    endOpacity : 0,
+		    useDisplay: false
+		});
+//		this.userContainer.setVisible(! SitoolsDesk.desktopMaximizeMode);
+	}, 
+<span id='sitools-user-component-entete-Entete-method-calcUserContainerYPos'>	/**
+</span>	 * Calculates the y position of the userContainer.
+	 * @param navBar (the navBar component
+	 * @returns {integer} the yPosition
+	 */
+	calcUserContainerYPos : function (navBar) {
+		var enteteEl = SitoolsDesk.getEnteteEl();
+		var userContEl = this.userContainer.getEl();
+		var y;
+		if (SitoolsDesk.desktopMaximizeMode) {
+			y = navBar.getHeight();
+		}
+		else {
+			y = enteteEl.getHeight() - navBar.getHeight() - this.userContainer.getHeight();
+			if (!Ext.isEmpty(userContEl.getMargins())) {
+				y -= userContEl.getMargins().bottom;
+				y -= userContEl.getMargins().top;
+			}
+		}
+		return y;
+
+	},
+	
+<span id='sitools-user-component-entete-Entete-method-getNavbarButtons'>	/**
+</span>	 * Return the Navbar Buttons
+	 */
+	getNavbarButtons : function (){
+	    return this.navToolbarButtons;
+	},
+	
+<span id='sitools-user-component-entete-Entete-method-getNavbarModules'>	/**
+</span>     * Return the Navbar Modules
+     */
+	getNavbarModules : function () {
+	    return this.navBarModule;
+	},
+<span id='sitools-user-component-entete-Entete-method-onMaximizeDesktopNavbar'>	/**
+</span>     * listeners of maximizeDesktop event
+     */
+    onMaximizeDesktopNavbar : function () {
+        this.navBarModule.fireEvent(&quot;maximizeDesktop&quot;);
+        this.navToolbarButtons.fireEvent(&quot;maximizeDesktop&quot;);
+    },
+    
+<span id='sitools-user-component-entete-Entete-method-onMinimizeDesktopNavbar'>    /**
+</span>     * listeners of minimizeDesktop event
+     */
+    onMinimizeDesktopNavbar : function () {
+        this.navBarModule.fireEvent(&quot;minimizeDesktop&quot;);
+        this.navToolbarButtons.fireEvent(&quot;minimizeDesktop&quot;);
+    }
+	
+    
+});
+
+Ext.reg('sitools.user.component.entete.Entete', sitools.user.component.entete.Entete);
+</pre>
+</body>
+</html>

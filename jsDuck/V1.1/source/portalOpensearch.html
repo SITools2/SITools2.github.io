@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, i18n, sitools, formPanel, result*/
+/*
+ * @include &quot;../../components/viewDataDetail/simpleViewDataDetails.js&quot;
+ */
+
+Ext.namespace('sitools.component.users.portal');
+<span id='sitools-component-users-portal-portalOpensearch-cfg-pagging'><span id='sitools-component-users-portal-portalOpensearch-cfg-suggest'><span id='sitools-component-users-portal-portalOpensearch-cfg-dataUrl'><span id='sitools-component-users-portal-portalOpensearch'>/**
+</span></span></span></span> * @cfg {string} dataUrl the uri of the opensearch
+ * @cfg {boolean} suggest true to activate autosuggest, false otherwise
+ * @cfg {boolean} pagging true to activate the pagging, false otherwise
+ * @class sitools.component.users.portal.portalOpensearch
+ * @requires sitools.user.component.simpleViewDataDetail
+ * @extends Ext.Panel
+ * @requires sitools.user.component.openSearchResultFeed
+ */
+sitools.component.users.portal.portalOpensearch = function (config) {
+
+    // set the uri for the opensearch engine
+    // exemple de requete avec pagination
+    // http://localhost:8182/sitools/solr/db?q=fu*&amp;start=10&amp;rows=20
+    var uri = config.dataUrl + &quot;/opensearch/search&quot;;
+    var uriSuggest = config.dataUrl + &quot;/opensearch/suggest&quot;;
+    var suggest = true;
+    if (!Ext.isEmpty(config.suggest)) {
+        suggest = config.suggest;
+    }
+
+    var pagging = true;
+    if (!Ext.isEmpty(config.pagging)) {
+        pagging = config.pagging;
+    }
+
+<span id='sitools-component-users-portal-portalOpensearch-method-_clickOnSearch'>    /**
+</span>     * click handler for the search button gets the search query and update the
+     * RSS feed URI to display the results
+     */
+    function _clickOnSearch() {
+        // create the opensearch url
+        var searchQuery = formPanel.getForm().getValues().searchQuery;
+        var nbResults = formPanel.getForm().getValues().nbResults;
+        result.updateStore(uri + &quot;?q=&quot; + searchQuery + &quot;&amp;nbResults=&quot; + nbResults);
+    }
+
+   /* var search = new Ext.form.TextField({
+        fieldLabel : i18n.get(&quot;label.search&quot;),
+        name : 'searchQuery',
+        anchor : &quot;100%&quot;,
+        listeners : {
+            scope : this,
+            specialkey : function (field, e) {
+                if (e.getKey() == e.ENTER) {
+                    _clickOnSearch();
+                }
+            }
+        }
+    });*/
+    
+    var ds = new Ext.data.JsonStore({
+        url : uriSuggest,
+        restful : true,
+        root : 'data',
+        fields : [ {
+            name : 'field',
+            type : 'string'
+        }, {
+            name : 'name',
+            type : 'string'
+        }, {
+            name : 'nb',
+            type : 'string'
+        } ]
+    });
+    
+    
+    // Custom rendering Template
+    var resultTpl = new Ext.XTemplate('&lt;tpl for=&quot;.&quot;&gt;&lt;div class=&quot;search-item&quot;&gt;', '&lt;h3&gt;{name}&lt;span&gt; ({field} / {nb} results ) &lt;/span&gt;&lt;/h3&gt;', '&lt;/div&gt;&lt;/tpl&gt;');
+
+    var search = new Ext.form.ComboBox({
+        store : ds,
+        displayField : 'name',
+        typeAhead : false,
+        loadingText : i18n.get(&quot;label.searching&quot;),
+        hideTrigger : true,
+        fieldLabel : i18n.get(&quot;label.search&quot;),
+        name : 'searchQuery',
+        anchor : &quot;100%&quot;,
+        tpl : resultTpl,
+        itemSelector : 'div.search-item',
+        minChars : 2,
+        queryParam : 'q',
+        enableKeyEvents : true,
+        scope : this,
+        listeners : {
+            scope : this,
+            beforequery : function (queryEvent) {
+                if (queryEvent.query.indexOf(&quot; &quot;) == -1) {
+                    return true;
+                } else {
+                    return false;
+                }
+            },
+            specialkey : function (field, e) {
+                if (e.getKey() == e.ENTER) {
+                    _clickOnSearch();
+                }
+            },
+            beforeselect : function (self, record, index) {
+                record.data.name = record.data.field + &quot;:&quot; + record.data.name;
+                return true;
+            }
+
+        }
+
+    });
+    
+    
+    this.storeCb = new Ext.data.ArrayStore({
+        id: 0,
+        fields: [            
+            'nbResults'
+        ],
+        data: [[10], [20], [30], [40], [50]]
+    });
+    
+ // create the combo instance
+    var combo = new Ext.form.ComboBox({
+        name: &quot;nbResults&quot;,
+        typeAhead: true,
+        triggerAction: 'all',
+        lazyRender: true,
+        mode: 'local',
+        store: this.storeCb,
+        valueField: 'nbResults',
+        displayField: 'nbResults',
+        fieldLabel: i18n.get(&quot;label.nbResults&quot;),
+        value: this.storeCb.getAt(0).get(&quot;nbResults&quot;)
+    });
+
+
+
+    // set the items of the form
+    var items = [ search, combo ];
+
+    // set the search button
+    var buttonForm = [ {
+        text : i18n.get(&quot;label.search&quot;),
+        scope : this,
+        handler : _clickOnSearch
+    } ];
+
+    // set the search form
+    var formPanel = new Ext.FormPanel({
+        labelWidth : 75, // label settings here cascade unless overridden
+        height : 90,
+        frame : true,
+        defaultType : 'textfield',
+        items : items,
+        buttons : buttonForm
+
+    });
+
+    function clickOnRow(self, rowIndex, e) {
+        var rec = self.store.getAt(rowIndex);
+        var guid = rec.get(&quot;guid&quot;);
+        if (Ext.isEmpty(guid)) {
+            Ext.Msg.alert(i18n.get('label.warning'), i18n.get('warning.noGuidFieldDefined') + &quot;&lt;br/&gt;&quot; + i18n.get('warning.noPrimaryKeyDefinedOSNotice'));
+            return;
+        }
+        var component = new sitools.user.component.simpleViewDataDetail({
+            urlDataDetail : guid
+        });
+        var win = new Ext.Window({
+            stateful : false,
+            title : i18n.get('label.viewDataDetail'),
+            width : 400,
+            height : 600,
+            shim : false,
+            animCollapse : false,
+            constrainHeader : true,
+            layout : 'fit'
+        });
+        win.add(component);
+        win.show();
+    }
+
+
+    // instanciate the RSS feed component
+    var result = new sitools.user.component.openSearchResultFeed({
+        input : search,
+        dataUrl : config.dataUrl,
+        pagging : false,
+        listeners : {
+            rowdblclick : clickOnRow
+        }
+    });
+
+    // instanciate the panel component
+    sitools.component.users.portal.portalOpensearch.superclass.constructor.call(this, Ext.apply({
+        items : [ formPanel, result ],
+        layout : 'vbox',
+        layoutConfig : {
+            align : 'stretch',
+            pack : 'start'
+        }
+
+    }, config));
+
+};
+
+Ext.extend(sitools.component.users.portal.portalOpensearch, Ext.Panel, {
+    _getSettings : function () {
+        return [];
+    }
+});
+
+Ext.reg('sitools.component.users.portal.portalOpensearch', sitools.component.users.portal.portalOpensearch);
+</pre>
+</body>
+</html>

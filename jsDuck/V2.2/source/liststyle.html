@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+(function(){function d(c,d){var b;try{b=c.getSelection().getRanges()[0]}catch(f){return null}b.shrink(CKEDITOR.SHRINK_TEXT);return c.elementPath(b.getCommonAncestor()).contains(d,1)}function e(c,e){var b=c.lang.liststyle;if(&quot;bulletedListStyle&quot;==e)return{title:b.bulletedTitle,minWidth:300,minHeight:50,contents:[{id:&quot;info&quot;,accessKey:&quot;I&quot;,elements:[{type:&quot;select&quot;,label:b.type,id:&quot;type&quot;,align:&quot;center&quot;,style:&quot;width:150px&quot;,items:[[b.notset,&quot;&quot;],[b.circle,&quot;circle&quot;],[b.disc,&quot;disc&quot;],[b.square,&quot;square&quot;]],setup:function(a){this.setValue(a.getStyle(&quot;list-style-type&quot;)||
+h[a.getAttribute(&quot;type&quot;)]||a.getAttribute(&quot;type&quot;)||&quot;&quot;)},commit:function(a){var b=this.getValue();b?a.setStyle(&quot;list-style-type&quot;,b):a.removeStyle(&quot;list-style-type&quot;)}}]}],onShow:function(){var a=this.getParentEditor();(a=d(a,&quot;ul&quot;))&amp;&amp;this.setupContent(a)},onOk:function(){var a=this.getParentEditor();(a=d(a,&quot;ul&quot;))&amp;&amp;this.commitContent(a)}};if(&quot;numberedListStyle&quot;==e){var g=[[b.notset,&quot;&quot;],[b.lowerRoman,&quot;lower-roman&quot;],[b.upperRoman,&quot;upper-roman&quot;],[b.lowerAlpha,&quot;lower-alpha&quot;],[b.upperAlpha,&quot;upper-alpha&quot;],
+[b.decimal,&quot;decimal&quot;]];(!CKEDITOR.env.ie||7&lt;CKEDITOR.env.version)&amp;&amp;g.concat([[b.armenian,&quot;armenian&quot;],[b.decimalLeadingZero,&quot;decimal-leading-zero&quot;],[b.georgian,&quot;georgian&quot;],[b.lowerGreek,&quot;lower-greek&quot;]]);return{title:b.numberedTitle,minWidth:300,minHeight:50,contents:[{id:&quot;info&quot;,accessKey:&quot;I&quot;,elements:[{type:&quot;hbox&quot;,widths:[&quot;25%&quot;,&quot;75%&quot;],children:[{label:b.start,type:&quot;text&quot;,id:&quot;start&quot;,validate:CKEDITOR.dialog.validate.integer(b.validateStartNumber),setup:function(a){this.setValue(a.getFirst(f).getAttribute(&quot;value&quot;)||
+a.getAttribute(&quot;start&quot;)||1)},commit:function(a){var b=a.getFirst(f),c=b.getAttribute(&quot;value&quot;)||a.getAttribute(&quot;start&quot;)||1;a.getFirst(f).removeAttribute(&quot;value&quot;);var d=parseInt(this.getValue(),10);isNaN(d)?a.removeAttribute(&quot;start&quot;):a.setAttribute(&quot;start&quot;,d);a=b;b=c;for(d=isNaN(d)?1:d;(a=a.getNext(f))&amp;&amp;b++;)a.getAttribute(&quot;value&quot;)==b&amp;&amp;a.setAttribute(&quot;value&quot;,d+b-c)}},{type:&quot;select&quot;,label:b.type,id:&quot;type&quot;,style:&quot;width: 100%;&quot;,items:g,setup:function(a){this.setValue(a.getStyle(&quot;list-style-type&quot;)||h[a.getAttribute(&quot;type&quot;)]||
+a.getAttribute(&quot;type&quot;)||&quot;&quot;)},commit:function(a){var b=this.getValue();b?a.setStyle(&quot;list-style-type&quot;,b):a.removeStyle(&quot;list-style-type&quot;)}}]}]}],onShow:function(){var a=this.getParentEditor();(a=d(a,&quot;ol&quot;))&amp;&amp;this.setupContent(a)},onOk:function(){var a=this.getParentEditor();(a=d(a,&quot;ol&quot;))&amp;&amp;this.commitContent(a)}}}}var f=function(c){return c.type==CKEDITOR.NODE_ELEMENT&amp;&amp;c.is(&quot;li&quot;)},h={a:&quot;lower-alpha&quot;,A:&quot;upper-alpha&quot;,i:&quot;lower-roman&quot;,I:&quot;upper-roman&quot;,1:&quot;decimal&quot;,disc:&quot;disc&quot;,circle:&quot;circle&quot;,square:&quot;square&quot;};
+CKEDITOR.dialog.add(&quot;numberedListStyle&quot;,function(c){return e(c,&quot;numberedListStyle&quot;)});CKEDITOR.dialog.add(&quot;bulletedListStyle&quot;,function(c){return e(c,&quot;bulletedListStyle&quot;)})})();</pre>
+</body>
+</html>

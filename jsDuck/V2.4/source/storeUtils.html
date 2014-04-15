@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/*******************************************************************************
+</span> * Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * 
+ * This file is part of SITools2.
+ * 
+ * SITools2 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * SITools2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * SITools2. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ******************************************************************************/
+
+/*global Ext, sitools, i18n, sql2ext, extColModelToSrv, window,
+ extColModelToJsonColModel, DEFAULT_NEAR_LIMIT_SIZE,
+ DEFAULT_LIVEGRID_BUFFER_SIZE, SITOOLS_DEFAULT_IHM_DATE_FORMAT,
+ DEFAULT_PREFERENCES_FOLDER, SitoolsDesk, getDesktop, userLogin, projectGlobal, ColumnRendererEnum, SITOOLS_DATE_FORMAT
+*/
+Ext.namespace('sitools.user.component.dataviews');
+
+<span id='global-property-storeUtils'>/**
+</span> * A Simple Object to publish common methods to use stores dataviews in Sitools2.
+ * @type 
+ */
+sitools.user.component.dataviews.storeUtils = {
+<span id='global-method-getFields'>    /**
+</span>	 * @param {Array}
+	 *            ColumnModel of the grid
+	 * 
+	 * @returns {Array} The fields used to build the grid
+	 */
+	getFields : function (listeColonnes) {
+        var fields = [];
+        var i = 0;
+        if (!Ext.isEmpty(listeColonnes)) {
+            Ext.each(listeColonnes, function (item, index, totalItems) {
+                fields[i] = new Ext.data.Field({
+                    name : item.columnAlias,
+                    primaryKey : item.primaryKey,
+                    type : sql2ext.get(item.sqlColumnType)
+                });
+                if (sql2ext.get(item.sqlColumnType) === 'boolean') {
+					Ext.apply(fields[i], {
+						convert : function (value, record) {
+							if (value == &quot;f&quot; || value == &quot;false&quot; || value === 0) {
+								return 0;
+							}
+							if (value == &quot;t&quot; || value == &quot;true&quot; || value == 1) {
+								return 1;
+							}
+							return value;
+						}
+					});
+                }
+                i++;
+
+            }, this);
+        }
+        return fields;
+    }, 
+<span id='global-method-getPrimaryKey'>    /**
+</span>	 * @param {Array}
+	 *            ColumnModel of the grid
+	 * 
+	 * @returns {String} The columnAlias of the primaryKey
+	 */
+    getPrimaryKey : function (listeColonnes) {
+        var i = 0, primaryKey = &quot;&quot;;
+        if (!Ext.isEmpty(listeColonnes)) {
+            Ext.each(listeColonnes, function (item, index, totalItems) {
+                if (!Ext.isEmpty(item.primaryKey)) {
+                    if (item.primaryKey) {
+                        primaryKey = item.columnAlias;
+                    }
+                }
+            }, this);
+        }
+        return primaryKey;
+    },
+    getFormParams : function (store) {
+        return store.formParams;
+    },
+<span id='global-method-paramValueToApi'>    /**
+</span>     * Build a string using a form param Value. 
+     * @param {} paramValue An object with attributes : at least type, code, value and optionnal userDimension, userUnit
+     * @return {string} something like &quot;TEXTFIELD|ColumnAlias|value&quot;
+     */
+    paramValueToApi : function (paramValue) {
+		var stringParam = paramValue.type + &quot;|&quot; + paramValue.code + &quot;|&quot; + paramValue.value;
+        if (!Ext.isEmpty(paramValue.userDimension) &amp;&amp; !Ext.isEmpty(paramValue.userUnit)) {
+			stringParam += &quot;|&quot; + paramValue.userDimension + &quot;|&quot; + paramValue.userUnit.unitName; 
+        }  
+        return stringParam;
+    }
+
+};</pre>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.plugins.setLang(&quot;specialchar&quot;,&quot;fr-ca&quot;,{euro:&quot;Symbole Euro&quot;,lsquo:&quot;Guillemet simple ouvrant&quot;,rsquo:&quot;Guillemet simple fermant&quot;,ldquo:&quot;Guillemet double ouvrant&quot;,rdquo:&quot;Guillemet double fermant&quot;,ndash:&quot;Tiret haut&quot;,mdash:&quot;Tiret&quot;,iexcl:&quot;Point d'exclamation inversé&quot;,cent:&quot;Symbole de cent&quot;,pound:&quot;Symbole de Livre Sterling&quot;,curren:&quot;Symbole monétaire&quot;,yen:&quot;Symbole du Yen&quot;,brvbar:&quot;Barre scindée&quot;,sect:&quot;Symbole de section&quot;,uml:&quot;Tréma&quot;,copy:&quot;Symbole de copyright&quot;,ordf:&quot;Indicateur ordinal féminin&quot;,laquo:&quot;Guillemet français ouvrant&quot;,
+not:&quot;Indicateur de négation&quot;,reg:&quot;Symbole de marque déposée&quot;,macr:&quot;Macron&quot;,deg:&quot;Degré&quot;,sup2:&quot;Exposant 2&quot;,sup3:&quot;Exposant 3&quot;,acute:&quot;Accent aigüe&quot;,micro:&quot;Symbole micro&quot;,para:&quot;Paragraphe&quot;,middot:&quot;Point médian&quot;,cedil:&quot;Cédille&quot;,sup1:&quot;Exposant 1&quot;,ordm:&quot;Indicateur ordinal masculin&quot;,raquo:&quot;Guillemet français fermant&quot;,frac14:&quot;Un quart&quot;,frac12:&quot;Une demi&quot;,frac34:&quot;Trois quart&quot;,iquest:&quot;Point d'interrogation inversé&quot;,Agrave:&quot;A accent grave&quot;,Aacute:&quot;A accent aigüe&quot;,Acirc:&quot;A circonflexe&quot;,Atilde:&quot;A tilde&quot;,Auml:&quot;A tréma&quot;,
+Aring:&quot;A avec un rond au dessus&quot;,AElig:&quot;Æ majuscule&quot;,Ccedil:&quot;C cédille&quot;,Egrave:&quot;E accent grave&quot;,Eacute:&quot;E accent aigüe&quot;,Ecirc:&quot;E accent circonflexe&quot;,Euml:&quot;E tréma&quot;,Igrave:&quot;I accent grave&quot;,Iacute:&quot;I accent aigüe&quot;,Icirc:&quot;I accent circonflexe&quot;,Iuml:&quot;I tréma&quot;,ETH:&quot;Lettre majuscule islandaise ED&quot;,Ntilde:&quot;N tilde&quot;,Ograve:&quot;O accent grave&quot;,Oacute:&quot;O accent aigüe&quot;,Ocirc:&quot;O accent circonflexe&quot;,Otilde:&quot;O tilde&quot;,Ouml:&quot;O tréma&quot;,times:&quot;Symbole de multiplication&quot;,Oslash:&quot;O barré&quot;,Ugrave:&quot;U accent grave&quot;,Uacute:&quot;U accent aigüe&quot;,
+Ucirc:&quot;U accent circonflexe&quot;,Uuml:&quot;U tréma&quot;,Yacute:&quot;Y accent aigüe&quot;,THORN:&quot;Lettre islandaise Thorn majuscule&quot;,szlig:&quot;Lettre minuscule allemande s dur&quot;,agrave:&quot;a accent grave&quot;,aacute:&quot;a accent aigüe&quot;,acirc:&quot;a accent circonflexe&quot;,atilde:&quot;a tilde&quot;,auml:&quot;a tréma&quot;,aring:&quot;a avec un cercle au dessus&quot;,aelig:&quot;æ&quot;,ccedil:&quot;c cédille&quot;,egrave:&quot;e accent grave&quot;,eacute:&quot;e accent aigüe&quot;,ecirc:&quot;e accent circonflexe&quot;,euml:&quot;e tréma&quot;,igrave:&quot;i accent grave&quot;,iacute:&quot;i accent aigüe&quot;,icirc:&quot;i accent circonflexe&quot;,iuml:&quot;i tréma&quot;,
+eth:&quot;Lettre minuscule islandaise ED&quot;,ntilde:&quot;n tilde&quot;,ograve:&quot;o accent grave&quot;,oacute:&quot;o accent aigüe&quot;,ocirc:&quot;O accent circonflexe&quot;,otilde:&quot;O tilde&quot;,ouml:&quot;O tréma&quot;,divide:&quot;Symbole de division&quot;,oslash:&quot;o barré&quot;,ugrave:&quot;u accent grave&quot;,uacute:&quot;u accent aigüe&quot;,ucirc:&quot;u accent circonflexe&quot;,uuml:&quot;u tréma&quot;,yacute:&quot;y accent aigüe&quot;,thorn:&quot;Lettre islandaise thorn minuscule&quot;,yuml:&quot;y tréma&quot;,OElig:&quot;ligature majuscule latine Œ&quot;,oelig:&quot;ligature minuscule latine œ&quot;,372:&quot;W accent circonflexe&quot;,374:&quot;Y accent circonflexe&quot;,
+373:&quot;w accent circonflexe&quot;,375:&quot;y accent circonflexe&quot;,sbquo:&quot;Guillemet simple fermant&quot;,8219:&quot;Guillemet-virgule supérieur culbuté&quot;,bdquo:&quot;Guillemet-virgule double inférieur&quot;,hellip:&quot;Points de suspension&quot;,trade:&quot;Symbole de marque déposée&quot;,9658:&quot;Flèche noire pointant vers la droite&quot;,bull:&quot;Puce&quot;,rarr:&quot;Flèche vers la droite&quot;,rArr:&quot;Flèche double vers la droite&quot;,hArr:&quot;Flèche double vers la gauche&quot;,diams:&quot;Carreau&quot;,asymp:&quot;Presque égal&quot;});</pre>
+</body>
+</html>

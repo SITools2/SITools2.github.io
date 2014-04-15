@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.plugins.setLang(&quot;specialchar&quot;,&quot;zh-cn&quot;,{euro:&quot;欧元符号&quot;,lsquo:&quot;左单引号&quot;,rsquo:&quot;右单引号&quot;,ldquo:&quot;左双引号&quot;,rdquo:&quot;右双引号&quot;,ndash:&quot;短划线&quot;,mdash:&quot;破折号&quot;,iexcl:&quot;竖翻叹号&quot;,cent:&quot;分币标记&quot;,pound:&quot;英镑标记&quot;,curren:&quot;货币标记&quot;,yen:&quot;日元标记&quot;,brvbar:&quot;间断条&quot;,sect:&quot;节标记&quot;,uml:&quot;分音符&quot;,copy:&quot;版权所有标记&quot;,ordf:&quot;阴性顺序指示符&quot;,laquo:&quot;左指双尖引号&quot;,not:&quot;非标记&quot;,reg:&quot;注册标记&quot;,macr:&quot;长音符&quot;,deg:&quot;度标记&quot;,sup2:&quot;上标二&quot;,sup3:&quot;上标三&quot;,acute:&quot;锐音符&quot;,micro:&quot;微符&quot;,para:&quot;段落标记&quot;,middot:&quot;中间点&quot;,cedil:&quot;下加符&quot;,sup1:&quot;上标一&quot;,ordm:&quot;阳性顺序指示符&quot;,raquo:&quot;右指双尖引号&quot;,frac14:&quot;普通分数四分之一&quot;,frac12:&quot;普通分数二分之一&quot;,frac34:&quot;普通分数四分之三&quot;,iquest:&quot;竖翻问号&quot;,
+Agrave:&quot;带抑音符的拉丁文大写字母 A&quot;,Aacute:&quot;带锐音符的拉丁文大写字母 A&quot;,Acirc:&quot;带扬抑符的拉丁文大写字母 A&quot;,Atilde:&quot;带颚化符的拉丁文大写字母 A&quot;,Auml:&quot;带分音符的拉丁文大写字母 A&quot;,Aring:&quot;带上圆圈的拉丁文大写字母 A&quot;,AElig:&quot;拉丁文大写字母 Ae&quot;,Ccedil:&quot;带下加符的拉丁文大写字母 C&quot;,Egrave:&quot;带抑音符的拉丁文大写字母 E&quot;,Eacute:&quot;带锐音符的拉丁文大写字母 E&quot;,Ecirc:&quot;带扬抑符的拉丁文大写字母 E&quot;,Euml:&quot;带分音符的拉丁文大写字母 E&quot;,Igrave:&quot;带抑音符的拉丁文大写字母 I&quot;,Iacute:&quot;带锐音符的拉丁文大写字母 I&quot;,Icirc:&quot;带扬抑符的拉丁文大写字母 I&quot;,Iuml:&quot;带分音符的拉丁文大写字母 I&quot;,ETH:&quot;拉丁文大写字母 Eth&quot;,Ntilde:&quot;带颚化符的拉丁文大写字母 N&quot;,Ograve:&quot;带抑音符的拉丁文大写字母 O&quot;,Oacute:&quot;带锐音符的拉丁文大写字母 O&quot;,Ocirc:&quot;带扬抑符的拉丁文大写字母 O&quot;,Otilde:&quot;带颚化符的拉丁文大写字母 O&quot;,
+Ouml:&quot;带分音符的拉丁文大写字母 O&quot;,times:&quot;乘号&quot;,Oslash:&quot;带粗线的拉丁文大写字母 O&quot;,Ugrave:&quot;带抑音符的拉丁文大写字母 U&quot;,Uacute:&quot;带锐音符的拉丁文大写字母 U&quot;,Ucirc:&quot;带扬抑符的拉丁文大写字母 U&quot;,Uuml:&quot;带分音符的拉丁文大写字母 U&quot;,Yacute:&quot;带抑音符的拉丁文大写字母 Y&quot;,THORN:&quot;拉丁文大写字母 Thorn&quot;,szlig:&quot;拉丁文小写字母清音 S&quot;,agrave:&quot;带抑音符的拉丁文小写字母 A&quot;,aacute:&quot;带锐音符的拉丁文小写字母 A&quot;,acirc:&quot;带扬抑符的拉丁文小写字母 A&quot;,atilde:&quot;带颚化符的拉丁文小写字母 A&quot;,auml:&quot;带分音符的拉丁文小写字母 A&quot;,aring:&quot;带上圆圈的拉丁文小写字母 A&quot;,aelig:&quot;拉丁文小写字母 Ae&quot;,ccedil:&quot;带下加符的拉丁文小写字母 C&quot;,egrave:&quot;带抑音符的拉丁文小写字母 E&quot;,eacute:&quot;带锐音符的拉丁文小写字母 E&quot;,ecirc:&quot;带扬抑符的拉丁文小写字母 E&quot;,euml:&quot;带分音符的拉丁文小写字母 E&quot;,igrave:&quot;带抑音符的拉丁文小写字母 I&quot;,
+iacute:&quot;带锐音符的拉丁文小写字母 I&quot;,icirc:&quot;带扬抑符的拉丁文小写字母 I&quot;,iuml:&quot;带分音符的拉丁文小写字母 I&quot;,eth:&quot;拉丁文小写字母 Eth&quot;,ntilde:&quot;带颚化符的拉丁文小写字母 N&quot;,ograve:&quot;带抑音符的拉丁文小写字母 O&quot;,oacute:&quot;带锐音符的拉丁文小写字母 O&quot;,ocirc:&quot;带扬抑符的拉丁文小写字母 O&quot;,otilde:&quot;带颚化符的拉丁文小写字母 O&quot;,ouml:&quot;带分音符的拉丁文小写字母 O&quot;,divide:&quot;除号&quot;,oslash:&quot;带粗线的拉丁文小写字母 O&quot;,ugrave:&quot;带抑音符的拉丁文小写字母 U&quot;,uacute:&quot;带锐音符的拉丁文小写字母 U&quot;,ucirc:&quot;带扬抑符的拉丁文小写字母 U&quot;,uuml:&quot;带分音符的拉丁文小写字母 U&quot;,yacute:&quot;带抑音符的拉丁文小写字母 Y&quot;,thorn:&quot;拉丁文小写字母 Thorn&quot;,yuml:&quot;带分音符的拉丁文小写字母 Y&quot;,OElig:&quot;拉丁文大写连字 Oe&quot;,oelig:&quot;拉丁文小写连字 Oe&quot;,372:&quot;带扬抑符的拉丁文大写字母 W&quot;,374:&quot;带扬抑符的拉丁文大写字母 Y&quot;,
+373:&quot;带扬抑符的拉丁文小写字母 W&quot;,375:&quot;带扬抑符的拉丁文小写字母 Y&quot;,sbquo:&quot;单下 9 形引号&quot;,8219:&quot;单高横翻 9 形引号&quot;,bdquo:&quot;双下 9 形引号&quot;,hellip:&quot;水平省略号&quot;,trade:&quot;商标标志&quot;,9658:&quot;实心右指指针&quot;,bull:&quot;加重号&quot;,rarr:&quot;向右箭头&quot;,rArr:&quot;向右双线箭头&quot;,hArr:&quot;左右双线箭头&quot;,diams:&quot;实心方块纸牌&quot;,asymp:&quot;约等于&quot;});</pre>
+</body>
+</html>

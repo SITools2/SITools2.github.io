@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.plugins.setLang(&quot;specialchar&quot;,&quot;cs&quot;,{euro:&quot;Znak eura&quot;,lsquo:&quot;Počáteční uvozovka jednoduchá&quot;,rsquo:&quot;Koncová uvozovka jednoduchá&quot;,ldquo:&quot;Počáteční uvozovka dvojitá&quot;,rdquo:&quot;Koncová uvozovka dvojitá&quot;,ndash:&quot;En pomlčka&quot;,mdash:&quot;Em pomlčka&quot;,iexcl:&quot;Obrácený vykřičník&quot;,cent:&quot;Znak centu&quot;,pound:&quot;Znak libry&quot;,curren:&quot;Znak měny&quot;,yen:&quot;Znak jenu&quot;,brvbar:&quot;Přerušená svislá čára&quot;,sect:&quot;Znak oddílu&quot;,uml:&quot;Přehláska&quot;,copy:&quot;Znak copyrightu&quot;,ordf:&quot;Ženský indikátor rodu&quot;,laquo:&quot;Znak dvojitých lomených uvozovek vlevo&quot;,
+not:&quot;Logistický zápor&quot;,reg:&quot;Znak registrace&quot;,macr:&quot;Pomlčka nad&quot;,deg:&quot;Znak stupně&quot;,sup2:&quot;Dvojka jako horní index&quot;,sup3:&quot;Trojka jako horní index&quot;,acute:&quot;Čárka nad vpravo&quot;,micro:&quot;Znak mikro&quot;,para:&quot;Znak odstavce&quot;,middot:&quot;Tečka uprostřed&quot;,cedil:&quot;Ocásek vlevo&quot;,sup1:&quot;Jednička jako horní index&quot;,ordm:&quot;Mužský indikátor rodu&quot;,raquo:&quot;Znak dvojitých lomených uvozovek vpravo&quot;,frac14:&quot;Obyčejný zlomek jedna čtvrtina&quot;,frac12:&quot;Obyčejný zlomek jedna polovina&quot;,frac34:&quot;Obyčejný zlomek tři čtvrtiny&quot;,iquest:&quot;Znak obráceného otazníku&quot;,
+Agrave:&quot;Velké písmeno latinky A s čárkou nad vlevo&quot;,Aacute:&quot;Velké písmeno latinky A s čárkou nad vpravo&quot;,Acirc:&quot;Velké písmeno latinky A s vokáněm&quot;,Atilde:&quot;Velké písmeno latinky A s tildou&quot;,Auml:&quot;Velké písmeno latinky A s dvěma tečkami&quot;,Aring:&quot;Velké písmeno latinky A s kroužkem nad&quot;,AElig:&quot;Velké písmeno latinky Ae&quot;,Ccedil:&quot;Velké písmeno latinky C s ocáskem vlevo&quot;,Egrave:&quot;Velké písmeno latinky E s čárkou nad vlevo&quot;,Eacute:&quot;Velké písmeno latinky E s čárkou nad vpravo&quot;,Ecirc:&quot;Velké písmeno latinky E s vokáněm&quot;,
+Euml:&quot;Velké písmeno latinky E s dvěma tečkami&quot;,Igrave:&quot;Velké písmeno latinky I s čárkou nad vlevo&quot;,Iacute:&quot;Velké písmeno latinky I s čárkou nad vpravo&quot;,Icirc:&quot;Velké písmeno latinky I s vokáněm&quot;,Iuml:&quot;Velké písmeno latinky I s dvěma tečkami&quot;,ETH:&quot;Velké písmeno latinky Eth&quot;,Ntilde:&quot;Velké písmeno latinky N s tildou&quot;,Ograve:&quot;Velké písmeno latinky O s čárkou nad vlevo&quot;,Oacute:&quot;Velké písmeno latinky O s čárkou nad vpravo&quot;,Ocirc:&quot;Velké písmeno latinky O s vokáněm&quot;,Otilde:&quot;Velké písmeno latinky O s tildou&quot;,
+Ouml:&quot;Velké písmeno latinky O s dvěma tečkami&quot;,times:&quot;Znak násobení&quot;,Oslash:&quot;Velké písmeno latinky O přeškrtnuté&quot;,Ugrave:&quot;Velké písmeno latinky U s čárkou nad vlevo&quot;,Uacute:&quot;Velké písmeno latinky U s čárkou nad vpravo&quot;,Ucirc:&quot;Velké písmeno latinky U s vokáněm&quot;,Uuml:&quot;Velké písmeno latinky U s dvěma tečkami&quot;,Yacute:&quot;Velké písmeno latinky Y s čárkou nad vpravo&quot;,THORN:&quot;Velké písmeno latinky Thorn&quot;,szlig:&quot;Malé písmeno latinky ostré s&quot;,agrave:&quot;Malé písmeno latinky a s čárkou nad vlevo&quot;,aacute:&quot;Malé písmeno latinky a s čárkou nad vpravo&quot;,
+acirc:&quot;Malé písmeno latinky a s vokáněm&quot;,atilde:&quot;Malé písmeno latinky a s tildou&quot;,auml:&quot;Malé písmeno latinky a s dvěma tečkami&quot;,aring:&quot;Malé písmeno latinky a s kroužkem nad&quot;,aelig:&quot;Malé písmeno latinky ae&quot;,ccedil:&quot;Malé písmeno latinky c s ocáskem vlevo&quot;,egrave:&quot;Malé písmeno latinky e s čárkou nad vlevo&quot;,eacute:&quot;Malé písmeno latinky e s čárkou nad vpravo&quot;,ecirc:&quot;Malé písmeno latinky e s vokáněm&quot;,euml:&quot;Malé písmeno latinky e s dvěma tečkami&quot;,igrave:&quot;Malé písmeno latinky i s čárkou nad vlevo&quot;,iacute:&quot;Malé písmeno latinky i s čárkou nad vpravo&quot;,
+icirc:&quot;Malé písmeno latinky i s vokáněm&quot;,iuml:&quot;Malé písmeno latinky i s dvěma tečkami&quot;,eth:&quot;Malé písmeno latinky eth&quot;,ntilde:&quot;Malé písmeno latinky n s tildou&quot;,ograve:&quot;Malé písmeno latinky o s čárkou nad vlevo&quot;,oacute:&quot;Malé písmeno latinky o s čárkou nad vpravo&quot;,ocirc:&quot;Malé písmeno latinky o s vokáněm&quot;,otilde:&quot;Malé písmeno latinky o s tildou&quot;,ouml:&quot;Malé písmeno latinky o s dvěma tečkami&quot;,divide:&quot;Znak dělení&quot;,oslash:&quot;Malé písmeno latinky o přeškrtnuté&quot;,ugrave:&quot;Malé písmeno latinky u s čárkou nad vlevo&quot;,
+uacute:&quot;Malé písmeno latinky u s čárkou nad vpravo&quot;,ucirc:&quot;Malé písmeno latinky u s vokáněm&quot;,uuml:&quot;Malé písmeno latinky u s dvěma tečkami&quot;,yacute:&quot;Malé písmeno latinky y s čárkou nad vpravo&quot;,thorn:&quot;Malé písmeno latinky thorn&quot;,yuml:&quot;Malé písmeno latinky y s dvěma tečkami&quot;,OElig:&quot;Velká ligatura latinky OE&quot;,oelig:&quot;Malá ligatura latinky OE&quot;,372:&quot;Velké písmeno latinky W s vokáněm&quot;,374:&quot;Velké písmeno latinky Y s vokáněm&quot;,373:&quot;Malé písmeno latinky w s vokáněm&quot;,375:&quot;Malé písmeno latinky y s vokáněm&quot;,sbquo:&quot;Dolní 9 uvozovka jednoduchá&quot;,
+8219:&quot;Horní obrácená 9 uvozovka jednoduchá&quot;,bdquo:&quot;Dolní 9 uvozovka dvojitá&quot;,hellip:&quot;Trojtečkový úvod&quot;,trade:&quot;Obchodní značka&quot;,9658:&quot;Černý ukazatel směřující vpravo&quot;,bull:&quot;Kolečko&quot;,rarr:&quot;Šipka vpravo&quot;,rArr:&quot;Dvojitá šipka vpravo&quot;,hArr:&quot;Dvojitá šipka vlevo a vpravo&quot;,diams:&quot;Černé piky&quot;,asymp:&quot;Téměř se rovná&quot;});</pre>
+</body>
+</html>

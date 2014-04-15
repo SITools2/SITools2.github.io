@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+<span id='Ext-state-Provider'>/**
+</span> * @class Ext.state.Provider
+ * Abstract base class for state provider implementations. This class provides methods
+ * for encoding and decoding &lt;b&gt;typed&lt;/b&gt; variables including dates and defines the 
+ * Provider interface.
+ */
+Ext.state.Provider = function(){
+    Ext.state.Provider.superclass.constructor.call(this);
+<span id='Ext-state-Provider-event-statechange'>    /**
+</span>     * @event statechange
+     * Fires when a state change occurs.
+     * @param {Provider} this This state provider
+     * @param {String} key The state key which was changed
+     * @param {String} value The encoded value for the state
+     */
+    this.addEvents({
+        &quot;statechange&quot;: true
+    });
+    this.state = {};
+    Ext.state.Provider.superclass.constructor.call(this);
+};
+Ext.extend(Ext.state.Provider, Ext.util.Observable, {
+<span id='Ext-state-Provider-method-get'>    /**
+</span>     * Returns the current value for a key
+     * @param {String} name The key name
+     * @param {Mixed} defaultValue A default value to return if the key's value is not found
+     * @return {Mixed} The state data
+     */
+    get : function(name, defaultValue){
+        return typeof this.state[name] == &quot;undefined&quot; ?
+            defaultValue : this.state[name];
+    },
+    
+<span id='Ext-state-Provider-method-clear'>    /**
+</span>     * Clears a value from the state
+     * @param {String} name The key name
+     */
+    clear : function(name){
+        delete this.state[name];
+        this.fireEvent(&quot;statechange&quot;, this, name, null);
+    },
+    
+<span id='Ext-state-Provider-method-set'>    /**
+</span>     * Sets the value for a key
+     * @param {String} name The key name
+     * @param {Mixed} value The value to set
+     */
+    set : function(name, value){
+        this.state[name] = value;
+        this.fireEvent(&quot;statechange&quot;, this, name, value);
+    },
+    
+<span id='Ext-state-Provider-method-decodeValue'>    /**
+</span>     * Decodes a string previously encoded with {@link #encodeValue}.
+     * @param {String} value The value to decode
+     * @return {Mixed} The decoded value
+     */
+    decodeValue : function(cookie){
+        var re = /^(a|n|d|b|s|o)\:(.*)$/;
+        var matches = re.exec(unescape(cookie));
+        if(!matches || !matches[1]) return; // non state cookie
+        var type = matches[1];
+        var v = matches[2];
+        switch(type){
+            case &quot;n&quot;:
+                return parseFloat(v);
+            case &quot;d&quot;:
+                return new Date(Date.parse(v));
+            case &quot;b&quot;:
+                return (v == &quot;1&quot;);
+            case &quot;a&quot;:
+                var all = [];
+                var values = v.split(&quot;^&quot;);
+                for(var i = 0, len = values.length; i &lt; len; i++){
+                    all.push(this.decodeValue(values[i]));
+                }
+                return all;
+           case &quot;o&quot;:
+                var all = {};
+                var values = v.split(&quot;^&quot;);
+                for(var i = 0, len = values.length; i &lt; len; i++){
+                    var kv = values[i].split(&quot;=&quot;);
+                    all[kv[0]] = this.decodeValue(kv[1]);
+                }
+                return all;
+           default:
+                return v;
+        }
+    },
+    
+<span id='Ext-state-Provider-method-encodeValue'>    /**
+</span>     * Encodes a value including type information.  Decode with {@link #decodeValue}.
+     * @param {Mixed} value The value to encode
+     * @return {String} The encoded value
+     */
+    encodeValue : function(v){
+        var enc;
+        if(typeof v == &quot;number&quot;){
+            enc = &quot;n:&quot; + v;
+        }else if(typeof v == &quot;boolean&quot;){
+            enc = &quot;b:&quot; + (v ? &quot;1&quot; : &quot;0&quot;);
+        }else if(v instanceof Date){
+            enc = &quot;d:&quot; + v.toGMTString();
+        }else if(v instanceof Array){
+            var flat = &quot;&quot;;
+            for(var i = 0, len = v.length; i &lt; len; i++){
+                flat += this.encodeValue(v[i]);
+                if(i != len-1) flat += &quot;^&quot;;
+            }
+            enc = &quot;a:&quot; + flat;
+        }else if(typeof v == &quot;object&quot;){
+            var flat = &quot;&quot;;
+            for(var key in v){
+                if(typeof v[key] != &quot;function&quot;){
+                    flat += key + &quot;=&quot; + this.encodeValue(v[key]) + &quot;^&quot;;
+                }
+            }
+            enc = &quot;o:&quot; + flat.substring(0, flat.length-1);
+        }else{
+            enc = &quot;s:&quot; + v;
+        }
+        return escape(enc);        
+    }
+});
+
+<span id='Ext-state-Manager'>/**
+</span> * @class Ext.state.Manager
+ * This is the global state manager. By default all components that are &quot;state aware&quot; check this class
+ * for state information if you don't pass them a custom state provider. In order for this class
+ * to be useful, it must be initialized with a provider when your application initializes.
+ &lt;pre&gt;&lt;code&gt;
+// in your initialization function
+init : function(){
+   Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
+   ...
+   // supposed you have a {@link Ext.BorderLayout}
+   var layout = new Ext.BorderLayout(...);
+   layout.restoreState();
+   // or a {Ext.BasicDialog}
+   var dialog = new Ext.BasicDialog(...);
+   dialog.restoreState();
+ &lt;/code&gt;&lt;/pre&gt;
+ * @singleton
+ */
+Ext.state.Manager = function(){
+    var provider = new Ext.state.Provider();
+    
+    return {
+<span id='Ext-state-Manager-method-setProvider'>        /**
+</span>         * Configures the default state provider for your application
+         * @param {Provider} stateProvider The state provider to set
+         */
+        setProvider : function(stateProvider){
+            provider = stateProvider;
+        },
+        
+<span id='Ext-state-Manager-method-get'>        /**
+</span>         * Returns the current value for a key
+         * @param {String} name The key name
+         * @param {Mixed} defaultValue The default value to return if the key lookup does not match
+         * @return {Mixed} The state data
+         */
+        get : function(key, defaultValue){
+            return provider.get(key, defaultValue);
+        },
+        
+<span id='Ext-state-Manager-method-set'>        /**
+</span>         * Sets the value for a key
+         * @param {String} name The key name
+         * @param {Mixed} value The state data
+         */
+         set : function(key, value){
+            provider.set(key, value);
+        },
+        
+<span id='Ext-state-Manager-method-clear'>        /**
+</span>         * Clears a value from the state
+         * @param {String} name The key name
+         */
+        clear : function(key){
+            provider.clear(key);
+        },
+        
+<span id='Ext-state-Manager-method-getProvider'>        /**
+</span>         * Gets the currently configured state provider
+         * @return {Provider} The state provider
+         */
+        getProvider : function(){
+            return provider;
+        }
+    };
+}();
+
+<span id='Ext-state-CookieProvider-method-constructor'><span id='Ext-state-CookieProvider-cfg-secure'><span id='Ext-state-CookieProvider-cfg-domain'><span id='Ext-state-CookieProvider-cfg-expires'><span id='Ext-state-CookieProvider-cfg-path'><span id='Ext-state-CookieProvider'>/**
+</span></span></span></span></span></span> * @class Ext.state.CookieProvider
+ * @extends Ext.state.Provider
+ * The default Provider implementation which saves state via cookies.
+ * &lt;br /&gt;Usage:
+ &lt;pre&gt;&lt;code&gt;
+   var cp = new Ext.state.CookieProvider({
+       path: &quot;/cgi-bin/&quot;,
+       expires: new Date(new Date().getTime()+(1000*60*60*24*30)); //30 days
+       domain: &quot;extjs.com&quot;
+   })
+   Ext.state.Manager.setProvider(cp);
+ &lt;/code&gt;&lt;/pre&gt;
+ * @cfg {String} path The path for which the cookie is active (defaults to root '/' which makes it active for all pages in the site)
+ * @cfg {Date} expires The cookie expiration date (defaults to 7 days from now)
+ * @cfg {String} domain The domain to save the cookie for.  Note that you cannot specify a different domain than
+ * your page is on, but you can specify a sub-domain, or simply the domain itself like 'extjs.com' to include
+ * all sub-domains if you need to access cookies across different sub-domains (defaults to null which uses the same
+ * domain the page is running on including the 'www' like 'www.extjs.com')
+ * @cfg {Boolean} secure True if the site is using SSL (defaults to false)
+ * @constructor
+ * Create a new CookieProvider
+ * @param {Object} config The configuration object
+ */
+Ext.state.CookieProvider = function(config){
+    Ext.state.CookieProvider.superclass.constructor.call(this);
+    this.path = &quot;/&quot;;
+    this.expires = new Date(new Date().getTime()+(1000*60*60*24*7)); //7 days
+    this.domain = null;
+    this.secure = false;
+    Ext.apply(this, config);
+    this.state = this.readCookies();
+};
+
+Ext.extend(Ext.state.CookieProvider, Ext.state.Provider, {
+    // private
+    set : function(name, value){
+        if(typeof value == &quot;undefined&quot; || value === null){
+            this.clear(name);
+            return;
+        }
+        this.setCookie(name, value);
+        Ext.state.CookieProvider.superclass.set.call(this, name, value);
+    },
+
+    // private
+    clear : function(name){
+        this.clearCookie(name);
+        Ext.state.CookieProvider.superclass.clear.call(this, name);
+    },
+
+    // private
+    readCookies : function(){
+        var cookies = {};
+        var c = document.cookie + &quot;;&quot;;
+        var re = /\s?(.*?)=(.*?);/g;
+    	var matches;
+    	while((matches = re.exec(c)) != null){
+            var name = matches[1];
+            var value = matches[2];
+            if(name &amp;&amp; name.substring(0,3) == &quot;ys-&quot;){
+                cookies[name.substr(3)] = this.decodeValue(value);
+            }
+        }
+        return cookies;
+    },
+
+    // private
+    setCookie : function(name, value){
+        document.cookie = &quot;ys-&quot;+ name + &quot;=&quot; + this.encodeValue(value) +
+           ((this.expires == null) ? &quot;&quot; : (&quot;; expires=&quot; + this.expires.toGMTString())) +
+           ((this.path == null) ? &quot;&quot; : (&quot;; path=&quot; + this.path)) +
+           ((this.domain == null) ? &quot;&quot; : (&quot;; domain=&quot; + this.domain)) +
+           ((this.secure == true) ? &quot;; secure&quot; : &quot;&quot;);
+    },
+
+    // private
+    clearCookie : function(name){
+        document.cookie = &quot;ys-&quot; + name + &quot;=null; expires=Thu, 01-Jan-70 00:00:01 GMT&quot; +
+           ((this.path == null) ? &quot;&quot; : (&quot;; path=&quot; + this.path)) +
+           ((this.domain == null) ? &quot;&quot; : (&quot;; domain=&quot; + this.domain)) +
+           ((this.secure == true) ? &quot;; secure&quot; : &quot;&quot;);
+    }
+});
+</pre>
+</body>
+</html>

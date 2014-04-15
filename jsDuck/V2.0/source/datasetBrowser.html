@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/*******************************************************************************
+</span> * Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * 
+ * This file is part of SITools2.
+ * 
+ * SITools2 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * SITools2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * SITools2. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ******************************************************************************/
+/* global Ext, sitools, i18n, loadUrl */
+
+Ext.namespace('sitools.widget.HtmlEditor');
+<span id='sitools-widget-HtmlEditor-datasetBrowser'>/**
+</span> * datasetLink widget
+ * 
+ * @class sitools.widget.HtmlEditor.datasetBrowser
+ * @extends Ext.util.Observable
+ */
+sitools.widget.HtmlEditor.datasetBrowser = function(config) {
+	this.datasets = [];
+	this.browseField = config.field;
+<span id='sitools-widget-HtmlEditor-datasetBrowser-property-projectAttachment'>	/**
+</span>	 * INDEX JPB var projectId = Ext.util.Cookies.get('projectId'); if
+	 * (Ext.isEmpty(projectId)){ Ext.Msg.alert(i18n.get ('warning.noProject'));
+	 * return; }
+	 */
+
+	// var projectId = projectGlobal.getProjectId();
+	var projectAttachment = projectGlobal.sitoolsAttachementForUsers;
+	var treeUtils = commonTreeUtils;
+
+	var conn = Ext.Ajax;
+	conn.request({
+		url : projectAttachment + '/datasets?media=json',
+		method : 'GET',
+		scriptTag : true,
+		scope : this,
+		success : function(response) {
+			if (!showResponse(response, false)) {
+				return;
+			}
+			var config = Ext.decode(response.responseText);
+			var i = 0;
+			Ext.each(config.data, function(dataset) {
+				if (dataset.authorized !== &quot;false&quot;) {
+					this.datasets.push({
+						text : dataset.name,
+						listeners : {
+							scope : this,
+							beforeexpand : function(node) {
+								node.removeAll(true);
+								if (dataset.status != &quot;ACTIVE&quot;) {
+									var notify = new Ext.ux.Notification({
+												iconCls : 'x-icon-information',
+												title : i18n
+														.get('label.information'),
+												html : i18n
+														.get('warning.wrongStatus'),
+												autoDestroy : true,
+												hideDelay : 1000
+											});
+									notify.show(document);
+									return true;
+								}
+								conn.request({
+									// url : '/sitools/datasets/' + dataset.id +
+									// '?media=json',
+									url : dataset.url + '?media=json',
+									scope : this,
+									success : function(response) {
+										var dataset = Ext.decode(response.responseText).dataset;
+										commonTreeUtils.addShowData(node,dataset);
+										SitoolsDesk.navProfile.manageDatasetExplorerShowDefinitionAndForms(commonTreeUtils, node, dataset);
+
+										conn.request({
+											url : dataset.sitoolsAttachementForUsers
+													+ &quot;/opensearch.xml&quot;,
+											scope : this,
+											success : function(response) {
+												var xml = response.responseXML;
+												var dq = Ext.DomQuery;
+												// check if there is a success
+												// node
+												// in the xml
+												var success = dq
+														.selectNode(
+																'OpenSearchDescription ',
+																xml);
+
+												if (success !== undefined) {
+//													commonTreeUtils.addOpensearch(node, dataset);
+												}
+												return true;
+											}
+										});
+//										commonTreeUtils.addFeeds(node, dataset);
+									}
+								});
+								return true;
+							}
+						},
+						children : [{
+									text : &quot;&quot;
+								}]
+					});
+				} else {
+					this.datasets.push({
+								text : dataset.name,
+								leaf : false,
+								icon : loadUrl.get('APP_URL')
+										+ &quot;/common/res/images/icons/cadenas.png&quot;,
+								authorized : false
+							});
+				}
+				i++;
+			}, this);
+			this.fireEvent('datasetLoaded');
+		},
+		failure : function() {
+			Ext.Msg.alert(i18n.get('label.warning'), i18n.get('warning.noProject'));
+		}
+	});
+	this.rootNode = new Ext.tree.AsyncTreeNode({
+				nodeType : 'async',
+				text : 'dataSets',
+				leaf : false,
+				draggable : false,
+				children : this.datasets,
+				expanded : false,
+				listeners : {
+					scope : this,
+					beforeexpand : function() {
+						this.rootNode.removeAll(true);
+						this.rootNode.appendChild(this.datasets);
+						return true;
+					}
+				}
+			});
+			
+	sitools.widget.HtmlEditor.datasetBrowser.superclass.constructor.call(this,
+			Ext.apply({
+						expanded : true,
+						useArrows : true,
+						autoScroll : true,
+						animate : true,
+						loader : new Ext.tree.TreeLoader(),
+						root : this.rootNode,
+						rootVisible : true,
+						layout : 'fit',
+						listeners : {
+							beforeload : function(node) {
+								return node.isRoot || Ext.isDefined(node.attributes.children);
+							},
+							datasetLoaded : function() {
+								this.getRootNode().expand();
+							}
+						},
+						bbar : [{
+							xtype : 'button',
+							text : i18n.get('label.select'),
+							scope : this,
+							handler : this.onValidate
+						}]
+					}));
+
+};
+
+Ext.extend(sitools.widget.HtmlEditor.datasetBrowser, Ext.tree.TreePanel, {
+<span id='sitools-widget-HtmlEditor-datasetBrowser-method-_getSettings'>			/**
+</span>			 * method called when trying to save preference
+			 * 
+			 * @returns
+			 */
+			_getSettings : function() {
+				return {
+					preferencesPath : &quot;/modules&quot;,
+					preferencesFileName : this.id
+				};
+			},
+
+			onValidate : function() {
+				var selNode = this.selModel.getSelectedNode();
+				if (selNode.isLeaf() &amp;&amp; selNode.attributes.type != &quot;defi&quot;){
+					var urlLink, displayValue;
+					
+						urlLink = selNode.attributes.dataUrl;
+						displayValue = selNode.attributes.winTitle;
+						this.browseField.setValue(displayValue);
+					if (selNode.attributes.type == &quot;data&quot;){
+						this.browseField.dataLinkComponent = String.format(&quot;&lt;a href='#' onclick='parent.sitools.user.component.dataviews.dataviewUtils.showDetailsData(\&quot;\&quot;,\&quot;\&quot;,\&quot;{0}\&quot;); return false;'&gt;&quot;, urlLink);
+					}
+					else if (selNode.attributes.type == &quot;form&quot;){
+						this.browseField.dataLinkComponent = String.format(&quot;&lt;a href='#' onclick='parent.SitoolsDesk.showFormFromEditor(\&quot;{0}\\/forms\&quot;); return false;'&gt;&quot;, urlLink);
+					}
+					this.ownerCt.close();
+				}
+				else {
+					Ext.Msg.alert(i18n.get('label.info'), i18n.get('label.selectNode'));
+				}
+			}
+
+		});
+
+Ext.reg('sitools.widget.HtmlEditor.datasetBrowser',
+		sitools.widget.HtmlEditor.datasetBrowser);
+</pre>
+</body>
+</html>

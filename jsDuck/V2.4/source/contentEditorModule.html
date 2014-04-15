@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/*******************************************************************************
+</span> * Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * 
+ * This file is part of SITools2.
+ * 
+ * SITools2 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * SITools2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * SITools2. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ******************************************************************************/
+/*global Ext, sitools, i18n, loadUrl, CKEDITOR, document, locale, alertFailure */
+
+Ext.namespace('sitools.user.modules');
+<span id='sitools-user-modules-contentEditorModule-cfg-listProjectModulesConfig'><span id='sitools-user-modules-contentEditorModule'>/**
+</span></span> * Help Module
+ * @class sitools.user.modules.contentEditorModule
+ * @cfg {Array} listProjectModulesConfig, the list of paramaters to set the module with
+ * @extends Ext.Panel
+ */
+sitools.user.modules.contentEditorModule = Ext.extend(Ext.Panel, {
+<span id='sitools-user-modules-contentEditorModule-property-activeNode'>    /**
+</span>     * the node to activate
+     * @type Ext.tree.TreeNode
+     */
+    activeNode : null,
+    
+    initComponent : function () {
+        
+        this.id = 'contentEditorID';
+        
+        this.templateHtmlFile = &quot;&lt;html&gt;&lt;head&gt;&lt;title&gt;{text}&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;&quot;;
+        
+        this.CONST_URLDATASTORAGE = loadUrl.get('APP_URL') + loadUrl.get('APP_DATASTORAGE_URL');
+        
+        // DATASTORAGE NAME CONFIGURABLE
+        // this.datastorageSrc = &quot;/postelDatastorageDev&quot;;
+        // this.datastorageDest = &quot;/postelDatastorageProd&quot;;
+        // this.directoryImageUrl = loadUrl.get('APP_URL') +
+        // &quot;/datastorage/user/postel-site/images&quot;;
+        // this.dynamicUrlDatastorage = loadUrl.get('APP_URL') +
+        // &quot;/datastorage/user/postel-site&quot;;
+        
+        Ext.each(this.listProjectModulesConfig, function (config) {
+            if (!Ext.isEmpty(config.value)) {
+                switch (config.name) {
+                case &quot;dynamicUrlDatastorage&quot; :
+                    this.dynamicUrlDatastorage = loadUrl.get('APP_URL') + loadUrl.get('APP_DATASTORAGE_URL') + config.value;
+                    break;
+                    
+                case &quot;nameDatastorageSrc&quot; :
+                    this.datastorageSrc = &quot;/&quot; + config.value;
+                    break;
+                    
+                case &quot;nameDatastorageDest&quot; :
+                    this.datastorageDest = &quot;/&quot; + config.value;
+                    break;
+                    
+                /*case &quot;imageDatastorageDirectory&quot; :
+                    this.directoryImageUrl = loadUrl.get('APP_URL') + loadUrl.get('APP_DATASTORAGE_URL') + config.value;
+                    break;*/    
+                    
+                case &quot;siteName&quot; :
+                    this.siteName = config.value;
+                    break;
+                
+                case &quot;allowDataPublish&quot; :
+                    // Parse string to boolean
+                    this.allowDataPublish = config.value == &quot;true&quot;;
+                    break;  
+                }
+            }
+        }, this);
+        
+        
+        this.jsonUrlTemplate = this.dynamicUrlDatastorage + '/json/data_{locale}.json';
+        
+        var localeStr = locale.getLocale();
+        var jsonUrl = this.jsonUrlTemplate.replace(&quot;{locale}&quot;, localeStr);
+        
+        this.directoryImageUrl = this.dynamicUrlDatastorage + &quot;/images&quot;;
+        
+        
+        this.mediaType = &quot;text/html&quot;;
+        
+        this.layout = &quot;border&quot;;
+        var htmlReaderCfg = {
+            defaults : {
+                padding : 10
+            },
+            layout : 'fit',
+            region : 'center'
+        };
+
+        if (!Ext.isEmpty(this.cfgCmp) &amp;&amp; !Ext.isEmpty(this.cfgCmp.activeNode)) {
+            this.activeNode = this.cfgCmp.activeNode;
+        } else {
+            htmlReaderCfg.defaultSrc = this.url;
+        }
+        
+        var textTooltip = String.format(i18n.get('label.runCopyInfo'), this.datastorageSrc, this.datastorageDest);
+        
+        this.tree = new Ext.tree.TreePanel({
+            id : 'treepanel',
+            region : 'west',
+            animate : true,
+            width : 220,
+            rootVisible : false,
+            autoScroll : true,
+            split : true,
+            collapsible : true,
+            enableDD : true,
+            title : i18n.get('label.sitePlan'),
+            tbar : new sitools.user.modules.cmsTreeToolbar({
+                allowDataPublish : this.allowDataPublish,
+                cms : this,
+                textTooltip : textTooltip
+            }),
+            contextMenu: new sitools.user.modules.cmsContextMenu({
+                cms : this
+            }),
+            root : {
+                text : &quot;root&quot;,
+                nodeType : 'async'
+            },
+            loader : new Ext.tree.TreeLoader({
+                requestMethod : 'GET',
+                url : jsonUrl,
+                createNode : function (attr) {
+                    var listeners = {
+                        scope : this,
+                        beforeappend : function (tree, parent, item) {
+                            if (item.isLeaf()) {
+                                if (item.attributes.sync) {
+                                    item.setIcon(loadUrl.get('APP_URL') + '/common/res/images/icons/valid.png');
+                                }
+                                else {
+                                    item.setIcon(loadUrl.get('APP_URL') + '/common/res/images/icons/unvalid.png');
+                                }
+                            }
+                            return true;
+                        }
+                    };
+                    Ext.apply(attr, {
+                        listeners : listeners
+                    });
+                    // apply baseAttrs, nice idea Corey!
+                    if (this.baseAttrs) {
+                        Ext.applyIf(attr, this.baseAttrs);
+                    }
+                    if (this.applyLoader !== false &amp;&amp; !attr.loader) {
+                        attr.loader = this;
+                    }
+                    if (Ext.isString(attr.uiProvider)) {
+                        attr.uiProvider = this.uiProviders[attr.uiProvider] || eval(attr.uiProvider);
+                    }
+                    if (attr.nodeType) {
+                        return new Ext.tree.TreePanel.nodeTypes[attr.nodeType](attr);
+                    } else {
+                        return attr.leaf ?
+                                    new Ext.tree.TreeNode(attr) :
+                                    new Ext.tree.AsyncTreeNode(attr);
+                    }
+                },
+                listeners : {
+                    scope : this,
+                    load : function (node) {
+                        if (!Ext.isEmpty(this.activeNode)) {
+                            if (!Ext.isEmpty(node)) {
+                                this.tree.selectPath(node.getPath());
+                                this.treeAction(node);
+                            } else {
+                                Ext.Msg.alert(i18n.get('label.warning'), i18n.get('msg.nodeundefined'));
+                            }
+                        }
+                    },
+                    loadException : function (loader, node, response) {
+                        Ext.Msg.show({
+							title : i18n.get('label.warning'),
+							msg : i18n.get('label.noJsonFileFound'),
+							buttons : {
+			                    yes : i18n.get('label.yes'),
+			                    no : i18n.get('label.no'),
+			                    cancel : i18n.get('label.cancel')
+			                },
+							fn : function (btnId, text, opt) {
+								if (btnId === &quot;yes&quot;) {
+									this.createEmptyJson(loader.url);
+								}
+							},
+							animEl : 'elId',
+							scope : this,
+							icon : Ext.MessageBox.QUESTION
+						});
+                    }
+                }
+            }),
+            listeners : {
+                scope : this,
+                click : function (node) {
+                    var labelSaving = this.saveLabelInfo.getEl().dom;
+                    if (labelSaving.isTextModified) {
+                        Ext.Msg.show({
+                            title : i18n.get('label.warning'),
+                            buttons : {
+                                yes : i18n.get('label.yes'),
+                                no : i18n.get('label.no')
+                            },
+                            icon : Ext.MessageBox.WARNING,
+                            msg : i18n.get('label.confirmQuitEditor'),
+                            scope : this,
+                            fn : function (btn, text) {
+                                if (btn == 'no') {
+                                    return false;
+                                } else {
+                                    labelSaving.innerHTML = &quot;&lt;img src='/sitools/common/res/images/icons/valid.png'/&gt; &quot; + i18n.get('label.textUpToDate') + &quot;&quot;;
+                                    labelSaving.isTextModified = false;
+                                    
+                                    this.treeAction(node);
+                                }
+                            }
+                        });
+                    } else {
+                        this.treeAction(node);
+                    }
+                    
+                },
+                contextmenu : function (node, e) {
+                    this.tree.getSelectionModel().select(node, e, true);
+                    var c = node.getOwnerTree().contextMenu;
+                    if (!node.isLeaf()) {
+                        c.getComponent('manage-node').setVisible(false);
+                    }
+                    else {
+                        c.getComponent('manage-node').setVisible(true);
+                    }
+                    c.contextNode = node;
+                    c.showAt(e.getXY());
+                },
+                render : function () {
+                    this.tree.getRootNode().expand(true);
+                },
+                dragdrop : function (tree, node, dd, e) {
+                    this.createJsonTree();	
+                }
+            }
+        });
+
+        Ext.QuickTips.init();
+        
+        this.saveButton = new Ext.Button({
+                xtype : 'button',
+                text : i18n.get('label.saveFile'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/save.png',
+                scope : this,
+                handler : this.onSave
+        });
+        
+        this.saveLabelInfo = new Ext.form.Label({
+            name : 'saveInfoLabel',
+            id : 'saveInfoLabelID',
+            isTextModified : false,
+            html : &quot;&lt;img src='/sitools/common/res/images/icons/valid.png'/&gt; &lt;b&gt;&quot; + i18n.get('label.textUpToDate') + &quot;&lt;/b&gt;&quot;
+        });
+        
+        this.idTextarea = Ext.id();
+        this.htmlEditor = new Ext.form.TextArea({
+            directoryImageUrl : this.directoryImageUrl,
+            id : this.idTextarea,
+            name : this.idTextarea,
+            region : 'center'
+        });
+        
+
+        this.viewerEditorPanel = new Ext.ux.ManagedIFrame.Panel({
+            id : 'viewerEditorPanel',
+            region : 'south',
+            autoScroll : true,
+            hidden : true
+        });
+        
+        var toolbar = null;
+        if (Ext.isEmpty(userLogin)) {
+            toolbar = new Ext.Toolbar({
+                name : 'warningDateLabel',
+                html : &quot;&lt;img src='/sitools/common/res/images/ux/warning.gif'/&gt; &quot; + i18n.get('warning.warnPublicEditor') + &quot;&quot;
+            });
+        }
+        
+        this.contentPanel = new Ext.Panel({
+            id: 'content-editor',
+            layout : 'border',
+            region : 'center',
+            bbar : [this.saveLabelInfo, '-&gt;', this.saveButton],
+            items : [this.htmlEditor, this.viewerEditorPanel],
+            listeners : {
+                scope : this,
+                resize : function (panel, newWidth, newHeight, origWidth, origHeight) {
+                    if (CKEDITOR.instances[this.idTextarea]) {
+                        CKEDITOR.instances[this.idTextarea].resize(newWidth, newHeight - panel.getBottomToolbar().getHeight());
+                    }
+                }
+            },
+            tbar : toolbar
+        });
+        
+        
+        this.items = [this.tree, this.contentPanel];
+        
+        this.tbar = {
+                xtype : 'toolbar',
+                cls : 'services-toolbar',
+                height : 15,
+                defaults : {
+                    scope : this,
+                    cls : 'services-toolbar-btn'
+                },
+                items : []
+        };
+        
+        sitools.user.modules.contentEditorModule.superclass.initComponent.call(this);
+    },
+    
+    onRender : function () {
+        sitools.user.modules.contentEditorModule.superclass.onRender.apply(this, arguments);
+        this.setEditable(false);
+        if (this.url) {
+            Ext.Ajax.request({
+                url : this.url,
+                method : 'GET',
+                scope : this,
+                success : function (ret) {
+                    this.tree.getRootNode().expand(true);
+                },
+                failure : alertFailure
+            });
+        }
+    },
+    
+    afterRender : function () {
+        sitools.user.modules.contentEditorModule.superclass.afterRender.apply(this, arguments);
+        this.ownerCt.addListener('beforeclose', function (panel) {
+            var labelSaving = this.saveLabelInfo.getEl().dom;
+            if (!labelSaving.isTextModified) {
+                return;
+            }
+            Ext.Msg.show({
+                title : i18n.get('label.delete'),
+                buttons : {
+                    yes : i18n.get('label.yes'),
+                    no : i18n.get('label.no')
+                },
+                icon : Ext.MessageBox.WARNING,
+                msg : i18n.get('label.confirmQuitEditor'),
+                scope : this,
+                fn : function (btn, text) {
+                    if (btn == 'yes') {
+                        this.ownerCt.doClose();
+                    }
+                }
+            });
+            return false;
+        }, this);
+    },
+    
+<span id='sitools-user-modules-contentEditorModule-method-treeAction'>    /**
+</span>     * Action executed ; 'this' refers to this component
+     * 
+     * @param node
+     * @returns
+     */
+    treeAction : function (node) {
+        
+        // Getting node urlArticle
+        var nodeLink = node.attributes.link;
+
+        if (Ext.isEmpty(nodeLink)) {
+            Ext.Msg.show({
+                title : i18n.get('label.warning'),
+                msg : i18n.get('label.noLinkDefineEditNode'),
+                buttons : {
+                    yes : i18n.get('label.yes'),
+                    no : i18n.get('label.no')
+                },
+                scope : this,
+                fn : function (btnId, textButton, opt) {
+                    if (btnId === &quot;yes&quot;) {
+                        var windowLink = new sitools.user.modules.chooseFileInExplorer({
+	                        datastorageUrl : this.dynamicUrlDatastorage,
+	                        node : node,
+	                        cms : this,
+	                        action : &quot;edit&quot;
+                        });
+                        windowLink.show();
+                    }
+                }
+            });
+            return;
+        }
+        
+        if (nodeLink.indexOf(&quot;http://&quot;) == -1) {
+            this.url = this.dynamicUrlDatastorage;
+            this.newUrl = this.url + nodeLink;
+            this.setEditable(true);
+            this.hideViewer();
+            
+        } else {
+            this.newUrl = nodeLink;  
+            this.setEditable(false);
+        }
+        
+        if (this.isDisplayable(nodeLink) &amp;&amp; nodeLink.indexOf(&quot;http://&quot;) == -1) {
+            Ext.Ajax.request({
+                url : this.newUrl,
+                method : 'GET',
+                scope : this,
+//                params : {
+//                    processTemplate : true
+//                },
+                success : function (ret) {
+                    var contentType = ret.getResponseHeader(&quot;content-type&quot;);
+                    if (Ext.isEmpty(CKEDITOR.instances[this.idTextarea])) {
+                        var height = this.contentPanel.getHeight() - this.contentPanel.getBottomToolbar().getHeight();
+                        CKEDITOR.datastorageUrl = this.dynamicUrlDatastorage; // use to upload file in datastorage
+                        CKEDITOR.replace(this.idTextarea, {
+                            baseHref : this.dynamicUrlDatastorage + &quot;/&quot;,
+                            language : locale.getLocale(),
+                            manageSaving : this.manageSaving,
+//                            saveInfoLabel : this.saveLabelInfo,
+                            fullPage : true,
+                            on : {
+                                instanceReady : function() {
+                                    this.resize(&quot;100%&quot;, height);
+                                },
+                                key: function() {
+                                    this.config.manageSaving(true);
+                                }
+                            }
+                        });
+                    }
+                    if (contentType.contains(&quot;text&quot;)) {
+                        
+                        
+                        var data = ret.responseText;
+                        
+                        //add the base name to the header of the IFrame
+                        //                if(this.htmlEditor.iframe.contentDocument.getElementsByTagName(&quot;base&quot;).length == 0){
+                        //	                var base = document.createElement(&quot;base&quot;);
+                        //	                base.href = this.dynamicUrlDatastorage + &quot;/&quot;;
+                        //	                this.htmlEditor.iframe.contentDocument.getElementsByTagName(&quot;head&quot;)[0].appendChild(base);
+                        //                }
+//                        this.findByType('htmleditor')[0].setValue(data);
+                        var callback = Ext.createDelegate(function () {
+                            CKEDITOR.instances[this.idTextarea].setReadOnly(false);
+                        }, this);
+                        
+                        CKEDITOR.instances[this.idTextarea].setData(data, callback);
+                    } else {
+//                        this.findByType('textarea')[0].setValue(i18n.get(&quot;label.cannotEditOtherThanText&quot;));
+                        CKEDITOR.instances[this.idTextarea].setData(i18n.get(&quot;label.cannotEditOtherThanText&quot;));
+                        CKEDITOR.instances[this.idTextarea].setReadOnly(true);
+                    }
+                    
+                    
+                },
+                failure : function (ret) {
+                    var data = ret.responseText;
+                    CKEDITOR.instances[this.idTextarea].setData(data);
+//                    this.findByType('textarea')[0].setValue(data);
+                    CKEDITOR.instances[this.idTextarea].setReadOnly(true);
+                }
+            });
+            
+            this.hideViewer();
+        }
+        else {
+            this.displayViewer(this.newUrl);
+        }
+    },
+    
+    changeIcon : function (node) {
+        if (node.isLeaf()) {
+            if (node.attributes.sync) {
+                node.setIcon(loadUrl.get('APP_URL') + '/common/res/images/icons/valid.png');
+            }
+            else {
+                node.setIcon(loadUrl.get('APP_URL') + '/common/res/images/icons/unvalid.png');
+            }
+        }
+    },
+    
+    onSave : function () {
+        var text = CKEDITOR.instances[this.idTextarea].getData();
+        
+        Ext.Ajax.request({
+            url : this.newUrl,
+            method : 'PUT',
+            scope : this,
+            headers : {
+                'Content-Type' : this.mediaType
+            },
+            jsonData : text,
+            success : function (ret) {
+                new Ext.ux.Notification({
+                    iconCls : 'x-icon-information',
+                    title : i18n.get('label.information'),
+                    html : i18n.get('label.changeSaved'),
+                    autoDestroy : true,
+                    hideDelay : 1000
+                }).show(document);
+            },
+            failure : alertFailure,
+            callback : function () {
+                this.manageSaving(false);
+            }
+        });
+    },
+<span id='sitools-user-modules-contentEditorModule-method-addNode'>    /**
+</span>     * Add a new node to the tree
+     * @param {TreeNode} the parent or the sibling node to add the leaf
+     * @param {boolean} leaf if the node to create is a leaf or not
+     * @param {text} the text of the node
+     * @param {link} the link of the node
+     * @param {boolean} createFile true to create the corresponding file, false otherwise
+     * @param {boolean} saveJson createFile true to save to save the json, false otherwise
+     */
+    addNode : function (node, leaf, text, link, createFile, saveJson) {
+        this.url = this.dynamicUrlDatastorage;
+        
+        var nodeToAdd;
+        if (node.isLeaf()) {
+            nodeToAdd = node.parentNode;
+        }
+        else {
+            nodeToAdd = node;
+        }
+        
+//        if (!link.match(&quot;.html&quot;) &amp;&amp; !(link.indexOf(&quot;http://&quot;) === 0)) {
+//            link += &quot;.html&quot;;
+//        } 
+        
+        if (leaf) {
+	        nodeToAdd.appendChild({
+	            &quot;text&quot; : text,
+	            &quot;link&quot; : link,
+	            &quot;leaf&quot; : true,
+	            &quot;icon&quot; : loadUrl.get('APP_URL') + '/common/res/images/icons/valid.png',
+	            &quot;sync&quot; : false
+	        });
+        } else {
+            nodeToAdd.appendChild({
+                &quot;text&quot; : text,
+                &quot;link&quot; : link,
+                &quot;leaf&quot; : false,
+                &quot;children&quot; : []
+            });
+        }
+        
+        if (createFile) {
+	        Ext.Ajax.request({
+	            url : this.url + link,
+	            method : 'PUT',
+	            scope : this,
+	            headers : {
+	                'Content-Type' : this.mediaType
+	            },
+	            jsonData : this.templateHtmlFile.replace(&quot;{text}&quot;, text),
+	            success : function (ret) {
+	                new Ext.ux.Notification({
+	                    iconCls : 'x-icon-information',
+	                    title : i18n.get('label.information'),
+	                    html : i18n.get('label.fileCreated'),
+	                    autoDestroy : true,
+	                    hideDelay : 1000
+	                }).show();
+	            },
+	            failure : alertFailure
+	        });
+        }
+        if (saveJson) {
+            this.createJsonTree();
+        }
+    },
+    
+    editNode : function (nodeToEdit, text, link, createFile, saveJson) {
+        
+        nodeToEdit.setText(text);
+        
+//        if (!link.match(&quot;.html&quot;) &amp;&amp; !(link.indexOf(&quot;http://&quot;) === 0)) {
+//            link += &quot;.html&quot;;
+//        }
+        
+        nodeToEdit.attributes.link = link;
+        nodeToEdit.attributes.text = text;
+        
+        
+        if (createFile) {
+            Ext.Ajax.request({
+                url : this.url + link,
+                method : 'PUT',
+                scope : this,
+                headers : {
+                    'Content-Type' : this.mediaType
+                },
+                jsonData : this.templateHtmlFile.replace(&quot;{text}&quot;, text),
+                success : function (ret) {
+                    new Ext.ux.Notification({
+                        iconCls : 'x-icon-information',
+                        title : i18n.get('label.information'),
+                        html : i18n.get('label.fileCreated'),
+                        autoDestroy : true,
+                        hideDelay : 1000
+                    }).show();
+                },
+                failure : alertFailure
+            });
+        }
+        if (saveJson) {
+            this.createJsonTree();
+        }
+        
+    },
+    
+    createJsonTree : function () {
+        var root = this.tree.getRootNode();
+        var tree = [];
+
+        var childs = root.childNodes;
+        var i;
+
+        for (i = 0; i &lt; childs.length; i++) {
+            this.getAllNodes(childs[i], tree);
+        }
+        var jsonUrl = this.tree.getLoader().url;
+        
+        // Save json changed
+        Ext.Ajax.request({
+            url : jsonUrl,
+            method : 'PUT',
+            scope : this,
+            headers : {
+                'Content-Type' : 'application/json'
+            },
+            jsonData : tree,
+            failure : function (response, opts) {
+                Ext.Msg.alert(response.status + &quot; &quot; + response.statusText, response.responseText);
+            }
+        });
+    },
+
+    getAllNodes : function (root, parent) {
+        var node = {};
+        if (Ext.isEmpty(root)) {
+            return;
+        } else if (root.isLeaf()) {
+            node = {
+                text : root.text,
+                leaf : root.leaf,
+                icon : root.attributes.icon,
+                sync : root.attributes.sync,
+                link : root.attributes.link
+            };
+            parent.push(node);
+        } else {
+            node = {
+                text : root.text,
+                leaf : false,
+                link : root.attributes.link,
+                children : []
+            };
+            parent.push(node);
+
+            // we call recursively getAllNodes to get all childNodes
+            var childs = root.childNodes;
+            var i;
+            for (i = 0; i &lt; childs.length; i++) {
+                this.getAllNodes(childs[i], node.children);
+            }
+        }
+    },
+<span id='sitools-user-modules-contentEditorModule-method-deleteNode'>    /**
+</span>     * Delete a node in the tree. If deleteFile is true, also delete the file on the server
+     * @param {TreeNode} node the node to delete
+     * @param {boolean} deleteFile true to delete the file on the server, false otherwise
+     * @param {boolean} saveJson createFile true to save to save the json, false otherwise
+     */
+    deleteNode : function (node, deleteFile, saveJson) {
+        this.htmlEditor.setValue(&quot;&quot;);
+        this.setEditable(false);
+        if (deleteFile) {
+	        this.url = this.dynamicUrlDatastorage;
+	        
+	        var deleteUrl;
+	        if (node.isLeaf()) {
+	            deleteUrl = this.url + node.attributes.link;
+	        }
+	        else {
+	            deleteUrl = this.url + node.attributes.link;
+	        }
+	        Ext.Ajax.request({
+	            url : deleteUrl + &quot;?recursive=true&quot;,
+	            method : 'DELETE',
+	            scope : this,
+	            success : function (ret) {
+	                node.remove(true);
+                    if (saveJson) {
+                        this.createJsonTree();
+                    }
+	
+	                new Ext.ux.Notification({
+	                    iconCls : 'x-icon-information',
+	                    title : i18n.get('label.information'),
+	                    html : i18n.get('label.fileDeleted'),
+	                    autoDestroy : true,
+	                    hideDelay : 1000
+	                }).show(document);
+	            },
+	            failure : function (response, opts) {
+                    Ext.Msg.alert(response.status + &quot; &quot; + response.statusText, response.responseText);
+                }
+	        });
+        } else {
+            node.remove(true);
+	        if (saveJson) {
+                this.createJsonTree();
+            }
+        }
+        
+    },
+    
+
+    manageNodes : function (node, action) {
+        if (node.isLeaf()) {
+            switch (action) {
+            case &quot;valid&quot;:
+                this.onValid(node);
+                break;
+
+            case &quot;unvalid&quot;:
+                this.unValid(node);
+                break;
+            }
+        }
+        this.createJsonTree();
+    },
+    
+
+    onValid : function (item) {
+        if (!item.attributes.sync) {
+            item.attributes.sync = true;
+
+            this.changeIcon(item);
+
+            new Ext.ux.Notification({
+                iconCls : 'x-icon-information',
+                title : i18n.get('label.information'),
+                html : i18n.get('label.fileValid'),
+                autoDestroy : true,
+                hideDelay : 1000
+            }).show(document);
+        } else {
+            new Ext.ux.Notification({
+                iconCls : 'x-icon-information',
+                title : i18n.get('label.information'),
+                html : i18n.get('label.alreadyValid'),
+                autoDestroy : true,
+                hideDelay : 1000
+            }).show(document);
+        }
+    },
+    
+
+    unValid : function (item) {
+        if (item.attributes.sync) {
+            item.attributes.sync = false;
+
+            this.changeIcon(item);
+
+            new Ext.ux.Notification({
+                iconCls : 'x-icon-information',
+                title : i18n.get('label.information'),
+                html : i18n.get('label.fileInvalid'),
+                autoDestroy : true,
+                hideDelay : 1000
+            }).show(document);
+        } else {
+            new Ext.ux.Notification({
+                iconCls : 'x-icon-information',
+                title : i18n.get('label.information'),
+                html : i18n.get('label.alreadyInvalid'),
+                autoDestroy : true,
+                hideDelay : 1000
+            }).show(document);
+        }
+    },
+    
+
+    runCopy : function () {
+        var copyUrl = this.CONST_URLDATASTORAGE + &quot;/copy&quot; + this.datastorageSrc + this.datastorageDest;
+        
+        Ext.Ajax.request({
+            url : copyUrl,
+            method : 'PUT',
+            scope : this,
+            success : function (ret) {
+                new Ext.ux.Notification({
+                    iconCls : 'x-icon-information',
+                    title : i18n.get('label.information'),
+                    html : i18n.get('label.datastorage.copied'),
+                    autoDestroy : true,
+                    hideDelay : 1000
+                }).show(document);
+            },
+            failure : function (response, opts) {
+                Ext.Msg.alert(response.status + &quot; &quot; + response.statusText, response.responseText);
+            }
+        });
+    },
+    
+
+    createEmptyJson : function (url) {
+        var json = [];
+        
+        var rootNode = {
+            &quot;text&quot; : this.siteName,
+            &quot;id&quot;: this.siteName + &quot;Id&quot;,
+            &quot;leaf&quot;: false,
+            &quot;link&quot;: &quot;&quot;,
+            &quot;children&quot; : []
+        };
+        
+        json.push(rootNode);
+        
+        Ext.Ajax.request({
+            url : url,
+            method : 'PUT',
+            scope : this,
+            jsonData : json,
+            success : function (ret) {
+                new Ext.ux.Notification({
+                    iconCls : 'x-icon-information',
+                    title : i18n.get('label.information'),
+                    html : i18n.get('label.jsonFileCreated'),
+                    autoDestroy : true,
+                    hideDelay : 1000
+                }).show(document);
+                this.tree.getLoader().load(this.tree.getRootNode());
+            },
+            headers : {
+                'Content-Type' : 'application/json'
+            },
+            failure : function (response, opts) {
+                Ext.Msg.alert(response.status + &quot; &quot; + response.statusText, response.responseText);
+            }
+        });
+    },
+    
+    manageSaving : function (isSaved) {
+        this.isTextModified = isSaved;
+        
+        var label = Ext.getDoc('saveInfoLabelID');
+        if (isSaved == false) {
+            label.dom.innerHTML = &quot;&lt;img src='/sitools/common/res/images/icons/valid.png'/&gt; &quot; + i18n.get('label.textUpToDate') + &quot;&quot;;
+            label.dom.isTextModified = false;
+        } else {
+            label.dom.innerHTML = &quot;&lt;img src='/sitools/common/res/images/ux/warning.gif'/&gt; &quot; + i18n.get('label.textNotUpToDate') + &quot;&quot;;
+            label.dom.isTextModified = true;
+        }
+    },
+
+    checkJsonUrlValidation : function () {
+        var jsonUrl = this.tree.getLoader().url;
+        Ext.Ajax.request({
+            url : jsonUrl,
+            method : 'GET',
+            scope : this,
+            failure : function (response, opts) {
+                Ext.Msg.show({
+                    title : i18n.get('label.warning'),
+                    msg : i18n.get('label.noJsonFileFound'),
+                    buttons : {
+                        yes : i18n.get('label.yes'),
+                        no : i18n.get('label.no'),
+                        cancel : i18n.get('label.cancel')
+                    },
+                    fn : function (btnId, text, opt) {
+                        if (btnId === &quot;yes&quot;) {
+                            this.createEmptyJson(jsonUrl);
+                        }
+                    },
+                    animEl : 'elId',
+                    scope : this,
+                    icon : Ext.MessageBox.QUESTION
+                });
+            }
+        });
+    },
+    
+    displayViewer : function (url) {
+        this.viewerEditorPanel.remove();
+        this.viewerEditorPanel.setSrc(this.newUrl);
+        
+        this.viewerEditorPanel.setHeight(this.contentPanel.getHeight() - 30);
+        this.viewerEditorPanel.setVisible(true);
+        this.viewerEditorPanel.expand(true);
+        
+        this.contentPanel.doLayout();
+    },
+    
+    hideViewer : function () {
+        this.viewerEditorPanel.remove();
+        this.viewerEditorPanel.setVisible(false);
+        this.contentPanel.doLayout();
+    },
+    
+<span id='sitools-user-modules-contentEditorModule-method-refreshTree'>    /**
+</span>     * Refresh the tree, reload the tree and print show it again
+     */    
+    refreshTree : function () {
+        this.tree.getLoader().load(this.tree.getRootNode(), function () {
+            this.tree.getRootNode().expand(true);                        
+        }, this);  
+        this.setEditable(false);
+    },
+<span id='sitools-user-modules-contentEditorModule-method-setEditable'>    /**
+</span>     * Set if the file is editable or not
+     * @param {} editable
+     */
+    setEditable : function (editable) {
+        this.editable = editable;
+//        this.findByType('htmleditor')[0].setReadOnly(!this.editable);
+        this.findByType('textarea')[0].setReadOnly(!this.editable);
+        this.saveButton.setDisabled(!this.editable);        
+    },
+<span id='sitools-user-modules-contentEditorModule-method-getChosenLanguage'>    /**
+</span>     * Get the language chosen
+     * @return {String} the language chosen
+     */
+    getChosenLanguage : function () {
+        return this.tree.getTopToolbar().comboLanguage.getValue();
+    },
+    
+<span id='sitools-user-modules-contentEditorModule-method-changeLanguage'>    /**
+</span>     * Change the language, reload the tree with the new language
+     * @param {String} language the language locale
+     */
+    changeLanguage : function (language) {
+        var urlJson = this.jsonUrlTemplate.replace(&quot;{locale}&quot;, language);
+        this.tree.getLoader().url = urlJson;
+        this.refreshTree();        
+    },
+    
+    isDisplayable : function (text) {
+        var imageRegex = /\.(pdf|png|jpg|jpeg|gif|bmp|JPG|JPEG)$/;
+        return !(text.match(imageRegex));      
+    }, 
+<span id='sitools-user-modules-contentEditorModule-method-_getSettings'>    /**
+</span>     * method called when trying to save preference
+     * @returns
+     */
+    _getSettings : function () {
+		return {
+            preferencesPath : &quot;/modules&quot;, 
+            preferencesFileName : this.id
+        };
+
+    }
+     
+});
+
+<span id='sitools-user-modules-contentEditorModule-static-method-getParameters'>/**
+</span> * @static
+ * Implementation of the method getParameters to be able to load view Config Module panel.
+ * @return {Array} the parameters to display into administration view. 
+ */
+sitools.user.modules.contentEditorModule.getParameters = function () {
+    
+    return [{
+        jsObj : &quot;Ext.form.Label&quot;, 
+        config : {
+            html : &quot;This module can manage 2 datastorages. &quot; +
+            &quot;All files are edited in the development datastorage (Datastorage Source), and then copied to the production datastorage (Datastorage Destination)&lt;br/&gt;&quot;            
+        }
+    }, {
+        jsObj : &quot;Ext.form.TextField&quot;, 
+        config : {
+            id : &quot;nameDatastorageId&quot;,
+            fieldLabel : i18n.get(&quot;label.siteName&quot;),
+            allowBlank : true,
+            hidden : true,
+            width : 200,
+            listeners : {
+                render : function (c) {
+                    Ext.QuickTips.register({
+                        target : c,
+                        text : &quot;The name of your site&quot;
+                    });
+                }
+            },
+            name : &quot;siteName&quot;,
+            value : undefined
+        }
+    }, {
+        jsObj : &quot;Ext.form.TextField&quot;, 
+        config : {
+            fieldLabel : i18n.get(&quot;label.urlDatastorage&quot;),
+            allowBlank : false,
+            id : &quot;urlDatastorageId&quot;,
+            hidden : true,
+            name : &quot;dynamicUrlDatastorage&quot;,
+            value : &quot;&quot;
+        }
+    }, {
+        jsObj : &quot;Ext.form.ComboBox&quot;, 
+        config : {
+            fieldLabel : i18n.get(&quot;label.nameDatastorageSrc&quot;),
+            id : &quot;nameDatastorageSrcId&quot;,
+            allowBlank : false,
+            typeAhead : true,
+            triggerAction : 'all',
+            editable : false,
+            width : 200,
+            valueField : 'name',
+            displayField : 'name',
+            store : new Ext.data.JsonStore({
+                root : 'data',
+                restful : true,
+                url : loadUrl.get('APP_URL') + loadUrl.get('APP_DATASTORAGE_ADMIN_URL') + '/directories',
+                remoteSort : true,
+                idProperty : 'id',
+                fields : [ {
+                    name : 'id',
+                    type : 'string'
+                }, {
+                    name : 'name',
+                    type : 'string'
+                }, {
+                    name : 'attachUrl',
+                    type : 'string'
+                }]
+            }),
+            listeners: {
+                render: function (c) {
+                    Ext.QuickTips.register({
+                        target : c,
+                        text : &quot;The NAME of the development datastorage to copy content from&quot;
+                    });
+                },
+                select : function (combo, rec, ind) {
+                    var urlAttachField = this.ownerCt.getComponent(&quot;urlDatastorageId&quot;);
+                    var siteName = this.ownerCt.getComponent(&quot;nameDatastorageId&quot;);
+                    urlAttachField.setValue(rec.data.attachUrl);
+                    siteName.setValue(rec.data.name);
+                }
+            },
+            name : &quot;nameDatastorageSrc&quot;,
+            value : &quot;&quot;
+        }
+    }, {
+        jsObj : &quot;Ext.form.Checkbox&quot;, 
+        config : {
+            fieldLabel : i18n.get(&quot;label.allowDataPublish&quot;),
+            checked : false,
+            id : &quot;allowDataPublishId&quot;,
+            listeners : {
+                render : function (c) {
+                    Ext.QuickTips.register({
+                        target : c,
+                        text : &quot;Allow to copy/publish files from one datastorage to another. Useless when only one storage.&quot;
+                    });
+                },
+                check : function (box, checked) {
+                    if (this.ownerCt) {
+                        var dest = this.ownerCt.getComponent(&quot;nameDatastorageDestId&quot;);
+                        if (!checked) {
+                            dest.clearInvalid();
+                            dest.setDisabled(true);
+                        }
+                        else {
+                            dest.clearInvalid();
+                            dest.setDisabled(false);
+                        }
+                    }
+                }
+            },
+            name : &quot;allowDataPublish&quot;,
+            value : &quot;&quot;
+        }
+    }, {
+        jsObj : &quot;Ext.form.ComboBox&quot;, 
+        config : {
+            fieldLabel : i18n.get(&quot;label.nameDatastorageDest&quot;),
+            id : &quot;nameDatastorageDestId&quot;,
+            allowBlank : false,
+            typeAhead : true,
+            editable : false,
+            disabled : true,
+            triggerAction : 'all',
+            width : 200,
+            valueField : 'name',
+            displayField : 'name',
+            store : new Ext.data.JsonStore({
+                root : 'data',
+                restful : true,
+                url : loadUrl.get('APP_URL') + loadUrl.get('APP_DATASTORAGE_ADMIN_URL') + '/directories',
+                remoteSort : true,
+                idProperty : 'id',
+                fields : [ {
+                    name : 'id',
+                    type : 'string'
+                }, {
+                    name : 'name',
+                    type : 'string'
+                }]
+            }),
+            listeners: {
+                render : function (c) {
+                    var checkbox = this.ownerCt.getComponent(&quot;allowDataPublishId&quot;);
+                    if (!Ext.isEmpty(checkbox)) {
+                        this.setDisabled(!checkbox.getValue());
+                        Ext.QuickTips.register({
+                            target : c,
+                            text : &quot;The NAME of the production datastorage to copy the content to&quot;
+                        });
+                    }
+                }
+            },
+            name : &quot;nameDatastorageDest&quot;,
+            value : &quot;&quot;
+        }
+    }];
+};
+
+Ext.reg('sitools.user.modules.contentEditorModule', sitools.user.modules.contentEditorModule);
+</pre>
+</body>
+</html>

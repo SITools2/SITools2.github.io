@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.ns(&quot;sitools.widget&quot;);
+sitools.widget.StringFilter = Ext.extend(sitools.widget.Filter, {
+	
+<span id='global-cfg-iconCls'>    /**
+</span>     * @cfg {String} iconCls
+     * The iconCls to be applied to the menu item.
+     * Defaults to &lt;tt&gt;'ux-gridfilter-text-icon'&lt;/tt&gt;.
+     */
+    iconCls : 'ux-gridfilter-text-icon',
+
+    emptyText: 'Enter Filter Text...',
+    selectOnFocus: true,
+    flex : 0.9, 
+    style: {
+        &quot;padding-left&quot; : '10px'
+    },
+    
+    height : 30, 
+    
+<span id='global-method-init'>    /**  
+</span>     * @private
+     * Template method that is to initialize the filter and install required menu items.
+     */
+    init : function (config) {
+        config = config || {};
+        
+        this.inputItem = new Ext.form.TextField({
+        	anchor : &quot;100%&quot;, 
+        	fieldLabel : &quot;ux-gridfilter-text-icon&quot;, 
+        	labelStyle : &quot;height: 10px&quot;, 
+        	width : 150
+        }); 
+        var formPanel = new Ext.form.FormPanel({
+        	items : [this.inputItem], 
+        	labelWidth : 21, 
+        	bodyBorder : false, 
+        	border : false, 
+        	layout : 'form',
+        	layoutConfig : {
+        		fieldTpl : new Ext.Template(
+        	
+				    '&lt;div class=&quot;x-form-item {itemCls}&quot; tabIndex=&quot;-1&quot;&gt;',
+				        '&lt;label for=&quot;{id}&quot; style=&quot;{labelStyle}&quot; class=&quot;x-form-item-label {label}&quot;&gt;&lt;/label&gt;',
+				        '&lt;div class=&quot;x-form-element&quot; id=&quot;x-form-el-{id}&quot; style=&quot;{elementStyle}&quot;&gt;',
+				        '&lt;/div&gt;&lt;div class=&quot;{clearCls}&quot;&gt;&lt;/div&gt;',
+				    '&lt;/div&gt;'
+				)
+        	}
+        });
+        
+        
+        
+        this.add(formPanel);
+    },
+    
+<span id='global-method-getValue'>    /**
+</span>     * @private
+     * Template method that is to get and return the value of the filter.
+     * @return {String} The value of this filter
+     */
+    getValue : function () {
+        if (!Ext.isEmpty(this.inputItem.getValue())) {
+	        return [{
+	        	&quot;columnAlias&quot; : this.columnAlias, 
+	        	&quot;data&quot; : {
+	        		&quot;comparison&quot; : &quot;LIKE&quot;, 
+	        		&quot;value&quot; : this.inputItem.getValue(), 
+	        		&quot;type&quot; : &quot;string&quot;
+	        	}
+	        }];
+        }
+        else {
+        	return [];
+        }
+    },
+    
+<span id='global-method-getConfig'>    /**
+</span>     * @private
+     * Template method that is to get and return the value of the filter.
+     * @return {String} The value of this filter
+     */
+    getConfig : function () {
+     	if (!Ext.isEmpty(this.inputItem.getValue())) {
+	 		return {
+	    		&quot;columnAlias&quot; : this.columnAlias, 
+	    		&quot;value&quot; : this.inputItem.getValue(), 
+	    		&quot;type&quot; : &quot;string&quot;
+	    	};
+    	}
+    	else {
+    		return null;
+    	}       
+    },
+<span id='global-method-setValue'>    /**
+</span>     * @private
+     * Template method that is to set the value of the filter.
+     * @param {Object} value The value to set the filter
+     */	
+    setValue : function (value) {
+        this.inputItem.setValue(value);
+    },
+
+<span id='global-method-validateRecord'>    /**
+</span>     * Template method that is to validate the provided Ext.data.Record
+     * against the filters configuration.
+     * @param {Ext.data.Record} record The record to validate
+     * @return {Boolean} true if the record is valid within the bounds
+     * of the filter, false otherwise.
+     */
+    validateRecord : function (record) {
+        var val = record.get(this.dataIndex);
+
+        if(typeof val != 'string') {
+            return (this.getValue().length === 0);
+        }
+
+        return val.toLowerCase().indexOf(this.getValue().toLowerCase()) &gt; -1;
+    }, 
+    _getHeight : function () {
+    	return this.height;
+    }
+    
+});
+</pre>
+</body>
+</html>

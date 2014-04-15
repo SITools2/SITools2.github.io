@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.plugins.setLang(&quot;specialchar&quot;,&quot;eo&quot;,{euro:&quot;Eŭrosigno&quot;,lsquo:&quot;Supra 6-citilo&quot;,rsquo:&quot;Supra 9-citilo&quot;,ldquo:&quot;Supra 66-citilo&quot;,rdquo:&quot;Supra 99-citilo&quot;,ndash:&quot;Streketo&quot;,mdash:&quot;Substreko&quot;,iexcl:&quot;Renversita krisigno&quot;,cent:&quot;Cendosigno&quot;,pound:&quot;Pundosigno&quot;,curren:&quot;Monersigno&quot;,yen:&quot;Enosigno&quot;,brvbar:&quot;Rompita vertikala streko&quot;,sect:&quot;Kurba paragrafo&quot;,uml:&quot;Tremao&quot;,copy:&quot;Kopirajtosigno&quot;,ordf:&quot;Adjektiva numerfinaĵo&quot;,laquo:&quot;Duobla malplio-citilo&quot;,not:&quot;Negohoko&quot;,reg:&quot;Registrita marko&quot;,macr:&quot;Superstreko&quot;,deg:&quot;Gradosigno&quot;,
+sup2:&quot;Supra indico 2&quot;,sup3:&quot;Supra indico 3&quot;,acute:&quot;Dekstra korno&quot;,micro:&quot;Mikrosigno&quot;,para:&quot;Rekta paragrafo&quot;,middot:&quot;Meza punkto&quot;,cedil:&quot;Zoeto&quot;,sup1:&quot;Supra indico 1&quot;,ordm:&quot;Substantiva numerfinaĵo&quot;,raquo:&quot;Duobla plio-citilo&quot;,frac14:&quot;Kvaronosigno&quot;,frac12:&quot;Duonosigno&quot;,frac34:&quot;Trikvaronosigno&quot;,iquest:&quot;renversita demandosigno&quot;,Agrave:&quot;Latina ĉeflitero A kun liva korno&quot;,Aacute:&quot;Latina ĉeflitero A kun dekstra korno&quot;,Acirc:&quot;Latina ĉeflitero A kun ĉapelo&quot;,Atilde:&quot;Latina ĉeflitero A kun tildo&quot;,Auml:&quot;Latina ĉeflitero A kun tremao&quot;,
+Aring:&quot;Latina ĉeflitero A kun superringo&quot;,AElig:&quot;Latina ĉeflitera ligaturo Æ&quot;,Ccedil:&quot;Latina ĉeflitero C kun zoeto&quot;,Egrave:&quot;Latina ĉeflitero E kun liva korno&quot;,Eacute:&quot;Latina ĉeflitero E kun dekstra korno&quot;,Ecirc:&quot;Latina ĉeflitero E kun ĉapelo&quot;,Euml:&quot;Latina ĉeflitero E kun tremao&quot;,Igrave:&quot;Latina ĉeflitero I kun liva korno&quot;,Iacute:&quot;Latina ĉeflitero I kun dekstra korno&quot;,Icirc:&quot;Latina ĉeflitero I kun ĉapelo&quot;,Iuml:&quot;Latina ĉeflitero I kun tremao&quot;,ETH:&quot;Latina ĉeflitero islanda edo&quot;,Ntilde:&quot;Latina ĉeflitero N kun tildo&quot;,
+Ograve:&quot;Latina ĉeflitero O kun liva korno&quot;,Oacute:&quot;Latina ĉeflitero O kun dekstra korno&quot;,Ocirc:&quot;Latina ĉeflitero O kun ĉapelo&quot;,Otilde:&quot;Latina ĉeflitero O kun tildo&quot;,Ouml:&quot;Latina ĉeflitero O kun tremao&quot;,times:&quot;Multipliko&quot;,Oslash:&quot;Latina ĉeflitero O trastrekita&quot;,Ugrave:&quot;Latina ĉeflitero U kun liva korno&quot;,Uacute:&quot;Latina ĉeflitero U kun dekstra korno&quot;,Ucirc:&quot;Latina ĉeflitero U kun ĉapelo&quot;,Uuml:&quot;Latina ĉeflitero U kun tremao&quot;,Yacute:&quot;Latina ĉeflitero Y kun dekstra korno&quot;,THORN:&quot;Latina ĉeflitero islanda dorno&quot;,
+szlig:&quot;Latina etlitero germana sozo (akra s)&quot;,agrave:&quot;Latina etlitero a kun liva korno&quot;,aacute:&quot;Latina etlitero a kun dekstra korno&quot;,acirc:&quot;Latina etlitero a kun ĉapelo&quot;,atilde:&quot;Latina etlitero a kun tildo&quot;,auml:&quot;Latina etlitero a kun tremao&quot;,aring:&quot;Latina etlitero a kun superringo&quot;,aelig:&quot;Latina etlitera ligaturo æ&quot;,ccedil:&quot;Latina etlitero c kun zoeto&quot;,egrave:&quot;Latina etlitero e kun liva korno&quot;,eacute:&quot;Latina etlitero e kun dekstra korno&quot;,ecirc:&quot;Latina etlitero e kun ĉapelo&quot;,euml:&quot;Latina etlitero e kun tremao&quot;,
+igrave:&quot;Latina etlitero i kun liva korno&quot;,iacute:&quot;Latina etlitero i kun dekstra korno&quot;,icirc:&quot;Latina etlitero i kun ĉapelo&quot;,iuml:&quot;Latina etlitero i kun tremao&quot;,eth:&quot;Latina etlitero islanda edo&quot;,ntilde:&quot;Latina etlitero n kun tildo&quot;,ograve:&quot;Latina etlitero o kun liva korno&quot;,oacute:&quot;Latina etlitero o kun dekstra korno&quot;,ocirc:&quot;Latina etlitero o kun ĉapelo&quot;,otilde:&quot;Latina etlitero o kun tildo&quot;,ouml:&quot;Latina etlitero o kun tremao&quot;,divide:&quot;Dividosigno&quot;,oslash:&quot;Latina etlitero o trastrekita&quot;,ugrave:&quot;Latina etlitero u kun liva korno&quot;,
+uacute:&quot;Latina etlitero u kun dekstra korno&quot;,ucirc:&quot;Latina etlitero u kun ĉapelo&quot;,uuml:&quot;Latina etlitero u kun tremao&quot;,yacute:&quot;Latina etlitero y kun dekstra korno&quot;,thorn:&quot;Latina etlitero islanda dorno&quot;,yuml:&quot;Latina etlitero y kun tremao&quot;,OElig:&quot;Latina ĉeflitera ligaturo Œ&quot;,oelig:&quot;Latina etlitera ligaturo œ&quot;,372:&quot;Latina ĉeflitero W kun ĉapelo&quot;,374:&quot;Latina ĉeflitero Y kun ĉapelo&quot;,373:&quot;Latina etlitero w kun ĉapelo&quot;,375:&quot;Latina etlitero y kun ĉapelo&quot;,sbquo:&quot;Suba 9-citilo&quot;,8219:&quot;Supra renversita 9-citilo&quot;,
+bdquo:&quot;Suba 99-citilo&quot;,hellip:&quot;Tripunkto&quot;,trade:&quot;Varmarka signo&quot;,9658:&quot;Nigra sago dekstren&quot;,bull:&quot;Bulmarko&quot;,rarr:&quot;Sago dekstren&quot;,rArr:&quot;Duobla sago dekstren&quot;,hArr:&quot;Duobla sago maldekstren&quot;,diams:&quot;Nigra kvadrato&quot;,asymp:&quot;Preskaŭ egala&quot;});</pre>
+</body>
+</html>

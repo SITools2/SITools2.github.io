@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser*/
+Ext.namespace('sitools.admin.datasets');
+
+
+<span id='sitools-admin-datasets-datasetViewConfig-cfg-viewConfigParamsValue'><span id='sitools-admin-datasets-datasetViewConfig-cfg-urlDatasetViews'><span id='sitools-admin-datasets-datasetViewConfig-cfg-action'><span id='sitools-admin-datasets-datasetViewConfig'>/**
+</span></span></span></span> * Define the window of the dataset Configuration
+ * @cfg {String} action (required) &quot;active&quot;, &quot;modify&quot; &quot;view&quot;
+ * @cfg {String} urlDatasetViews the url to request all dataviews available
+ * @cfg {Array} viewConfigParamsValue An array containing all params value for view Config
+ * @class sitools.admin.datasets.datasetForm
+ * @extends Ext.Panel
+ */
+sitools.admin.datasets.datasetViewConfig = Ext.extend(Ext.form.FormPanel, {
+    padding : 10, 
+    initComponent : function () {
+        this.title = i18n.get('label.viewConfig');
+        var action = this.action;
+        //Store of the comboDatasetsViews.
+        this.storeDatasetViews = new Ext.data.JsonStore({
+            fields : [ 'id', 'name', 'description', 'jsObject', 'fileUrl', 'priority' ],
+            url : this.urlDatasetViews,
+            autoLoad : false,
+            root : &quot;data&quot;, 
+            sortInfo : {
+                field : 'priority',
+                direction : 'ASC'
+            },
+            listeners : {
+                scope : this, 
+                load : function (store, recs) {
+                    if (Ext.isEmpty(this.comboDatasetViews.getValue())) {
+                        if (!Ext.isEmpty(recs) &amp;&amp; Ext.isArray(recs) &amp;&amp; recs.length &gt; 0) {
+                            var minPriorityRec = null;
+                            for (var i = 0; i &lt; recs.length; i++) {
+                                if (Ext.isEmpty(minPriorityRec)	|| recs[i].data.priority &lt; minPriorityRec.data.priority) {
+                                    minPriorityRec = recs[i];
+                                }                                
+                            }
+                            this.comboDatasetViews.setValue(minPriorityRec.id);
+                            this.comboDatasetViews.fireEvent(&quot;select&quot;, this.comboDatasetViews, minPriorityRec);
+                        }
+                    }
+                }
+            }
+        });
+        
+<span id='sitools-admin-datasets-datasetViewConfig-property-comboDatasetViews'>        /**
+</span>         * Combo to select Datasets Views.
+         * Uses the storeDatasetViews. 
+         */
+        this.comboDatasetViews = new Ext.form.ComboBox({
+            disabled : this.action == 'view' ? true : false, 
+            id : &quot;comboDatasetViews&quot;,
+            store : this.storeDatasetViews,
+            fieldLabel : i18n.get('label.datasetViews'),
+            displayField : 'name',
+            valueField : 'id',
+            typeAhead : true,
+            mode : 'local',
+            name : 'comboDatasetViews',
+            forceSelection : true,
+            triggerAction : 'all',
+            editable : false,
+            emptyText : i18n.get('label.datasetViewsSelect'),
+            selectOnFocus : true,
+            anchor : '95%',    
+            itemSelector : 'div.search-item',
+            allowBlank : false,
+            autoSelect : true, 
+            maxHeight : 200,
+            validator : function (value) {
+                if (Ext.isEmpty(value)) {
+                    return false;
+                } else {
+                    return true;
+                }
+            },
+            tpl : new Ext.XTemplate(
+                '&lt;tpl for=&quot;.&quot;&gt;',
+                '&lt;div class=&quot;search-item combo-datasetview&quot;&gt;&lt;div class=&quot;combo-datasetview-name&quot;&gt;{name}&lt;/div&gt;',
+                '&lt;tpl if=&quot;this.descEmpty(description) == false&quot; &gt;&lt;div class=&quot;sitoolsDescription-datasetview&quot;&gt;&lt;div class=&quot;sitoolsDescriptionHeader&quot;&gt;Description :&amp;nbsp;&lt;/div&gt;&lt;p class=&quot;sitoolsDescriptionText&quot;&gt; {description} &lt;/p&gt;&lt;/div&gt;&lt;/tpl&gt;',
+                '&lt;/div&gt;&lt;/tpl&gt;',
+                {
+                    compiled : true, 
+                    descEmpty : function (description) {
+                        return Ext.isEmpty(description);
+                    }
+                }
+            ), 
+            listeners : {
+                scope : this, 
+                select : function (combo, rec, index) {
+                    this.buildViewConfig(rec);
+                }
+            }
+        });
+
+        this.parametersFieldset = new Ext.form.FieldSet({
+            title : i18n.get('label.parameters'), 
+            anchor : &quot;95%&quot;
+        });
+        Ext.apply(this, {
+            items : [this.comboDatasetViews, this.parametersFieldset], 
+            listeners : {
+                &quot;activate&quot; : function () {
+                    if (action == 'view') {
+                        this.getEl().mask();
+                    }
+                }
+            }
+        });
+        
+        sitools.admin.datasets.datasetViewConfig.superclass.initComponent.call(this);
+
+
+    }, 
+    getDatasetViewsCombo : function () {
+        return this.comboDatasetViews;  
+    }, 
+    setViewConfigParamsValue : function (data) {
+        this.viewConfigParamsValue = data;
+    },
+    buildViewConfig : function (recSelected) {
+        try {
+            this.parametersFieldset.removeAll();
+            var getParametersMethod = eval(recSelected.json.jsObject + &quot;.getParameters&quot;);
+            if (!Ext.isFunction(getParametersMethod)) {
+                Ext.Msg.alert(i18n.get('label.error'), i18n.get('label.notImplementedMethod &lt;br/&gt;' + getParametersMethod));
+                return;
+            }
+            var parameters = getParametersMethod();
+            if (Ext.isEmpty(parameters)) {
+                this.parametersFieldset.setVisible(false);
+            }
+            else {
+                this.parametersFieldset.setVisible(true);
+            }
+            Ext.each(parameters, function (param) {
+                var parameterValue = this.findDefaultParameterValue(param);
+                var JsObj = eval(param.jsObj); 
+                var config = Ext.applyIf(param.config, {
+                    anchor : &quot;95%&quot;
+                });
+
+                var p = new JsObj(config);
+                if (!Ext.isEmpty(parameterValue)) {
+                    p.setValue(parameterValue);
+                }
+                this.parametersFieldset.add(p);
+                
+            }, this);
+            
+            this.doLayout();
+        }
+        catch (err) {
+            Ext.Msg.alert(i18n.get('label.error'), i18n.get('label.notImplementedMethod &lt;br/&gt;') + err);
+            return;
+        }
+        
+        
+    }, 
+    getParametersValue : function () {
+        var result = [];
+        if (Ext.isEmpty(this.parametersFieldset.items)) {
+            return result;
+        }
+        this.parametersFieldset.items.each(function (param) {
+            result.push({
+                name : param.parameterName, 
+                value : param.getValue()
+            });
+        }, this);
+        return result;
+    }, 
+    findDefaultParameterValue : function (param) {
+        var result;
+        Ext.each(this.viewConfigParamsValue, function (paramValue) {
+            if (paramValue.name == param.config.parameterName) {
+                result = paramValue.value;
+            }
+        });
+        return result;
+    }
+});
+
+</pre>
+</body>
+</html>

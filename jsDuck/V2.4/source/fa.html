@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.plugins.setLang(&quot;specialchar&quot;,&quot;fa&quot;,{euro:&quot;نشان یورو&quot;,lsquo:&quot;علامت نقل قول تکی چپ&quot;,rsquo:&quot;علامت نقل قول تکی راست&quot;,ldquo:&quot;علامت نقل قول دوتایی چپ&quot;,rdquo:&quot;علامت نقل قول دوتایی راست&quot;,ndash:&quot;خط تیره En&quot;,mdash:&quot;خط تیره Em&quot;,iexcl:&quot;علامت تعجب وارونه&quot;,cent:&quot;نشان سنت&quot;,pound:&quot;نشان پوند&quot;,curren:&quot;نشان ارز&quot;,yen:&quot;نشان ین&quot;,brvbar:&quot;نوار شکسته&quot;,sect:&quot;نشان بخش&quot;,uml:&quot;نشان سواگیری&quot;,copy:&quot;نشان کپی رایت&quot;,ordf:&quot;شاخص ترتیبی مونث&quot;,laquo:&quot;اشاره چپ مکرر برای زاویه علامت نقل قول&quot;,not:&quot;نشان ثبت نشده&quot;,reg:&quot;نشان ثبت شده&quot;,
+macr:&quot;نشان خط بالای حرف&quot;,deg:&quot;نشان درجه&quot;,sup2:&quot;بالانویس دو&quot;,sup3:&quot;بالانویس سه&quot;,acute:&quot;لهجه غلیظ&quot;,micro:&quot;نشان مایکرو&quot;,para:&quot;نشان محل بند&quot;,middot:&quot;نقطه میانی&quot;,cedil:&quot;سدیل&quot;,sup1:&quot;بالانویس 1&quot;,ordm:&quot;شاخص ترتیبی مذکر&quot;,raquo:&quot;نشان زاویه‌دار دوتایی نقل قول راست چین&quot;,frac14:&quot;واحد عامیانه 1/4&quot;,frac12:&quot;واحد عامینه نصف&quot;,frac34:&quot;واحد عامیانه 3/4&quot;,iquest:&quot;علامت سوال معکوس&quot;,Agrave:&quot;حرف A بزرگ لاتین با تلفظ غلیظ&quot;,Aacute:&quot;حرف A بزرگ لاتین با تلفظ شدید&quot;,Acirc:&quot;حرف A بزرگ لاتین با دور&quot;,Atilde:&quot;حرف A بزرگ لاتین با صدای کامی&quot;,
+Auml:&quot;حرف A بزرگ لاتین با نشان سواگیری&quot;,Aring:&quot;حرف A بزرگ لاتین با حلقه بالا&quot;,AElig:&quot;حرف Æ بزرگ لاتین&quot;,Ccedil:&quot;حرف C بزرگ لاتین با نشان سواگیری&quot;,Egrave:&quot;حرف E بزرگ لاتین با تلفظ درشت&quot;,Eacute:&quot;حرف E بزرگ لاتین با تلفظ زیر&quot;,Ecirc:&quot;حرف E بزرگ لاتین با خمان&quot;,Euml:&quot;حرف E بزرگ لاتین با نشان سواگیری&quot;,Igrave:&quot;حرف I بزرگ لاتین با تلفظ درشت&quot;,Iacute:&quot;حرف I بزرگ لاتین با تلفظ ریز&quot;,Icirc:&quot;حرف I بزرگ لاتین با خمان&quot;,Iuml:&quot;حرف I بزرگ لاتین با نشان سواگیری&quot;,ETH:&quot;حرف لاتین بزرگ واکه ترتیبی&quot;,Ntilde:&quot;حرف N بزرگ لاتین با مد&quot;,
+Ograve:&quot;حرف O بزرگ لاتین با تلفظ درشت&quot;,Oacute:&quot;حرف O بزرگ لاتین با تلفظ ریز&quot;,Ocirc:&quot;حرف O بزرگ لاتین با خمان&quot;,Otilde:&quot;حرف O بزرگ لاتین با مد&quot;,Ouml:&quot;حرف O بزرگ لاتین با نشان سواگیری&quot;,times:&quot;نشان ضربدر&quot;,Oslash:&quot;حرف O بزرگ لاتین با میان خط&quot;,Ugrave:&quot;حرف U بزرگ لاتین با تلفظ درشت&quot;,Uacute:&quot;حرف U بزرگ لاتین با تلفظ ریز&quot;,Ucirc:&quot;حرف U بزرگ لاتین با خمان&quot;,Uuml:&quot;حرف U بزرگ لاتین با نشان سواگیری&quot;,Yacute:&quot;حرف Y بزرگ لاتین با تلفظ ریز&quot;,THORN:&quot;حرف بزرگ لاتین خاردار&quot;,szlig:&quot;حرف کوچک لاتین شارپ s&quot;,agrave:&quot;حرف a کوچک لاتین با تلفظ درشت&quot;,
+aacute:&quot;حرف a کوچک لاتین با تلفظ ریز&quot;,acirc:&quot;حرف a کوچک لاتین با خمان&quot;,atilde:&quot;حرف a کوچک لاتین با صدای کامی&quot;,auml:&quot;حرف a کوچک لاتین با نشان سواگیری&quot;,aring:&quot;حرف a کوچک لاتین گوشواره دار&quot;,aelig:&quot;حرف کوچک لاتین æ&quot;,ccedil:&quot;حرف c کوچک لاتین با نشان سدیل&quot;,egrave:&quot;حرف e کوچک لاتین با تلفظ درشت&quot;,eacute:&quot;حرف e کوچک لاتین با تلفظ ریز&quot;,ecirc:&quot;حرف e کوچک لاتین با خمان&quot;,euml:&quot;حرف e کوچک لاتین با نشان سواگیری&quot;,igrave:&quot;حرف i کوچک لاتین با تلفظ درشت&quot;,iacute:&quot;حرف i کوچک لاتین با تلفظ ریز&quot;,icirc:&quot;حرف i کوچک لاتین با خمان&quot;,
+iuml:&quot;حرف i کوچک لاتین با نشان سواگیری&quot;,eth:&quot;حرف کوچک لاتین eth&quot;,ntilde:&quot;حرف n کوچک لاتین با صدای کامی&quot;,ograve:&quot;حرف o کوچک لاتین با تلفظ درشت&quot;,oacute:&quot;حرف o کوچک لاتین با تلفظ زیر&quot;,ocirc:&quot;حرف o کوچک لاتین با خمان&quot;,otilde:&quot;حرف o کوچک لاتین با صدای کامی&quot;,ouml:&quot;حرف o کوچک لاتین با نشان سواگیری&quot;,divide:&quot;نشان بخش&quot;,oslash:&quot;حرف o کوچک لاتین با میان خط&quot;,ugrave:&quot;حرف u کوچک لاتین با تلفظ درشت&quot;,uacute:&quot;حرف u کوچک لاتین با تلفظ ریز&quot;,ucirc:&quot;حرف u کوچک لاتین با خمان&quot;,uuml:&quot;حرف u کوچک لاتین با نشان سواگیری&quot;,yacute:&quot;حرف y کوچک لاتین با تلفظ ریز&quot;,
+thorn:&quot;حرف کوچک لاتین خاردار&quot;,yuml:&quot;حرف y کوچک لاتین با نشان سواگیری&quot;,OElig:&quot;بند بزرگ لاتین OE&quot;,oelig:&quot;بند کوچک لاتین oe&quot;,372:&quot;حرف W بزرگ لاتین با خمان&quot;,374:&quot;حرف Y بزرگ لاتین با خمان&quot;,373:&quot;حرف w کوچک لاتین با خمان&quot;,375:&quot;حرف y کوچک لاتین با خمان&quot;,sbquo:&quot;نشان نقل قول تکی زیر-9&quot;,8219:&quot;نشان نقل قول تکی high-reversed-9&quot;,bdquo:&quot;نقل قول دوتایی پایین-9&quot;,hellip:&quot;حذف افقی&quot;,trade:&quot;نشان تجاری&quot;,9658:&quot;نشانگر سیاه جهت راست&quot;,bull:&quot;گلوله&quot;,rarr:&quot;فلش راست&quot;,rArr:&quot;فلش دوتایی راست&quot;,hArr:&quot;فلش دوتایی چپ راست&quot;,diams:&quot;نشان الماس سیاه&quot;,
+asymp:&quot;تقریبا برابر با&quot;});</pre>
+</body>
+</html>

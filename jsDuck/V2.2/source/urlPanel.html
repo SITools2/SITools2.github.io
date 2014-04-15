@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser, 
+ showHelp, loadUrl, ColumnRendererEnum*/
+
+Ext.namespace('sitools.admin.datasets.columnRenderer');
+<span id='sitools-admin-datasets-columnRenderer-urlPanel-cfg-columnRenderer'><span id='sitools-admin-datasets-columnRenderer-urlPanel-cfg-behaviorType'><span id='sitools-admin-datasets-columnRenderer-urlPanel'>/**
+</span></span></span> * Form panel used to fill specific information from a datasetLink columnRenderer
+ * @cfg {String} behaviorType (required) : the type of the behavior selected (dsLink ou dsIconLink)
+ * @cfg {Object} columnRenderer : the columnRenderer Object to load if we modify the value
+ * @class sitools.admin.datasets.columnRenderer.datasetLinkPanel
+ * @extends Ext.form.FormPanel
+ */
+sitools.admin.datasets.columnRenderer.urlPanel = Ext.extend(Ext.Panel, {
+		flex : 1,
+		layout : &quot;fit&quot;,
+        initComponent : function () {
+            this.formPanel = new Ext.form.FormPanel({  
+                defaults : {
+                    anchor : &quot;100%&quot;
+                },
+                padding : 5,
+                items : [{
+                    fieldLabel : i18n.get('label.display'),
+                    name : 'display',
+                    xtype : 'radiogroup',
+                    columns : 2,
+                    items : [ {
+                        boxLabel : 'Text',
+                        name : 'display',
+                        inputValue : &quot;Text&quot;,
+                        checked : true
+                    }, {
+                        boxLabel : 'Image',
+                        name : 'display',
+                        inputValue : &quot;Image&quot;
+                    } ],
+                    listeners : {
+                        scope : this,
+                        change : function (radioGroup, radioChecked) {
+                            var name = radioChecked.getGroupValue();
+                            var isImage = true;
+                            if (name == &quot;Text&quot;) {                        
+                                isImage = false;
+                            }
+                            this.formPanel.getForm().findField(&quot;linkText&quot;).setVisible(!isImage);
+                            this.formPanel.getForm().findField(&quot;linkText&quot;).setDisabled(isImage);
+                            
+                            this.formPanel.getForm().findField(&quot;image&quot;).setVisible(isImage);
+                            this.formPanel.getForm().findField(&quot;image&quot;).setDisabled(!isImage);
+                            this.doLayout();
+                        }
+                    }
+                
+                }, {
+						fieldLabel : i18n.get('label.linkText'),
+						name : 'linkText',
+                        xtype : 'textfield',
+                        allowBlank : false
+					}, {
+						xtype : 'sitoolsSelectImage',
+						name : 'image',
+//						vtype : &quot;image&quot;,
+                        hidden : true,
+                        disabled : true,
+						fieldLabel : i18n.get('label.image'),
+						anchor : '100%',
+						growMax : 400,
+                        allowBlank : false
+					}, {
+                        xtype : 'checkbox',
+			            fieldLabel : i18n.get('label.isDisplayable'),
+			            name : 'displayable',
+			            anchor : '100%',
+                        tooltip : i18n.get('label.isDisplayable.tooltip'),
+                        hidden : (this.behaviorType != ColumnRendererEnum.URL_EXT_DESKTOP),
+                        disabled : (this.behaviorType != ColumnRendererEnum.URL_EXT_DESKTOP)
+			        }
+				]
+            });
+            
+            this.items = [this.formPanel];            
+            
+            sitools.admin.datasets.columnRenderer.urlPanel.superclass.initComponent.call(this);
+        
+        },
+<span id='sitools-admin-datasets-columnRenderer-urlPanel-method-isValid'>        /**
+</span>         * This function is used to validate the panel
+         * @return {Boolean} true if the panel is valid, false otherwise
+         */
+        isValid : function () {
+            var form = this.formPanel.getForm();
+            return form.isValid();
+        },
+        
+<span id='sitools-admin-datasets-columnRenderer-urlPanel-method-fillSpecificValue'>        /**
+</span>	     * This function is used to fill the record with the specific information of the
+	     *  
+	     */
+	    fillSpecificValue : function (columnRenderer) {
+			var form = this.formPanel.getForm();
+			var display = form.findField(&quot;display&quot;).getValue().getGroupValue();
+            if (&quot;Text&quot; == display) {
+				var linkText = form.findField(&quot;linkText&quot;).getValue();
+				columnRenderer.linkText = linkText;
+			} else {
+                var image = form.findField(&quot;image&quot;).getValue();
+                var resourceImage = {};
+                if (!Ext.isEmpty(image)) {
+                    resourceImage.url = image;
+                    resourceImage.type = &quot;Image&quot;;
+                    resourceImage.mediaType = &quot;Image&quot;;
+                    columnRenderer.image = resourceImage;
+                }
+            }  
+            if (this.behaviorType == ColumnRendererEnum.URL_EXT_DESKTOP) {
+	            columnRenderer.displayable = form.findField(&quot;displayable&quot;).getValue();
+			}
+            
+            return true;
+		},
+        
+        afterRender : function () {
+            sitools.admin.datasets.columnRenderer.urlPanel.superclass.afterRender.apply(this, arguments);
+            if (!Ext.isEmpty(this.columnRenderer) &amp;&amp; this.columnRenderer.behavior == this.behaviorType) {
+                var form = this.formPanel.getForm();
+                var record = {};
+                var isImage;
+                if (!Ext.isEmpty(this.columnRenderer.linkText)) {
+                    record.linkText = this.columnRenderer.linkText;
+                    record.display = &quot;Text&quot;;
+                    isImage = false;
+                }
+                if (!Ext.isEmpty(this.columnRenderer.image)) {
+                    record.image = this.columnRenderer.image.url;
+                    record.display = &quot;Image&quot;;
+                    isImage = true;
+                }
+                if (this.behaviorType == ColumnRendererEnum.URL_EXT_DESKTOP) {
+                    record.displayable = this.columnRenderer.displayable;
+                } else {
+                    record.displayable = false;
+                }
+                
+                               
+                var rec = new Ext.data.Record(record);
+                form.loadRecord(rec);
+                
+                form.findField(&quot;linkText&quot;).setVisible(!isImage);
+                form.findField(&quot;linkText&quot;).setDisabled(isImage);
+                
+                form.findField(&quot;image&quot;).setVisible(isImage);
+                form.findField(&quot;image&quot;).setDisabled(!isImage);
+                
+            }
+        }
+    });</pre>
+</body>
+</html>

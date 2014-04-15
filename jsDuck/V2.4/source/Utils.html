@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+Ext.ns(&quot;sitools.common.utils&quot;);
+
+<span id='sitools-common-utils-Utils'>/**
+</span> * An utility class to use in sitools.
+ */
+sitools.common.utils.Utils = {
+<span id='sitools-common-utils-Utils-method-arrayProperties2Object'>	/**
+</span>	 * Transform an Array of Sitools properties (with field name, value) into an object.
+	 * @param {Array} array the array to transform
+	 * @return {Object} An object containing all properties as attributes.
+	 */
+	arrayProperties2Object : function (array) {
+		var result = {};
+		Ext.each(array, function(item){
+			if (!Ext.isEmpty(item.name) &amp;&amp; !Ext.isEmpty(item.value)) {
+				result[item.name] = item.value;
+			}
+		});
+		return result;
+	}, 
+<span id='sitools-common-utils-Utils-method-syntaxHighlight'>	/**
+</span>	 * Highlight a json string inside a &lt;pre&gt; html tag 
+	 */
+	syntaxHighlight : function (json) {
+        json = json.replace(/&amp;/g, '&amp;amp;').replace(/&lt;/g, '&amp;lt;').replace(/&gt;/g, '&amp;gt;');
+        return json.replace(/(&quot;(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\&quot;])*&quot;(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            var cls = 'number';
+            if (/^&quot;/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'key';
+                } else {
+                    cls = 'string';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'boolean';
+            } else if (/null/.test(match)) {
+                cls = 'null';
+            }
+            return '&lt;span class=&quot;' + cls + '&quot;&gt;' + match + '&lt;/span&gt;';
+        });
+    }
+}
+
+sitoolsUtils = sitools.common.utils.Utils;
+</pre>
+</body>
+</html>

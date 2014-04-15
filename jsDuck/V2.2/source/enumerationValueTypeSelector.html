@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser, 
+ showHelp, loadUrl*/
+Ext.namespace('sitools.admin.resourcesPlugins');
+<span id='sitools-admin-resourcesPlugins-enumerationValueTypeSelector'>/**
+</span> *  A window to show values enumeration
+ * 
+ * @param type
+ *            the type to select used for i18n
+ * @param field
+ *            the name of the field in the parent record
+ * @param record
+ *            the parent record
+ * @param enumeration
+ *            the complete enumeration value
+ * @class sitools.admin.resourcesPlugins.enumerationValueTypeSelector
+ * @extends Ext.Window
+ */
+//sitools.component.resourcesPlugins.enumerationValueTypeSelector = Ext.extend(Ext.Window, {
+sitools.admin.resourcesPlugins.enumerationValueTypeSelector = Ext.extend(Ext.Window, {
+    width : 700,
+    height : 480,
+    modal : true,
+    pageSize : 10,
+	editable : false, 
+	
+    initComponent : function () {
+        this.title = i18n.get('title.select' + this.type);
+        
+        this.editable = this.enumType == &quot;EE&quot; || this.enumType == &quot;EEM&quot;;
+        
+        var enumeration = this.enumeration.split(&quot;[&quot;);
+        enumeration = enumeration[1].split(&quot;]&quot;);
+        enumeration = enumeration[0].split(&quot;,&quot;);
+        this.storeEnum = new Ext.data.ArrayStore({
+            fields: [&quot;enumValue&quot;],
+            idIndex: 0
+        });
+        
+        Ext.each(enumeration, function (item, index) {
+            this.storeEnum.add(new Ext.data.Record({
+                enumValue : item.trim()
+            }));
+        }, this);
+        
+        
+        var column = {
+                id : 'name',
+                header : i18n.get('headers.name'),
+                sortable : true,
+                dataIndex : &quot;enumValue&quot;,
+                width : 250
+            };
+        if (this.editable) {
+			Ext.apply(column, {
+                editor : new Ext.form.TextField({
+		            disabled : !this.editable
+                })
+			});
+        }
+        this.cmSelectColumn = new Ext.grid.ColumnModel({
+            columns : [ column ]
+        });
+		
+        var tbar = {
+            xtype : 'sitools.widget.GridSorterToolbar',
+            hidden : ! this.editable, 
+            defaults : {
+                scope : this
+            },
+            items : [{
+                text : i18n.get('label.add'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/toolbar_create.png',
+                handler : this.onAddValue,
+                xtype : 's-menuButton'
+            }, {
+                text : i18n.get('label.modify'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/toolbar_edit.png',
+                handler : this.onModifyValue,
+                xtype : 's-menuButton'
+            }, {
+                text : i18n.get('label.delete'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/toolbar_delete.png',
+                handler : this.onDeleteValue,
+                xtype : 's-menuButton'
+            }]
+        };
+        this.smSelectColumn = new Ext.grid.RowSelectionModel({
+            singleSelect : this.enumType == &quot;E&quot; || this.enumType == &quot;EE&quot;
+        });
+        
+        this.gridSelect = new Ext.grid.EditorGridPanel({
+            tbar : tbar, 
+            height : 380,
+            autoScroll : true,
+            store : this.storeEnum,
+            cm : this.cmSelectColumn,
+            sm : this.smSelectColumn, 
+            listeners : {
+				scope : this, 
+				viewready : this.showSelectedRecords
+            }
+        });
+
+        this.items = [ {
+            xtype : 'panel',
+            layout : 'fit',
+            items : [ this.gridSelect ],
+            buttons : [ {
+                text : i18n.get('label.ok'),
+                scope : this,
+                handler : this.onValidate
+
+            }, {
+                text : i18n.get('label.cancel'),
+                scope : this,
+                handler : function () {
+                    this.close();
+                }
+            } ]
+
+        } ];
+        sitools.admin.resourcesPlugins.enumerationValueTypeSelector.superclass.initComponent.call(this);
+    },
+    
+<span id='sitools-admin-resourcesPlugins-enumerationValueTypeSelector-method-onValidate'>    /**
+</span>     * Save the selected value
+     */
+    onValidate : function () {
+        var recs = this.gridSelect.getSelectionModel().getSelections();
+        var result = [];
+        Ext.each(recs, function (rec) {
+			result.push(rec.data.enumValue);
+        });
+        this.record.data[this.field] = result.join(&quot;|&quot;);    
+        // this.recordColumn.data.dataIndex = rec.data.dataIndex;
+        // this.recordColumn.data.schema = rec.data.schema;
+		if (this.editable) {
+            result = [];
+            this.gridSelect.getStore().each(function (rec) {
+                result.push(rec.data.enumValue);
+            });
+            this.record.data[this.fieldEnum] = &quot;xs:enum-editable&quot;;
+            if (this.enumType == &quot;EEM&quot;) {
+                this.record.data[this.fieldEnum] += &quot;-multiple&quot;;
+            }
+            this.record.data[this.fieldEnum] += &quot;[&quot; + result.join(&quot;,&quot;) + &quot;]&quot;;
+        }
+        
+        this.parentView.refresh();
+        this.close();
+
+    },
+    
+<span id='sitools-admin-resourcesPlugins-enumerationValueTypeSelector-method-showSelectedRecords'>    /**
+</span>     * Set the enumeration field with value(s) selected
+     * 
+     * @param grid, the grid to set the enumeration field
+     */
+    showSelectedRecords : function (grid) {
+		var value = this.record.get(this.field);
+		if (Ext.isEmpty(value)) {
+			return;
+		}
+		var values = value.split(&quot;|&quot;);
+		if (Ext.isEmpty(values)) {
+			return;
+		}
+		Ext.each(values, function (value) {
+			var index = grid.getStore().find(&quot;enumValue&quot;, value);
+			if (index != -1) {
+				grid.getSelectionModel().selectRow(index, true);
+			}
+		});
+
+    },
+    
+<span id='sitools-admin-resourcesPlugins-enumerationValueTypeSelector-method-onAddValue'>    /**
+</span>     * Add a new line to the enumeration
+     */
+    onAddValue : function () {
+        this.gridSelect.getStore().add(new (this.gridSelect.getStore().recordType));
+        this.gridSelect.getView().refresh();
+    },
+    
+<span id='sitools-admin-resourcesPlugins-enumerationValueTypeSelector-method-onDeleteValue'>    /**
+</span>     * Delete a value enumeration
+     */
+    onDeleteValue : function () {
+		var recs = this.gridSelect.getSelectionModel().getSelections();
+		if (Ext.isEmpty(recs)) {
+			return;
+		}
+		Ext.each(recs, function (rec) {
+			this.gridSelect.getStore().remove(rec);
+		}, this);
+		this.gridSelect.getView().refresh();
+    }
+});
+
+</pre>
+</body>
+</html>

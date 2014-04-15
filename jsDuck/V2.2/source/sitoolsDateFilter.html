@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+Ext.ns(&quot;sitools.widget&quot;);
+sitools.widget.DateFilter = Ext.extend(sitools.widget.Filter, {
+	
+<span id='global-cfg-iconCls'>    /**
+</span>     * @cfg {String} iconCls
+     * The iconCls to be applied to the menu item.
+     * Defaults to &lt;tt&gt;'ux-gridfilter-text-icon'&lt;/tt&gt;.
+     */
+    iconCls : 'ux-gridfilter-text-icon',
+
+    emptyText: 'Enter Filter Text...',
+    selectOnFocus: true,
+    flex : 0.9, 
+    style: {
+        &quot;padding-left&quot; : '10px'
+    },
+    height : 60,
+    
+<span id='global-method-init'>    /**  
+</span>     * @private
+     * Template method that is to initialize the filter and install required menu items.
+     */
+    init : function (config) {
+        config = config || {};
+        
+        this.inputFrom = new Ext.form.DateField({
+        	anchor : &quot;100%&quot;, 
+        	fieldLabel : &quot;ux-rangemenu-gte&quot;, 
+        	format : SITOOLS_DEFAULT_IHM_DATE_FORMAT, 
+        	labelStyle : &quot;height: 10px&quot;, 
+        	width : 150
+        }); 
+        this.inputTo = new Ext.form.DateField({
+        	anchor : &quot;100%&quot;, 
+        	fieldLabel : &quot;ux-rangemenu-lte&quot;, 
+        	format : SITOOLS_DEFAULT_IHM_DATE_FORMAT, 
+        	labelStyle : &quot;height: 10px&quot;, 
+        	width : 150
+            
+        }); 
+        var formPanel = new Ext.form.FormPanel({
+        	items : [this.inputFrom, this.inputTo], 
+        	labelWidth : 21, 
+        	bodyBorder : false, 
+        	border : false,
+        	layout : 'form',
+        	layoutConfig : {
+        		fieldTpl : new Ext.Template(
+        	
+				    '&lt;div class=&quot;x-form-item {itemCls}&quot; tabIndex=&quot;-1&quot;&gt;',
+				        '&lt;label for=&quot;{id}&quot; style=&quot;{labelStyle}&quot; class=&quot;x-form-item-label {label}&quot;&gt;&lt;/label&gt;',
+				        '&lt;div class=&quot;x-form-element&quot; id=&quot;x-form-el-{id}&quot; style=&quot;{elementStyle}&quot;&gt;',
+				        '&lt;/div&gt;&lt;div class=&quot;{clearCls}&quot;&gt;&lt;/div&gt;',
+				    '&lt;/div&gt;'
+				)
+        	}
+        })
+        
+        
+        this.add(formPanel);
+    },
+    
+<span id='global-method-getValue'>    /**
+</span>     * @private
+     * Template method that is to get and return the value of the filter.
+     * @return {String} The value of this filter
+     */
+    getValue : function () {
+        var result = [];
+        if (!Ext.isEmpty(this.inputFrom.getValue())) {
+        	result.push({
+	        	&quot;columnAlias&quot; : this.columnAlias, 
+	        	&quot;data&quot; : {
+	        		&quot;comparison&quot; : &quot;gte&quot;, 
+	        		&quot;value&quot; : this.inputFrom.getValue().format(SITOOLS_DATE_FORMAT), 
+	        		&quot;type&quot; : &quot;date&quot;
+	        	}
+	        });
+        }
+        if (!Ext.isEmpty(this.inputTo.getValue())) {
+        	result.push({
+	        	&quot;columnAlias&quot; : this.columnAlias, 
+	        	&quot;data&quot; : {
+	        		&quot;comparison&quot; : &quot;lte&quot;, 
+	        		&quot;value&quot; : this.inputTo.getValue().format(SITOOLS_DATE_FORMAT), 
+	        		&quot;type&quot; : &quot;date&quot;
+	        	}
+        	});
+        }
+        return result;
+    },
+    
+    getConfig : function () {
+    	if (!Ext.isEmpty(this.inputFrom.getValue()) || !Ext.isEmpty(this.inputTo.getValue())) {
+	 		return {
+	    		&quot;columnAlias&quot; : this.columnAlias, 
+	    		&quot;value&quot; : {
+	    			&quot;from&quot; : this.inputFrom.getValue(), 
+	    			&quot;to&quot; : this.inputTo.getValue() 
+	    		}, 
+	    		&quot;type&quot; : &quot;date&quot;
+	    	};
+    	}
+    	else {
+    		return null;
+    	}
+    	
+    }, 
+<span id='global-method-setValue'>    /**
+</span>     * @private
+     * Template method that is to set the value of the filter.
+     * @param {Object} value The value to set the filter
+     */	
+    setValue : function (value) {
+        this.inputFrom.setValue(value.from);
+        this.inputTo.setValue(value.to);
+        
+    } , 
+    _getHeight : function () {
+    	return this.height;
+    }
+});
+</pre>
+</body>
+</html>

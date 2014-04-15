@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.dialog.add(&quot;textarea&quot;,function(b){return{title:b.lang.forms.textarea.title,minWidth:350,minHeight:220,onShow:function(){delete this.textarea;var a=this.getParentEditor().getSelection().getSelectedElement();a&amp;&amp;&quot;textarea&quot;==a.getName()&amp;&amp;(this.textarea=a,this.setupContent(a))},onOk:function(){var a,b=this.textarea,c=!b;c&amp;&amp;(a=this.getParentEditor(),b=a.document.createElement(&quot;textarea&quot;));this.commitContent(b);c&amp;&amp;a.insertElement(b)},contents:[{id:&quot;info&quot;,label:b.lang.forms.textarea.title,title:b.lang.forms.textarea.title,
+elements:[{id:&quot;_cke_saved_name&quot;,type:&quot;text&quot;,label:b.lang.common.name,&quot;default&quot;:&quot;&quot;,accessKey:&quot;N&quot;,setup:function(a){this.setValue(a.data(&quot;cke-saved-name&quot;)||a.getAttribute(&quot;name&quot;)||&quot;&quot;)},commit:function(a){this.getValue()?a.data(&quot;cke-saved-name&quot;,this.getValue()):(a.data(&quot;cke-saved-name&quot;,!1),a.removeAttribute(&quot;name&quot;))}},{type:&quot;hbox&quot;,widths:[&quot;50%&quot;,&quot;50%&quot;],children:[{id:&quot;cols&quot;,type:&quot;text&quot;,label:b.lang.forms.textarea.cols,&quot;default&quot;:&quot;&quot;,accessKey:&quot;C&quot;,style:&quot;width:50px&quot;,validate:CKEDITOR.dialog.validate.integer(b.lang.common.validateNumberFailed),
+setup:function(a){this.setValue(a.hasAttribute(&quot;cols&quot;)&amp;&amp;a.getAttribute(&quot;cols&quot;)||&quot;&quot;)},commit:function(a){this.getValue()?a.setAttribute(&quot;cols&quot;,this.getValue()):a.removeAttribute(&quot;cols&quot;)}},{id:&quot;rows&quot;,type:&quot;text&quot;,label:b.lang.forms.textarea.rows,&quot;default&quot;:&quot;&quot;,accessKey:&quot;R&quot;,style:&quot;width:50px&quot;,validate:CKEDITOR.dialog.validate.integer(b.lang.common.validateNumberFailed),setup:function(a){this.setValue(a.hasAttribute(&quot;rows&quot;)&amp;&amp;a.getAttribute(&quot;rows&quot;)||&quot;&quot;)},commit:function(a){this.getValue()?a.setAttribute(&quot;rows&quot;,
+this.getValue()):a.removeAttribute(&quot;rows&quot;)}}]},{id:&quot;value&quot;,type:&quot;textarea&quot;,label:b.lang.forms.textfield.value,&quot;default&quot;:&quot;&quot;,setup:function(a){this.setValue(a.$.defaultValue)},commit:function(a){a.$.value=a.$.defaultValue=this.getValue()}}]}]}});</pre>
+</body>
+</html>

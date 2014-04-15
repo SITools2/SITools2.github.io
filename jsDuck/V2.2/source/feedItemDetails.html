@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, i18n,document*/
+Ext.namespace('sitools.widget');
+
+<span id='global-method-feedItemDetails'>/**
+</span> * @param urlFeed :
+ *            The feed URL
+ */
+sitools.widget.feedItemDetails = Ext.extend(Ext.Panel, {
+
+    initComponent : function () {
+
+        this.layout = &quot;fit&quot;;
+
+        var record = this.record;
+        
+        if (!Ext.isEmpty(record)) {
+            
+            this.store = new Ext.data.JsonStore({
+                idProperty: 'title',
+                fields: [
+                    {name : 'title'},
+                    {name : 'pubDate', type: 'date', dateFormat: 'timestamp'},
+                    {name : 'published', type: 'date', dateFormat: 'timestamp'},
+                    {name : 'author'}, 
+                    {name : 'link'},
+                    {name : 'description'},
+                    {name : 'imageUrl'},
+                    {name : 'image'}
+                ],
+                listeners : {
+                    scope : this,
+                    add : function (store, records, ind){
+                        if (record.data.imageUrl == undefined &amp;&amp; record.data.image != undefined){
+                            record.data.image = record.data.imageUrl;
+                        }
+                        if (records[0].data.pubDate != &quot;&quot;){
+                            records[0].data.pubDate = this.formatDate(records[0].data.pubDate);
+                        }
+                    }
+                }
+            });
+            
+            this.store.add(record);
+            
+            this.tpl = new Ext.XTemplate(
+                    '&lt;tpl for=&quot;.&quot;&gt;',
+                        '&lt;div class=&quot;feed-article&quot;&gt;',
+                            '&lt;tpl if=&quot;this.isDisplayable(imageUrl)&quot;&gt;',
+                                '&lt;div class=&quot;feed-img&quot;&gt;',
+                                    '&lt;img src=&quot;{imageUrl}&quot; title=&quot;{title}&quot; width=&quot;70&quot; height=&quot;70&quot;/&gt;',
+                                '&lt;/div&gt;',
+                            '&lt;/tpl&gt;',
+                            '&lt;p class=&quot;feed-title&quot;&gt; {title} &lt;/p&gt;',
+                            '&lt;tpl if=&quot;this.isDisplayable(pubDate)&quot;&gt;',
+                                '&lt;div class=&quot;feed-date-detail&quot;&gt;',
+                                    '&lt;b&gt; Date : &lt;/b&gt; {pubDate} ',
+                                '&lt;/div&gt;',
+                            '&lt;/tpl&gt;',
+                            '&lt;tpl if=&quot;this.isDisplayable(author)&quot;&gt;',
+                                '&lt;div class=&quot;feed-author&quot;&gt;',
+                                    '&lt;b&gt; Author : &lt;/b&gt; {author} ',
+                                '&lt;/div&gt;',
+                            '&lt;/tpl&gt;',
+                            '&lt;div class=&quot;feed-description&quot;&gt;',
+                                '{description}',
+                            '&lt;/div&gt;',
+                            '&lt;div class=&quot;feed-complementary&quot;&gt;',
+                                '&lt;p style=&quot;padding-bottom: 3px;&quot;&gt; &lt;b&gt; Link : &lt;/b&gt; &lt;a href=&quot;{link}&quot; target=&quot;_blank&quot; title=&quot;{title}&quot;&gt;{link}&lt;/a&gt; &lt;/p&gt;',
+                                '&lt;tpl if=&quot;this.isDisplayable(imageUrl)&quot;&gt;',
+                                    '&lt;p&gt; &lt;b&gt; Image Url : &lt;/b&gt; &lt;a href=&quot;{imageUrl}&quot; target=&quot;_blank&quot;&gt;{imageUrl}&lt;/a&gt; &lt;/p&gt;',
+                                '&lt;/tpl&gt;',
+                            '&lt;/div&gt;',
+                        '&lt;/div&gt;',
+                    '&lt;/tpl&gt;',
+                    {
+                        compiled : true,
+                        isDisplayable : function (item) {
+                            if (item != &quot;&quot; &amp;&amp; item != undefined){
+                                return true;
+                            }
+                            else {
+                                return false;
+                            }
+                        }
+                    }
+            );
+            
+            this.feedsDataview = new Ext.DataView({
+              id: 'detailFeed-view',
+              autoScroll : true,
+              layout: 'fit',
+              store : this.store,
+              tpl : this.tpl,
+              cls : 'detailFeed-view',
+              emptyText: i18n.get('label.nothingToDisplay')
+            });
+
+            this.componentType = 'feedDetails';
+            this.items = [ this.feedsDataview ];
+        }
+
+        sitools.widget.feedItemDetails.superclass.initComponent.call(this);
+    },
+    
+    formatDate : function (date) {
+        if (!date) {
+            return '';
+        }
+        var now = new Date();
+        var d = now.clearTime(true);
+        if (date instanceof Date){
+            var notime = date.clearTime(true).getTime();
+            if (notime == d.getTime()) {
+                return 'Today ' + date.dateFormat('g:i a');
+            }
+            d = d.add('d', -6);
+            if (d.getTime() &lt;= notime) {
+                return date.dateFormat('D g:i a');
+            }
+            return date.dateFormat('n/j g:i a');
+        }
+        else {
+            return date;
+        }
+    }, 
+<span id='global-method-showMeInFixedNav'>    /**
+</span>     * Method called when trying to show this component with fixed navigation
+     * 
+     * @param {sitools.user.component.viewDataDetail} me the dataDetail view
+     * @param {} config config options
+     * @returns
+     */
+    showMeInFixedNav : function (me, config) {
+        Ext.apply(config.windowSettings, {
+            width : config.windowSettings.winWidth || DEFAULT_WIN_WIDTH,
+            height : config.windowSettings.winHeight || DEFAULT_WIN_HEIGHT
+        });
+        SitoolsDesk.openModalWindow(me, config);
+    }, 
+<span id='global-method-showMeInDesktopNav'>    /**
+</span>     * Method called when trying to show this component with Desktop navigation
+     * 
+     * @param {sitools.user.component.viewDataDetail} me the dataDetail view
+     * @param {} config config options
+     * @returns
+     */
+    showMeInDesktopNav : function (me, config) {
+        Ext.apply(config.windowSettings, {
+            width : config.windowSettings.winWidth || DEFAULT_WIN_WIDTH,
+            height : config.windowSettings.winHeight || DEFAULT_WIN_HEIGHT
+        });
+        SitoolsDesk.openModalWindow(me, config);
+    }
+    
+    
+    
+});
+</pre>
+</body>
+</html>

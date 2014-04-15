@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, i18n,document,window,SitoolsDesk*/
+Ext.namespace('sitools.widget');
+
+<span id='global-method-rss2FeedReader'>/**
+</span> * @param urlFeed :
+ *            The feed URL
+ */
+sitools.widget.rss2FeedReader = function (config) {
+    Ext.apply(this);
+    this.layout = &quot;fit&quot;;
+    this.storeFeedsRecords = new Ext.data.Store({
+        autoLoad : true,
+        sortInfo : {field : 'pubDate', direction : &quot;DESC&quot;},
+        proxy : new Ext.data.HttpProxy({
+            url : config.urlFeed,
+            restful : true,
+            listeners : {
+                scope : this,
+                exception : onRequestFeedException
+            }
+        }),
+        reader : new Ext.data.XmlReader({
+            record : 'item'
+        }, [ 'title', 'author', {
+            name : 'pubDate',
+            type : 'date'
+        }, 'link', 'description', 'content', 'guid', {
+        	name : 'imageUrl',
+        	mapping : &quot;enclosure@url&quot;
+        }, {
+        	name : 'imageType',
+        	mapping : &quot;enclosure@type&quot;
+        }])
+    });
+
+    var columns = [ {
+        id : 'image',
+        header : &quot;Image&quot;,
+        dataIndex : 'imageUrl',
+        sortable : false,
+        width : 120
+        ,
+        renderer : this.imageRenderer
+    }, {
+        id : 'title',
+        header : &quot;Title&quot;,
+        dataIndex : 'title',
+        sortable : true,
+        width : 460,
+        scope : this,
+        renderer : this.formatTitle
+    }, {
+        header : &quot;Author&quot;,
+        dataIndex : 'author',
+        width : 100,
+        hidden : true,
+        sortable : true
+    }, {
+        id : 'last',
+        header : &quot;Date&quot;,
+        dataIndex : 'pubDate',
+        width : 150,
+        renderer : this.formatDate,
+        sortable : true,
+        hidden : true
+    } ];
+    
+    sitools.widget.rss2FeedReader.superclass.constructor.call(this, {
+        // height : 300,
+        columns : columns,
+        store : this.storeFeedsRecords,
+        loadMask : {
+            msg : i18n.get(&quot;label.loadingFeed&quot;)
+        },
+        sm : new Ext.grid.RowSelectionModel({
+            singleSelect : true
+        }),
+        autoExpandColumn : 'title',
+        hideHeaders : true,
+        viewConfig : {
+            forceFit : true,
+            enableRowBody : true,
+            showPreview : true,
+            getRowClass : this.applyRowClass
+        },
+        listeners : config.listeners
+        
+    });
+
+    // this.on('rowcontextmenu', this.onContextClick, this);
+    // this.on('beforeShow',this.loadData);
+};
+
+Ext.extend(sitools.widget.rss2FeedReader, Ext.grid.GridPanel, {
+
+   
+    loadData : function () {
+        this.loadFeed('http://feeds.feedburner.com/extblog');
+        this.doLayout();
+    },
+
+    loadFeed : function (url) {
+        this.store.baseParams = {
+            feed : url
+        };
+        this.store.load();
+    },
+
+    togglePreview : function (show) {
+        this.view.showPreview = show;
+        this.view.refresh();
+    },
+
+    // within this function &quot;this&quot; is actually the GridView
+    applyRowClass : function (record, rowIndex, p, ds) {
+        if (this.showPreview) {
+            var xf = Ext.util.Format;
+            //p.body = '&lt;p class=sous-titre-flux&gt;' + record.data.description + '&lt;/p&gt;';
+            p.body = '&lt;p class=sous-titre-flux&gt;' + xf.ellipsis(xf.stripTags(record.data.description), 300) + '&lt;/p&gt;';
+            return 'x-grid3-row-expanded';
+        }
+        return 'x-grid3-row-collapsed';
+    },
+
+    formatDate : function (date) {
+        if (!date) {
+            return '';
+        }
+        var now = new Date();
+        var d = now.clearTime(true);
+        if (date instanceof Date){
+            var notime = date.clearTime(true).getTime();
+            if (notime == d.getTime()) {
+                return 'Today ' + date.dateFormat('g:i a');
+            }
+            d = d.add('d', -6);
+            if (d.getTime() &lt;= notime) {
+                return date.dateFormat('D g:i a');
+            }
+            return date.dateFormat('n/j g:i a');
+        }
+        else {
+            return date;
+        }
+    },
+
+    formatTitle : function (value, p, record) {
+        var link = record.data.link;
+        var xf = Ext.util.Format;
+        var author = (Ext.isEmpty(record.data.author)) ? &quot;&quot; : record.data.author;
+        var dateFormat = this.formatDate(record.data.pubDate);
+        var res = &quot;&quot;;
+        if (link !== undefined &amp;&amp; link !== &quot;&quot;) {
+            res = String.format('&lt;div class=&quot;topic&quot;&gt;&lt;a href=&quot;{0}&quot; title=&quot;{1}&quot; target=&quot;_blank&quot;&gt;&lt;span class=&quot;rss_feed_title&quot;&gt;{2}&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;span class=&quot;author&quot;&gt;{3}&lt;/span&gt;&lt;/div&gt;', link, value, 
+                    xf.ellipsis(xf.stripTags(value), 50), author);
+        } else {
+            res = String.format('&lt;div class=&quot;topic&quot;&gt;&lt;span class=&quot;rss_feed_title&quot;&gt;{0}&lt;/span&gt;&lt;br/&gt;&lt;span class=&quot;author&quot;&gt;{1}&lt;/span&gt;&lt;/div&gt;', xf.ellipsis(xf.stripTags(value), 50), author);
+        }
+        if (dateFormat != &quot;&quot; &amp;&amp; dateFormat != null ){
+            res += String.format('&lt;p id=&quot;feeds-date&quot;&gt;{0}&lt;/p&gt;', dateFormat);
+        }
+        return res;
+    }, 
+    
+    imageRenderer : function (value, p, record) {
+    	if (Ext.isEmpty(value) || Ext.isEmpty(record.data.imageType)) {
+            return &quot;&quot;;
+        }
+        if (record.data.imageType.substr(0, 5) != &quot;image&quot;) {
+        	return &quot;&quot;;
+        }
+		return String.format('&lt;img src=&quot;{0}&quot; width=&quot;50px&quot;&gt;', value);
+    },
+    
+    sortByDate : function (direction){
+        this.storeFeedsRecords.sort('pubDate', direction);
+    }
+});
+</pre>
+</body>
+</html>

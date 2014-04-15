@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/*******************************************************************************
+</span> * Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * 
+ * This file is part of SITools2.
+ * 
+ * SITools2 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * SITools2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * SITools2. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ******************************************************************************/
+
+/*global Ext, sitools, i18n, sql2ext, extColModelToSrv, window, 
+ extColModelToJsonColModel, DEFAULT_NEAR_LIMIT_SIZE,
+ DEFAULT_LIVEGRID_BUFFER_SIZE, SITOOLS_DEFAULT_IHM_DATE_FORMAT,
+ DEFAULT_PREFERENCES_FOLDER, SitoolsDesk, getDesktop, userLogin, projectGlobal, getColumnModel, loadUrl, getApp
+*/
+
+/*
+ * @include &quot;Ext.ux.livegrid/Ext.ux.livegrid-all-debug.js&quot;
+ * @include &quot;storeLiveGrid.js&quot;
+ * @include &quot;../../plot.dataPlotter.js&quot;
+ * @include &quot;contextMenu.js&quot;
+ * @include &quot;../../columnsDefinition/dependencies/columnsDefinition.js&quot;
+ * @include &quot;../../viewDataDetail/viewDataDetail.js&quot; 
+ * @include &quot;../../../../../client-public/js/widgets/gridfilters/GridFilters.js&quot;
+ * @include &quot;../../plot/dataPlotter.js&quot;
+ */
+
+Ext.override(Ext.ux.grid.livegrid.GridView, {
+<span id='global-method-init'>    /**
+</span>     * Override this method to add a specific line Height
+     * @param {Ext.grid.GridPanel}
+     *            grid The grid panel this view is attached to
+     */
+    init : function (grid) {
+        this._gridViewSuperclass.init.call(this, grid);
+		
+        this.rowHeight = this.calcLineHeight();
+        
+        grid.on('expand', this._onExpand, this);
+    },
+<span id='global-method-calcLineHeight'>    /**
+</span>     * Returns the height of the livegrid rows.
+     * @return {int} 
+     */
+    calcLineHeight : function () {
+		//default Value : 23
+		var lineHeight = 23;
+		if (Ext.isEmpty(this.showImage)) {
+			this.calcShowImage(this.cm.columns);
+		}
+		if (this.showImage &amp;&amp; !Ext.isEmpty(this.datasetViewConfig.lineHeight)) {
+			lineHeight = this.datasetViewConfig.lineHeight;
+		}
+		return lineHeight;
+    },
+<span id='global-method-calcShowImage'>	/**
+</span>     * Determines if an image should be displayed in liveGrid
+     * @return void
+     */
+    calcShowImage : function () {
+		this.showImage = false;
+		Ext.each(this.cm.columns, function (column) {
+			if (! column.hidden &amp;&amp; !Ext.isEmpty(column.columnRenderer)) {
+				if (sitools.admin.datasets.columnRenderer.behaviorEnum.isDisplayingImage(column.columnRenderer)) {
+					this.showImage = true;
+				}
+			}
+		}, this);
+    }, 
+<span id='global-method-processRows'>    /**
+</span>     * Overwritten so the rowIndex can be changed to the absolute index.
+     * 
+     * If the third parameter equals to &lt;tt&gt;true&lt;/tt&gt;, the method will also
+     * repaint the selections.
+     */
+    // private
+    processRows : function (startRow, skipStripe, paintSelections) {
+        //DA : calculer si une image doit être affichée
+//		if (Ext.isEmpty(this.showImage)) {
+//			this.calcShowImage(this.cm.columns);
+//		}
+        if (!this.ds || this.ds.getCount() &lt; 1) {
+            return;
+        }
+
+        skipStripe = skipStripe || !this.grid.stripeRows;
+
+        var cursor = this.rowIndex;
+        var rows = this.getRows();
+        var index = 0;
+
+        var row = null;
+        for (var idx = 0, len = rows.length; idx &lt; len; idx++) {
+            row = rows[idx];
+
+            row.rowIndex = index = cursor + idx;
+            row.className = row.className.replace(this.rowClsRe, ' ');
+            if (!skipStripe &amp;&amp; (index + 1) % 2 === 0) {
+                row.className += ' x-grid3-row-alt';
+            }
+			
+			//DA Fix the line Height
+			this.fly(row).setHeight(this.rowHeight);
+
+            if (paintSelections !== false) {
+                if (this.grid.selModel.isSelected(this.ds.getAt(index)) === true) {
+                    this.addRowClass(index, this.selectedRowClass);
+                } else {
+                    this.removeRowClass(index, this.selectedRowClass);
+                }
+                this.fly(row).removeClass(&quot;x-grid3-row-over&quot;);
+            }
+        }
+
+        // add first/last-row classes
+        if (cursor === 0) {
+            Ext.fly(rows[0]).addClass(this.firstRowCls);
+        } else if (cursor + rows.length == this.ds.totalLength) {
+            Ext.fly(rows[rows.length - 1]).addClass(this.lastRowCls);
+        }
+    }, 
+<span id='global-method-adjustVisibleRows'>     /**
+</span>     * Recomputes the number of visible rows in the table based upon the height
+     * of the component. The method adjusts the &lt;tt&gt;rowIndex&lt;/tt&gt; property as
+     * needed, if the sum of visible rows and the current row index exceeds the
+     * number of total data available.
+     */
+    // protected
+    adjustVisibleRows : function () {
+        if (Ext.isEmpty(this.showImage)) {
+            this.calcShowImage();
+        }
+        if (this.rowHeight == -1) {
+            this.rowHeight = this.calcLineHeight();
+        }
+
+        var g = this.grid, ds = g.store;
+
+        var c = g.getGridEl();
+        var cm = this.cm;
+        var size = c.getSize();
+        var width = size.width;
+        var vh = size.height;
+
+        var vw = width - this.getScrollOffset();
+        // horizontal scrollbar shown?
+        if (cm.getTotalWidth() &gt; vw) {
+            // yes!
+            vh -= this.horizontalScrollOffset;
+        }
+
+        vh -= this.mainHd.getHeight();
+
+        var totalLength = ds.totalLength || 0;
+
+        var visibleRows = Math.max(1, Math.floor(vh / this.rowHeight));
+
+        this.rowClipped = 0;
+        // only compute the clipped row if the total length of records
+        // exceeds the number of visible rows displayable
+        if (totalLength &gt; visibleRows &amp;&amp; this.rowHeight / 3 &lt; (vh - (visibleRows * this.rowHeight))) {
+            visibleRows = Math.min(visibleRows, totalLength);
+            this.rowClipped = 1;
+        }
+
+        // if visibleRows didn't change, simply void and return.
+        if (this.visibleRows == visibleRows) {
+            return;
+        }
+
+        this.visibleRows = visibleRows;
+
+        // skip recalculating the row index if we are currently buffering, but
+        // not if we
+        // are just pre-buffering
+        if (this.isBuffering &amp;&amp; !this.isPrebuffering) {
+            return;
+        }
+
+        // when re-rendering, doe not take the clipped row into account
+        if (this.rowIndex + (visibleRows - this.rowClipped) &gt; totalLength) {
+            this.rowIndex = Math.max(0, totalLength - (visibleRows - this.rowClipped));
+            this.lastRowIndex = this.rowIndex;
+        }
+
+        this.updateLiveRows(this.rowIndex, true);
+    }
+    
+});
+Ext.ns(&quot;sitools.user.component.dataviews.livegrid&quot;);
+
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-cfg-filters'><span id='sitools-user-component-dataviews-livegrid-LiveGrid-cfg-formParams'><span id='sitools-user-component-dataviews-livegrid-LiveGrid-cfg-userPreference'><span id='sitools-user-component-dataviews-livegrid-LiveGrid-cfg-datasetCm'><span id='sitools-user-component-dataviews-livegrid-LiveGrid-cfg-datasetId'><span id='sitools-user-component-dataviews-livegrid-LiveGrid-cfg-dataUrl'><span id='sitools-user-component-dataviews-livegrid-LiveGrid'>/**
+</span></span></span></span></span></span></span> * The LiveGrid used to show Dataset Datas.
+ * 
+ * @cfg {string} dataUrl (Required) The datasetAttachment to request to load the datas 
+ * @cfg {string} datasetId (Required)  The DatasetId, 
+ * @cfg {Ext.grid.ColumnModel} datasetCm (Required) A definition of a ColumnModel 
+ * @cfg {} userPreference {}  {
+ *            componentSettings {Array} : Array of the Columns as saved by the user 
+ *            windowSettings {Object} : { 
+ *            moduleId : String 
+ *                position : [xpos, ypos] 
+ *                size : { 
+ *                    width : w 
+ *                    height : h 
+ *                } 
+ *                specificType : String 
+ *            } 
+ *      }
+ * @cfg {Array} formParams list of the form params used to search thrue
+ * the grid [&quot;TEXTFIELD|AliasColumn1|X&quot;, &quot;TEXTFIELD|AliasColumn2|Y&quot;] 
+ * @cfg {Array} filters Array of Ext.ux.Filter : [{ 
+ *          columnAlias : Alias1, 
+ *          data : {
+ *            comparison : &quot;LIKE&quot;, 
+ *            type : &quot;string&quot;, 
+ *            value : &quot;01&quot; 
+ *          } 
+ *      }, {
+ *            columnAlias : Alias2, 
+ *            data : { 
+ *              comparison : &quot;gt&quot;, 
+ *              type : &quot;date&quot;,
+ *              value : &quot;199-11-04&quot; 
+ *            } 
+ *      }] 
+ *      
+ * @requires sitools.user.component.dataviews.livegrid.LiveGrid.storeLiveGrid
+ * @requires sitools.user.component.columnsDefinition
+ * @requires sitools.user.component.viewDataDetail
+ * @requires Ext.ux.grid.GridFiltersSpe
+ * @requires sitools.user.component.dataPlotter
+ * @class sitools.user.component.dataviews.livegrid.LiveGrid
+ * @extends Ext.ux.grid.livegrid.EditorGridPanel
+ * 
+ * 
+ */
+sitools.user.component.dataviews.livegrid.LiveGrid = function (config) {
+    Ext.apply(this, config);
+    
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-property-urlRecords'>    /**
+</span>     * {String} urlRecords the url to request the API to get the records
+     */
+    this.urlRecords = config.dataUrl + '/records';
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-property-sitoolsAttachementForUsers'>    /** 
+</span>     * {String} sitoolsAttachementForUsers the attachment url of the dataset
+     */
+    this.sitoolsAttachementForUsers = config.dataUrl;
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-property-datasetName'>    /** {String} datasetName the dataset Name */
+</span>    this.datasetName = config.datasetName;
+    
+    var xg = Ext.grid;
+
+    var dataviewConfig = sitoolsUtils.arrayProperties2Object(config.datasetViewConfig);
+    /*
+	 * Construction of the column Model : user preferences have priority on the
+	 * initial definition of the model column in the dataset
+	 */
+    var colModel;
+
+    this.origin = &quot;Ext.ux.livegrid&quot;;
+    
+    if (!Ext.isEmpty(config.userPreference) &amp;&amp; config.userPreference.datasetView == this.origin &amp;&amp; !Ext.isEmpty(config.userPreference.colModel)) {
+        colModel = config.userPreference.colModel;
+    }
+    else {
+		colModel = config.datasetCm; 
+    }
+    var cm = getColumnModel(colModel, config.dictionaryMappings, dataviewConfig);
+    
+//    /*
+//	 * the filters of the grid
+//	 */
+//    var filters = sitools.user.component.dataviews.dataviewUtils.getFilters(config.datasetCm, config.filters);
+//    // Using the extended gridFilter to filter with the columnAlias
+//    var filtersSimple = new Ext.ux.grid.GridFiltersSpe({
+//        encode : false, // json encode the filter query
+//        local : false, // defaults to false (remote filtering)
+//        filters : filters
+//    });
+
+    this.store = new sitools.user.component.dataviews.livegrid.StoreLiveGrid({
+		datasetCm : config.datasetCm,
+		urlRecords : this.urlRecords,
+		sitoolsAttachementForUsers : this.sitoolsAttachementForUsers,
+		userPreference : config.userPreference, 
+		bufferSize : DEFAULT_LIVEGRID_BUFFER_SIZE, 
+		formParams : config.formParams, 
+		formMultiDsParams : config.formMultiDsParams, 
+		mainView : this, 
+		datasetId : config.datasetId
+	});
+    
+    this.store.filters = new sitools.widget.FiltersCollection({
+        filters : config.filters 
+    });
+    
+    this.store.addListener(&quot;beforeload&quot;, function (store, options) {
+        //set the nocount param to false.
+        //before load is called only when a new action (sort, filter) is applied
+        if (!store.isInSort || store.isNewFilter) {
+            options.params.nocount = false;
+        } else {
+            options.params.nocount = true;
+        }
+        store.isInSort = false;
+        store.isNewFilter = false;
+	    
+        if (!Ext.isEmpty(store.filters)) {
+            var params = store.buildQuery(store.filters.getFilterData());
+            Ext.apply(options.params, params);
+        }
+	    
+	    this._loadMaskAnchor = Ext.get(this.getView().mainBody.dom.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode);
+	    
+	    this._loadMaskAnchor.mask(i18n.get('label.waitMessage'), &quot;x-mask-loading&quot;);
+	    
+	    this.store.storeOptions(options);
+        //this.el.mask(i18n.get('label.waitMessage'), &quot;x-mask-loading&quot;);
+    }, this);
+    
+    this.store.addListener(&quot;load&quot;, function (store, records, options) {
+		if (this._loadMaskAnchor &amp;&amp; this._loadMaskAnchor.isMasked()) {
+			this._loadMaskAnchor.unmask();
+		}
+		this.topBar.updateContextToolbar();
+    }, this);    
+    
+   
+	/*
+	 * Here is where the magic happens: BufferedGridView. The nearLimit is a
+	 * parameter for the predictive fetch algorithm within the view. If your
+	 * bufferSize is small, set this to a value around a third or a quarter of
+	 * the store's bufferSize (e.g. a value of 25 for a bufferSize of 100; a
+	 * value of 100 for a bufferSize of 300). The loadMask is optional but
+	 * should be used to provide some visual feedback for the user when the
+	 * store buffers (the loadMask from the GridPanel will only be used for
+	 * initial loading, sorting and reloading).
+	 */
+    this.view = new Ext.ux.grid.livegrid.GridView({
+        nearLimit : DEFAULT_NEAR_LIMIT_SIZE, 
+		loadMask : {
+			msg : i18n.get('label.waitMessage'),
+			msgCls : &quot;x-mask-loading&quot;
+        }, 
+        datasetViewConfig : dataviewConfig
+    });
+	
+    /*
+	 * BufferedRowSelectionModel introduces a different selection model and a
+	 * new &lt;tt&gt;selectiondirty&lt;/tt&gt; event. You can keep selections between
+	 * &lt;b&gt;all&lt;/bb&gt; ranges in the grid; records which are currently in the
+	 * buffer and are selected will be added to the selection model as usual.
+	 * Rows representing records &lt;b&gt;not&lt;/b&gt; loaded in the current buffer will
+	 * be marked using a predictive index when selected. Selected rows will be
+	 * successively read into the selection store upon scrolling through the
+	 * view. However, if any records get added or removed, and selection ranges
+	 * are pending, the selectiondirty event will be triggered. It is up to the
+	 * user to either clear the pending selections or continue with requesting
+	 * the pending selection records from the data repository. To put the whole
+	 * matter in a nutshell: Selected rows which represent records &lt;b&gt;not&lt;/b&gt;
+	 * in the current data store will be identified by their assumed index in
+	 * the data repository, and &lt;b&gt;not&lt;/b&gt; by their id property. Events such as
+	 * &lt;tt&gt;versionchange&lt;/tt&gt; or &lt;tt&gt;selectiondirty&lt;/tt&gt; can help in telling
+	 * if their positions in the data repository changed.
+	 */
+    var selModelSimple = new Ext.ux.grid.livegrid.CheckboxSelectionModel({
+        checkOnly : true,
+        isSelectionModel : true
+    });
+
+    this.topBar = new sitools.user.component.dataviews.services.menuServicesToolbar({
+        datasetUrl : this.sitoolsAttachementForUsers,
+        datasetId : this.datasetId,
+        dataview : this,
+        origin : this.origin
+    });
+    
+
+    
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-property-bottomBar'>    /**
+</span>     * {Ext.ux.grid.livegrid.Toolbar} Bottom bar of the liveGrid
+     */
+    this.bottomBar = new Ext.ux.grid.livegrid.Toolbar({
+        view : this.view,
+        enableOverflow: true,
+        displayInfo : true,
+        refreshText : i18n.get('label.refreshText')
+    });
+    
+    
+    //create a new columnModel with the selectionModel
+    var configCol = cm.config;
+    configCol.unshift(selModelSimple);
+    cm = new Ext.grid.ColumnModel({
+        columns : configCol
+    }); 
+    
+    
+    // -- CONSTRUCTOR --
+	sitools.user.component.dataviews.livegrid.LiveGrid.superclass.constructor.call(this, Ext.apply({
+	        view : this.view,
+	        store : this.store,
+	        layout : 'fit',
+	        cm : cm,
+	        sm : selModelSimple,
+	        bbar : this.bottomBar,
+	        dataviewUtils : sitools.user.component.dataviews.dataviewUtils, 
+	        tbar : this.topBar, 
+	        columnLines : true,
+	        datasetId : config.datasetId,
+	        componentType : &quot;data&quot;,
+	        listeners : {
+	            scope : this,
+	            sortchange: function (store, sortInfo) {
+	                //force to deselect every rows after the sort as changed
+	                this.getSelectionModel().clearSelections();
+	            }
+	        }
+//	        plugins : [ filtersSimple ]
+	    }, config));    
+
+};
+
+Ext.extend(sitools.user.component.dataviews.livegrid.LiveGrid, Ext.ux.grid.livegrid.EditorGridPanel, {
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-method-_getSettings'>    /**
+</span>     * @private
+	 * @returns the JsonColModel used to store the userPreferences.
+	 */
+    _getSettings : function () {
+		return {
+			datasetName : this.datasetName, 
+			colModel : extColModelToJsonColModel(this.colModel.config), 
+			datasetView : &quot;Ext.ux.livegrid&quot;,
+			datasetUrl : this.sitoolsAttachementForUsers, 
+			dictionaryMappings : this.dictionaryMappings, 
+            preferencesPath : this.preferencesPath, 
+            preferencesFileName : this.preferencesFileName
+        };
+
+    },
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-method-getFilters'>    /**
+</span>     * @private
+     * return the filters of the liveGrid.
+     * @return [] Array of filter object 
+     */
+    getFilters : function () {
+	    return this.store.filters;
+	}, 
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-method-getSortInfo'>	/**
+</span>     * @private
+     * return the filters of the liveGrid.
+     * @return [] Array of filter object 
+     */
+    getSortInfo : function () {
+        return this.store.sortInfo;
+    }, 
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-method-getRequestParam'>    /**
+</span>     * 
+     * @return {String} 
+     */
+    getRequestParam : function () {
+        var request = &quot;&quot;, formParams = {};
+    
+        var colModel = extColModelToSrv(this.getColumnModel());
+        if (!Ext.isEmpty(colModel)) {
+            request += &quot;&amp;colModel=&quot; + Ext.util.JSON.encode(colModel);
+        }
+    
+        // First case : no records selected: build the Query
+        if (Ext.isEmpty(this.getSelections())) {
+			request += this.getRequestParamWithoutSelection();
+        } 
+        // Second case : Records are selected
+        else {
+            var recSelected;
+            request += &quot;&amp;&quot; + this.getRecSelectedParamForLiveGrid();
+        }
+        return request;
+    }, 
+    getSelections : function () {
+		return this.getSelectionModel().getSelections();
+    }, 
+    
+    getNbRowsSelected : function () {
+		return this.getSelectionModel().getAllSelections(false).length;
+    }, 
+    getRequestParamWithoutSelection : function () {
+		var result = &quot;&quot;, formParams = {};
+        // Add the filters params
+        var filters = this.getFilters();
+        if (!Ext.isEmpty(filters)) {
+            filters = this.store.buildQuery(filters.getFilterData(filters));
+            if (!Ext.isEmpty(Ext.urlEncode(filters))) {
+                result += &quot;&amp;&quot; + Ext.urlEncode(filters);
+            }
+
+        }
+        // add the sorting params
+        var storeSort = this.getStore().getSortState();
+        if (!Ext.isEmpty(storeSort)) {
+            var sort;
+            if (!Ext.isEmpty(storeSort.sorters)) {
+                sort = {
+                    ordersList : storeSort.sorters
+                };
+            } else {
+                sort = {
+                    ordersList : [ storeSort ]
+                };
+            }
+            result += &quot;&amp;sort=&quot; + Ext.encode(sort);
+        }
+
+        // add the formParams
+        var formParamsTmp = this.getStore().getFormParams(), i = 0;
+        if (!Ext.isEmpty(formParamsTmp)) {
+            Ext.each(formParamsTmp, function (param) {
+                formParams[&quot;p[&quot; + i + &quot;]&quot;] = param;
+                i += 1;
+            }, this);
+            result += &quot;&amp;&quot; + Ext.urlEncode(formParams);
+        }
+        return result;
+    }, 
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-method-getRecSelectedParamForLiveGrid'>    /**
+</span>	 * @method
+	 * will check if there is some pendingSelection (no requested records)
+	 * &lt;li&gt;First case, there is no pending Selection, it will build a form parameter
+	 * with a list of id foreach record.&lt;/li&gt;
+	 * &lt;li&gt;Second case, there is some pending Selection : it will build a ranges parameter
+	 * with all the selected ranges.&lt;/li&gt;
+	 * @returns {} Depending on liveGridSelectionModel, will return either an object that will use form API 
+	 * (p[0] = LISTBOXMULTIPLE|primaryKeyName|primaryKeyValue1|primaryKeyValue1|...|primaryKeyValueN), 
+	 * either an object that will contain an array of ranges of selection 
+	 * (ranges=[range1, range2, ..., rangen] where rangeN = [startIndex, endIndex])
+	 * 
+	 */
+	getRecSelectedParamForLiveGrid : function () {
+		var sm = this.getSelectionModel(), result;
+		
+		if (this.isAllSelected()) {
+		    //First Case : all the dataset is selected.
+		    result = &quot;ranges=[[0,&quot; + (this.store.getTotalCount() - 1) + &quot;]]&quot;;
+            //We have to re-build all the request in case we use a range selection.
+            result += this.getRequestParamWithoutSelection();
+		}
+		else if (Ext.isEmpty(sm.getPendingSelections())) {
+			//second Case : no pending Selections.
+			var recSelected = sm.getSelections();
+			result = Ext.urlEncode(this.dataviewUtils.getFormParamsFromRecsSelected(recSelected));
+		}
+		else {
+			//Second Case : there is a pending Selection, send all the ranges.
+			var ranges = sm.getAllSelections(true);
+			result = &quot;ranges=&quot; + Ext.util.JSON.encode(ranges);
+			//We have to re-build all the request in case we use a range selection.
+            result += this.getRequestParamWithoutSelection();
+		}
+		return result;
+	},
+    
+    getSelectionForPlot : function () {
+        var sm = this.getSelectionModel(), result;
+        
+
+        if (this.isAllSelected()) {
+            //First Case : all the dataset is selected.
+            result = &quot;ranges=[[0,&quot; + (this.store.getTotalCount() - 1) + &quot;]]&quot;;
+        }
+        else if (Ext.isEmpty(sm.getPendingSelections())) {
+            //second Case : no pending Selections.
+            var recSelected = sm.getSelections();
+            result = Ext.urlEncode(this.dataviewUtils.getFormParamsFromRecsSelected(recSelected));
+        }
+        else {
+            //Second Case : there is a pending Selection, send all the ranges.
+            var ranges = sm.getAllSelections(true);
+            result = &quot;ranges=&quot; + Ext.util.JSON.encode(ranges);
+        }
+        return result;
+    },
+    
+    getDatasetView : function () {
+        return this.getView();
+    },
+    
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-method-getCustomToolbarButtons'>    /**
+</span>     * Return an array containing a button to show or hide columns
+     * @returns {Array}
+     */
+    getCustomToolbarButtons : function () {
+        var array = [];
+        array.push(new Ext.Toolbar.Separator());
+        array.push({
+            name : &quot;columnsButton&quot;,
+            tooltip : i18n.get('label.addOrDeleteColumns'),
+            iconCls: 'x-cols-icon',
+            menu : sitools.user.component.dataviews.dataviewUtils.createColMenu(this.getDatasetView(), this.getColumnModel())
+        });
+        this.getDatasetView().hdCtxIndex = 0;
+        return array;
+    },
+    
+    isAllSelected : function () {
+        var nbRowsSelected = this.getNbRowsSelected();
+        return nbRowsSelected === this.getStore().getTotalCount() || this.getSelectionModel().markAll;
+    }
+    
+    
+});
+
+<span id='sitools-user-component-dataviews-livegrid-LiveGrid-static-method-getParameters'>/**
+</span> * @static Implementation of the method getParameters to be able to load view
+ *         Config panel.
+ * @return {Array} the parameters to display into administration view.
+ */
+sitools.user.component.dataviews.livegrid.LiveGrid.getParameters = function () {
+	return [{
+		jsObj : &quot;Ext.slider.SingleSlider&quot;, 
+		config : {
+			minValue : 20, 
+			maxValue : 100, 
+			increment : 5, 
+			width : 400,
+			value : 25, 
+			fieldLabel : i18n.get(&quot;label.lineHeight&quot;), 
+			plugins: [new Ext.ux.plugins.SliderRange(), new Ext.slider.Tip()], 
+			parameterName : &quot;lineHeight&quot;
+		}
+	}];
+};
+
+ 
+
+Ext.reg('sitoolsLiveGrid', sitools.user.component.dataviews.livegrid.LiveGrid);
+</pre>
+</body>
+</html>

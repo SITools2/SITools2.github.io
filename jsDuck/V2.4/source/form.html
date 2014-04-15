@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.dialog.add(&quot;form&quot;,function(a){var d={action:1,id:1,method:1,enctype:1,target:1};return{title:a.lang.forms.form.title,minWidth:350,minHeight:200,onShow:function(){delete this.form;var b=this.getParentEditor().elementPath().contains(&quot;form&quot;,1);b&amp;&amp;(this.form=b,this.setupContent(b))},onOk:function(){var b,a=this.form,c=!a;c&amp;&amp;(b=this.getParentEditor(),a=b.document.createElement(&quot;form&quot;),!CKEDITOR.env.ie&amp;&amp;a.append(b.document.createElement(&quot;br&quot;)));c&amp;&amp;b.insertElement(a);this.commitContent(a)},onLoad:function(){function a(b){this.setValue(b.getAttribute(this.id)||
+&quot;&quot;)}function e(a){this.getValue()?a.setAttribute(this.id,this.getValue()):a.removeAttribute(this.id)}this.foreach(function(c){d[c.id]&amp;&amp;(c.setup=a,c.commit=e)})},contents:[{id:&quot;info&quot;,label:a.lang.forms.form.title,title:a.lang.forms.form.title,elements:[{id:&quot;txtName&quot;,type:&quot;text&quot;,label:a.lang.common.name,&quot;default&quot;:&quot;&quot;,accessKey:&quot;N&quot;,setup:function(a){this.setValue(a.data(&quot;cke-saved-name&quot;)||a.getAttribute(&quot;name&quot;)||&quot;&quot;)},commit:function(a){this.getValue()?a.data(&quot;cke-saved-name&quot;,this.getValue()):(a.data(&quot;cke-saved-name&quot;,
+!1),a.removeAttribute(&quot;name&quot;))}},{id:&quot;action&quot;,type:&quot;text&quot;,label:a.lang.forms.form.action,&quot;default&quot;:&quot;&quot;,accessKey:&quot;T&quot;},{type:&quot;hbox&quot;,widths:[&quot;45%&quot;,&quot;55%&quot;],children:[{id:&quot;id&quot;,type:&quot;text&quot;,label:a.lang.common.id,&quot;default&quot;:&quot;&quot;,accessKey:&quot;I&quot;},{id:&quot;enctype&quot;,type:&quot;select&quot;,label:a.lang.forms.form.encoding,style:&quot;width:100%&quot;,accessKey:&quot;E&quot;,&quot;default&quot;:&quot;&quot;,items:[[&quot;&quot;],[&quot;text/plain&quot;],[&quot;multipart/form-data&quot;],[&quot;application/x-www-form-urlencoded&quot;]]}]},{type:&quot;hbox&quot;,widths:[&quot;45%&quot;,&quot;55%&quot;],children:[{id:&quot;target&quot;,type:&quot;select&quot;,
+label:a.lang.common.target,style:&quot;width:100%&quot;,accessKey:&quot;M&quot;,&quot;default&quot;:&quot;&quot;,items:[[a.lang.common.notSet,&quot;&quot;],[a.lang.common.targetNew,&quot;_blank&quot;],[a.lang.common.targetTop,&quot;_top&quot;],[a.lang.common.targetSelf,&quot;_self&quot;],[a.lang.common.targetParent,&quot;_parent&quot;]]},{id:&quot;method&quot;,type:&quot;select&quot;,label:a.lang.forms.form.method,accessKey:&quot;M&quot;,&quot;default&quot;:&quot;GET&quot;,items:[[&quot;GET&quot;,&quot;get&quot;],[&quot;POST&quot;,&quot;post&quot;]]}]}]}]}});</pre>
+</body>
+</html>

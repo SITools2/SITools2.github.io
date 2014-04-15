@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser*/
+Ext.namespace('sitools.admin.datasets');
+
+
+<span id='sitools-admin-datasets-datasetForm-cfg-urlDatasourcesMongoDB'><span id='sitools-admin-datasets-datasetForm-cfg-urlDatasources'><span id='sitools-admin-datasets-datasetForm-cfg-store'><span id='sitools-admin-datasets-datasetForm-cfg-action'><span id='sitools-admin-datasets-datasetForm-cfg-url'><span id='sitools-admin-datasets-datasetForm'>/**
+</span></span></span></span></span></span> * Define the window of the dataset Configuration
+ * @cfg {String} url the Url to save the data (only when modify)
+ * @cfg {String} action (required) &quot;active&quot;, &quot;modify&quot; &quot;view&quot;
+ * @cfg {Ext.data.Store} store (required) : the datasets store 
+ * @cfg {String} urlDatasources The url of the JDBC datasources
+ * @cfg {String} urlDatasourcesMongoDB The url of the MongoDB datasources
+ * @class sitools.admin.datasets.datasetForm
+ * @extends Ext.Panel
+ */
+//sitools.component.datasets.datasetForm = Ext.extend(Ext.Panel, {
+sitools.admin.datasets.datasetForm = Ext.extend(Ext.Panel, {
+    
+    initComponent : function () {
+		var action = this.action;
+
+        //Datasource Store
+        var storeDataSource = new Ext.data.JsonStore({
+            fields : [ 'id', 'name', 'sitoolsAttachementForUsers', 'jdbc', 'mongoDb' ],
+            root : &quot;data&quot;,            
+            listeners : {
+				scope : this, 
+				load : function (store, recs) {
+					if (this.action === &quot;create&quot;) {
+                        if (!Ext.isEmpty(recs) &amp;&amp; Ext.isArray(recs)	&amp;&amp; recs.length &gt; 0) {
+                            this.comboDataSource.setValue(recs[0].id);
+						    this.comboDataSource.fireEvent(&quot;initValue&quot;, this.comboDataSource, recs[0].id);
+                        }
+					}
+					
+				}
+            }
+        });
+        
+        
+        
+        
+<span id='sitools-admin-datasets-datasetForm-property-comboDataSource'>        /**
+</span>         * Combo to select Datasources.
+         * Uses the storeDataSource.
+         */
+        this.comboDataSource = new Ext.form.ComboBox({
+            disabled : this.action == 'view' ? true : false, 
+            id : &quot;comboDataSource&quot;,
+            store : storeDataSource,
+            fieldLabel : i18n.get('label.dataSource'),
+            displayField : 'name',
+            valueField : 'id',
+            typeAhead : true,
+            mode : 'local',
+            name : 'comboDataSource',
+            forceSelection : true,
+            triggerAction : 'all',
+            editable : false,
+            emptyText : i18n.get('label.dataSourceSelect'),
+            selectOnFocus : true,
+            anchor : '50%',
+            value : &quot;&quot;,
+            listeners : {
+                scope : this,
+                change : function (field, newValue, oldValue) {
+                    this.getBubbleTarget().fireEvent(&quot;datasourceChanged&quot;, field, newValue, oldValue);
+                }, 
+                select : function (field, rec, index) {
+					var newValue = rec.get(&quot;id&quot;);
+					field.fireEvent(&quot;change&quot;, newValue, field.getValue());
+                }, 
+                initValue : function (field, newValue) {
+                    this.getBubbleTarget().fireEvent(&quot;initComboDatasource&quot;, field, newValue);
+                }
+            },
+            validator : function (value) {
+                if (Ext.isEmpty(value)) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }, 
+            getDatasourceType : function () {
+				var rec = this.getStore().getAt(this.getStore().findExact(&quot;id&quot;, this.getValue()));
+				return {
+					jdbc : rec.get('jdbc'), 
+					mongoDb : rec.get('mongoDb')
+				};
+            }
+        });
+
+        Ext.apply(this, {
+            layout : 'fit', 
+            id : &quot;datasetMainForm&quot;, 
+            title : i18n.get('label.datasetInfo'),
+            items : [ {
+                xtype : 'form',
+                border : false,
+                padding : 10,
+                autoScroll : true,
+                defaults : {
+					disabled : this.action == 'view' ? true : false
+                }, 
+                items : [ {
+                    xtype : 'hidden',
+                    name : 'id'
+                }, {
+                    xtype : 'textfield',
+                    name : 'name',
+                    fieldLabel : i18n.get('label.name'),
+                    anchor : '95%',
+                    allowBlank : false,
+                    vtype : &quot;name&quot;, 
+                    maxLength : 50
+                }, {
+                    xtype : 'textfield',
+                    name : 'description',
+                    fieldLabel : i18n.get('label.description'),
+                    anchor : '95%',
+                    maxLength : 200
+                }, {
+                    xtype : 'sitoolsSelectImage',
+                    name : 'image',
+                    vtype : &quot;image&quot;, 
+                    fieldLabel : i18n.get('label.image'),
+                    anchor : '95%',
+                    growMax : 400
+
+                }, this.comboDataSource, {
+                    xtype : 'textfield',
+                    vtype : &quot;attachment&quot;, 
+                    name : 'sitoolsAttachementForUsers',
+                    id : 'sitoolsAttachementForUsers',
+                    fieldLabel : i18n.get('label.userAttach'),
+                    anchor : '95%',
+                    maxLength : 100
+                }, {
+                    xtype : 'checkbox',
+                    name : 'visible',
+                    id : 'visible',
+                    fieldLabel : i18n.get('label.isVisible'),
+                    anchor : '95%',
+                    maxLength : 100
+                }, {
+                    xtype : 'textfield',
+                    disabled : true,
+                    name : 'expirationDate',
+                    id : 'expirationDate',
+                    fieldLabel : i18n.get('label.expirationDate'),
+                    anchor : '95%',
+                    maxLength : 100
+                }, {
+                    xtype : 'textarea',
+                    name : 'descriptionHTML',
+                    cls : 'ckeditor',
+                    fieldLabel : i18n.get('label.descriptionHTML'),
+                    height : 150,
+                    width : '94%'
+                }, {
+                    xtype : 'hidden',
+                    name : 'dirty', 
+                    value : false
+                } ]
+            } ], 
+            listeners : {
+				&quot;activate&quot; : function () {
+					if (action == 'view') {
+						this.getEl().mask();
+					}
+				}
+            }
+        });
+        
+		
+		
+		sitools.admin.datasets.datasetForm.superclass.initComponent.call(this);
+    }, 
+    getForm : function () {
+    	return this.items.items[0].getForm();
+    }, 
+<span id='sitools-admin-datasets-datasetForm-method-getDataSourceCombo'>    /**
+</span>     * Get the combo of dataSources
+     * @return {Ext.form.ComboBox}
+     */
+    getDataSourceCombo : function () {
+		return this.comboDataSource;
+    },
+//    /**
+//     * Get the combo of Dataviews
+//     * @return {Ext.form.ComboBox}
+//     */
+//    getDatasetViewsCombo : function () {
+//		return this.comboDatasetViews;
+//    }, 
+<span id='sitools-admin-datasets-datasetForm-method-getDataSourceUrl'>    /**
+</span>     * Get the url of the datasource
+     * @return {string}
+     */
+    getDataSourceUrl : function () {
+		var record = this.getDataSourceCombo().getStore().getById(this.getDataSourceCombo().getValue());
+        if (!record) {
+            return false;
+        }
+		return record.data.sitoolsAttachementForUsers;
+    },
+    
+    loadDatasources : function (callback, callbackScope) {
+        var urlDatasources = this.urlDatasources;
+        var urlDatasourcesMongoDB = this.urlDatasourcesMongoDB;
+        var store = this.comboDataSource.getStore();
+        //load JDBC datasources
+        Ext.Ajax.request({
+            url : urlDatasources,
+            method : 'GET',
+            scope : this,
+            success : function (ret) {
+                var Json = Ext.decode(ret.responseText);
+                if (!Json.success) {
+                    Ext.Msg.alert(i18n.get('label.warning'), Json.message);
+                    return;
+                }
+                
+                //var records = Json.data;
+                Ext.each(Json.data, function (data) {
+					data.jdbc = true;
+                });
+                store.loadData(Json);
+                Ext.Ajax.request({
+		            url : urlDatasourcesMongoDB,
+		            method : 'GET',
+		            scope : callbackScope,
+		            success : function (ret) {
+		                var Json = Ext.decode(ret.responseText);
+		                if (!Json.success) {
+		                    Ext.Msg.alert(i18n.get('label.warning'), Json.message);
+		                    return;
+		                }
+                        Ext.each(Json.data, function (record) {
+                            record.mongoDb = true;
+                        });
+                        store.loadData(Json, true);
+//                        store.each(function (record) {
+//                            record.set(&quot;sitoolsAttachementForUsers&quot;, record.set(&quot;sitoolsAttachementForUsers&quot;) + &quot;/collection&quot;);    
+//                        });
+		                //var records = Json.data;
+		                
+                        store.fireEvent(&quot;load&quot;, store, store.getRange(0, store.getTotalCount()));
+		                
+		            },
+		            failure : alertFailure, 
+		            callback : callback
+		        });
+            },
+            failure : alertFailure
+        });
+           
+           
+    }
+	
+});
+
+</pre>
+</body>
+</html>

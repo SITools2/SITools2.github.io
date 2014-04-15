@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*!
+ * Ext JS Library 3.2.1
+ * Copyright(c) 2006-2010 Ext JS, Inc.
+ * licensing@extjs.com
+ * http://www.extjs.com/license
+ */
+/*global Ext, sitools, ID, i18n, showResponse,locale,window*/
+/*
+ * @include &quot;Desktop.js&quot;
+ */
+<span id='Ext-app-App-cfg-cfg'><span id='Ext-app-App'>/**
+</span></span> * The Main Application 
+ * @cfg {} cfg The initial config 
+ * @class Ext.app.App
+ * @extends Ext.util.Observable
+ */
+Ext.app.App = function (cfg) {
+	Ext.apply(this, cfg);
+
+	this.addEvents({
+	    'ready' : true,
+	    'beforeunload' : true
+	});
+	
+};
+
+Ext.extend(Ext.app.App, Ext.util.Observable, {
+<span id='Ext-app-App-property-isReady'>    /**
+</span>     * True when application is ready
+     * @type Boolean
+     */
+    isReady : false,
+<span id='Ext-app-App-property-modules'>    /**
+</span>     * The list of modules
+     * @type [Ext.app.Module]  
+     */
+    modules : [], 
+<span id='Ext-app-App-property-modulesInDiv'>	/**
+</span>	 * The list of modules to be displayed in a Div
+	 * @type [Ext.Panel]  
+	 */
+	modulesInDiv : [],
+<span id='Ext-app-App-property-fisheye'>	/**
+</span>     * The fishEyeMenu
+     * @type Ext.ux.FisheyeMenuExtention 
+     */
+    fisheye : null,
+	
+<span id='Ext-app-App-method-getStartConfig'>	/**
+</span>	 * BasicMethod to override.
+	 */
+	getStartConfig : function () {
+
+    },
+    
+<span id='Ext-app-App-method-initApp'>    /**
+</span>     * Initialize application.
+     * Call the method init wich must have been override on instanciation.
+     */
+    initApp : function () {
+//		this.startConfig = this.startConfig || this.getStartConfig();
+
+	    this.desktop = new Ext.Desktop(this);
+	    sitools.PreviewBox = new sitools.common._PreviewBox();
+		
+//	    this.tabMenu = [];
+//
+//	    this.launcher = this.desktop.taskbar.startMenu;
+//
+//	    this.modules = this.getModules();
+//	    if (this.modules) {
+//		    this.initModules(this.modules);
+//	    }
+
+	    this.init();
+	    
+	    Ext.EventManager.on(window, 'beforeunload', this.onUnload, this);
+	    this.isReady = true;
+    },
+
+<span id='Ext-app-App-method-getModules'>	/**
+</span>	 * @method
+	 * BasicMethod to override.
+	 */
+    getModules : Ext.emptyFn,
+<span id='Ext-app-App-method-getModulesInDiv'>	/**
+</span>	 * @method
+	 * BasicMethod to override.
+	 */
+    getModulesInDiv : Ext.emptyFn,
+<span id='Ext-app-App-method-init'>	/**
+</span>	 * @method
+	 * BasicMethod to override.
+	 */
+    init : Ext.emptyFn,
+
+<span id='Ext-app-App-method-initModules'>	/**
+</span>	 * Add all modules to fisheye menu and launcher.
+	 */
+    initModules : function (ms) {
+	    this.modules = ms;
+
+	    for (var i = 0, len = ms.length; i &lt; len; i++) {
+		    var m = ms[i];
+
+		    this.launcher.add(m.launcher);
+//		    this.tabMenu.push(m.fisheye);
+		    m.app = this;
+	    }
+
+//	    this.fisheye = new Ext.ux.FisheyeMenuExtention({
+//	        renderTo : 'fisheye-menu-bottom',
+//	        hAlign : 'center', // left|center|right
+//	        vAlign : 'bottom', // top|bottom
+//	        itemWidth : 60,
+//	        items : this.tabMenu
+//	    });
+
+	    // quand tous les modules sont prets,
+	    // l'application est prete a etre utilisee
+	    this.isReady = true;
+    },
+
+<span id='Ext-app-App-method-addModule'>    /**
+</span>     * Add a single Module
+     * @param {Ext.app.Module} module
+     */
+    addModule : function (module) {
+	    this.launcher.add(module.launcher);
+	    this.fisheye.addItem(module.fisheye);
+	    module.app = this;
+    },
+<span id='Ext-app-App-method-removeModule'>    /**
+</span>     * Remove a single Module
+     * @param {Ext.app.Module} moduleToRemove
+     */
+    removeModule : function (moduleToRemove) {
+	    this.launcher.remove(moduleToRemove.id);
+	    this.fisheye.removeItem(moduleToRemove.fisheye.id);
+	    this.modules.remove(moduleToRemove);
+
+    },
+
+<span id='Ext-app-App-method-getModule'>    /**
+</span>     * Return a {Ext.app.Module} module from his name
+     * @param {string} name
+     * @return {Ext.app.Module} if founded, &quot;&quot; else
+     */
+    getModule : function (name) {
+	    var ms = this.modules;
+	    if (!Ext.isEmpty(ms)) {
+		    for (var i = 0, len = ms.length; i &lt; len; i++) {
+			    if (ms[i].id == name || ms[i].appType == name) {
+				    return ms[i];
+			    }
+		    }
+	    }
+	    return '';
+    },
+
+<span id='Ext-app-App-method-getDesktop'>    /**
+</span>     * 
+     * @return {Ext.Desktop} the Desktop object
+     */
+    getDesktop : function () {
+	    return this.desktop;
+    },
+
+<span id='Ext-app-App-method-getFisheyeMenu'>    /**
+</span>     * @return {Ext.ux.FisheyeMenuExtention} return the Fisheye menu object
+     */
+    getFisheyeMenu : function () {
+	    return this.fisheye;
+    },
+
+<span id='Ext-app-App-method-onUnload'>    /**
+</span>     * Called by the event beforeunload on the window object
+     * @param {} e
+     */
+    onUnload : function (e) {
+	    if (this.fireEvent('beforeunload', this) === false) {
+		    e.stopEvent();
+	    }
+    }, 
+<span id='Ext-app-App-method-showSpinner'>    /**
+</span>     * @deprecated (it is not masking taskBar)
+     */
+    showSpinner : function () {
+    	Ext.getBody().mask(&quot;loading...&quot;, &quot;x-mask-loading&quot;);
+    }, 
+<span id='Ext-app-App-method-hideSpinner'>    /**
+</span>     * @deprecated (it is not masking taskBar)
+     */
+    hideSpinner : function () {
+    	if (Ext.getBody().isMasked()){
+    		Ext.getBody().unmask();
+    	}
+    }
+});
+</pre>
+</body>
+</html>

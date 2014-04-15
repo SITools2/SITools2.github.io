@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.plugins.setLang(&quot;specialchar&quot;,&quot;hr&quot;,{euro:&quot;Euro znak&quot;,lsquo:&quot;Lijevi jednostruki navodnik&quot;,rsquo:&quot;Desni jednostruki navodnik&quot;,ldquo:&quot;Lijevi dvostruki navodnik&quot;,rdquo:&quot;Desni dvostruki navodnik&quot;,ndash:&quot;En crtica&quot;,mdash:&quot;Em crtica&quot;,iexcl:&quot;Naopaki uskličnik&quot;,cent:&quot;Cent znak&quot;,pound:&quot;Funta znak&quot;,curren:&quot;Znak valute&quot;,yen:&quot;Yen znak&quot;,brvbar:&quot;Potrgana prečka&quot;,sect:&quot;Znak odjeljka&quot;,uml:&quot;Diaeresis&quot;,copy:&quot;Copyright znak&quot;,ordf:&quot;Feminine ordinal indicator&quot;,laquo:&quot;Lijevi dvostruki uglati navodnik&quot;,not:&quot;Not znak&quot;,
+reg:&quot;Registered znak&quot;,macr:&quot;Macron&quot;,deg:&quot;Stupanj znak&quot;,sup2:&quot;Superscript two&quot;,sup3:&quot;Superscript three&quot;,acute:&quot;Acute accent&quot;,micro:&quot;Micro sign&quot;,para:&quot;Pilcrow sign&quot;,middot:&quot;Srednja točka&quot;,cedil:&quot;Cedilla&quot;,sup1:&quot;Superscript one&quot;,ordm:&quot;Masculine ordinal indicator&quot;,raquo:&quot;Desni dvostruku uglati navodnik&quot;,frac14:&quot;Vulgar fraction one quarter&quot;,frac12:&quot;Vulgar fraction one half&quot;,frac34:&quot;Vulgar fraction three quarters&quot;,iquest:&quot;Naopaki upitnik&quot;,Agrave:&quot;Veliko latinsko slovo A s akcentom&quot;,Aacute:&quot;Latin capital letter A with acute accent&quot;,
+Acirc:&quot;Latin capital letter A with circumflex&quot;,Atilde:&quot;Latin capital letter A with tilde&quot;,Auml:&quot;Latin capital letter A with diaeresis&quot;,Aring:&quot;Latin capital letter A with ring above&quot;,AElig:&quot;Latin Capital letter Æ&quot;,Ccedil:&quot;Latin capital letter C with cedilla&quot;,Egrave:&quot;Latin capital letter E with grave accent&quot;,Eacute:&quot;Latin capital letter E with acute accent&quot;,Ecirc:&quot;Latin capital letter E with circumflex&quot;,Euml:&quot;Latin capital letter E with diaeresis&quot;,Igrave:&quot;Latin capital letter I with grave accent&quot;,Iacute:&quot;Latin capital letter I with acute accent&quot;,
+Icirc:&quot;Latin capital letter I with circumflex&quot;,Iuml:&quot;Latin capital letter I with diaeresis&quot;,ETH:&quot;Latin capital letter Eth&quot;,Ntilde:&quot;Latin capital letter N with tilde&quot;,Ograve:&quot;Latin capital letter O with grave accent&quot;,Oacute:&quot;Latin capital letter O with acute accent&quot;,Ocirc:&quot;Latin capital letter O with circumflex&quot;,Otilde:&quot;Latin capital letter O with tilde&quot;,Ouml:&quot;Latin capital letter O with diaeresis&quot;,times:&quot;Multiplication sign&quot;,Oslash:&quot;Latin capital letter O with stroke&quot;,Ugrave:&quot;Latin capital letter U with grave accent&quot;,
+Uacute:&quot;Latin capital letter U with acute accent&quot;,Ucirc:&quot;Latin capital letter U with circumflex&quot;,Uuml:&quot;Latin capital letter U with diaeresis&quot;,Yacute:&quot;Latin capital letter Y with acute accent&quot;,THORN:&quot;Latin capital letter Thorn&quot;,szlig:&quot;Latin small letter sharp s&quot;,agrave:&quot;Latin small letter a with grave accent&quot;,aacute:&quot;Latin small letter a with acute accent&quot;,acirc:&quot;Latin small letter a with circumflex&quot;,atilde:&quot;Latin small letter a with tilde&quot;,auml:&quot;Latin small letter a with diaeresis&quot;,aring:&quot;Latin small letter a with ring above&quot;,
+aelig:&quot;Latin small letter æ&quot;,ccedil:&quot;Latin small letter c with cedilla&quot;,egrave:&quot;Latin small letter e with grave accent&quot;,eacute:&quot;Latin small letter e with acute accent&quot;,ecirc:&quot;Latin small letter e with circumflex&quot;,euml:&quot;Latin small letter e with diaeresis&quot;,igrave:&quot;Latin small letter i with grave accent&quot;,iacute:&quot;Latin small letter i with acute accent&quot;,icirc:&quot;Latin small letter i with circumflex&quot;,iuml:&quot;Latin small letter i with diaeresis&quot;,eth:&quot;Latin small letter eth&quot;,ntilde:&quot;Latin small letter n with tilde&quot;,
+ograve:&quot;Latin small letter o with grave accent&quot;,oacute:&quot;Latin small letter o with acute accent&quot;,ocirc:&quot;Latin small letter o with circumflex&quot;,otilde:&quot;Latin small letter o with tilde&quot;,ouml:&quot;Latin small letter o with diaeresis&quot;,divide:&quot;Division sign&quot;,oslash:&quot;Latin small letter o with stroke&quot;,ugrave:&quot;Latin small letter u with grave accent&quot;,uacute:&quot;Latin small letter u with acute accent&quot;,ucirc:&quot;Latin small letter u with circumflex&quot;,uuml:&quot;Latin small letter u with diaeresis&quot;,yacute:&quot;Latin small letter y with acute accent&quot;,
+thorn:&quot;Latin small letter thorn&quot;,yuml:&quot;Latin small letter y with diaeresis&quot;,OElig:&quot;Latin capital ligature OE&quot;,oelig:&quot;Latin small ligature oe&quot;,372:&quot;Latin capital letter W with circumflex&quot;,374:&quot;Latin capital letter Y with circumflex&quot;,373:&quot;Latin small letter w with circumflex&quot;,375:&quot;Latin small letter y with circumflex&quot;,sbquo:&quot;Single low-9 quotation mark&quot;,8219:&quot;Single high-reversed-9 quotation mark&quot;,bdquo:&quot;Double low-9 quotation mark&quot;,hellip:&quot;Horizontal ellipsis&quot;,trade:&quot;Trade mark sign&quot;,9658:&quot;Black right-pointing pointer&quot;,
+bull:&quot;Bullet&quot;,rarr:&quot;Rightwards arrow&quot;,rArr:&quot;Rightwards double arrow&quot;,hArr:&quot;Left right double arrow&quot;,diams:&quot;Black diamond suit&quot;,asymp:&quot;Almost equal to&quot;});</pre>
+</body>
+</html>

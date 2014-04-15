@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">// create namespace for plugins
+Ext.namespace('Ext.ux.plugins');
+ 
+<span id='Ext-ux-plugins-SliderRange'>/**
+</span> * Ext.ux.plugins.SliderRange plugin for Ext.Slider
+ *
+ * @author  Dorothea Loew
+ * @date    Februar 15, 2009
+ *
+ * @class 	Ext.ux.plugins.SliderRange
+ * @extends Ext.util.Observable
+ */
+ 
+Ext.ux.plugins.SliderRange = function(config) {
+    Ext.apply(this, config);
+};
+ 
+// plugin code
+Ext.extend(Ext.ux.plugins.SliderRange, Ext.util.Observable, {
+    init:function(slider) {
+        Ext.apply(slider, {
+            onResize:slider.onResize.createSequence(function(ct, position) {
+				
+				// slider needs more space with range: height=&quot;50px&quot;
+				this.el.addClass ('ux-sliderrange-slider');
+				
+				if (slider.range)
+					slider.range.remove();
+				
+				// create range-object, width from sliders-element
+				slider.range 	= slider.el.createChild({cls: 'ux-sliderrange'});
+				
+				// get position of two joining values
+				var startPos 	= slider.translateValue(slider.minValue);
+				var nextPos 	= slider.translateValue((slider.minValue+slider.increment));
+				// get diff of positions
+				var diff 		= nextPos - startPos;
+				
+				var counter;
+				counter = 0;
+				// create one child per value and show value in html-config
+				for (var i=slider.minValue; i&lt;=slider.maxValue; i=i+slider.increment) {
+					slider.range.createChild({html: ''+i, cls: 'ux-sliderrange-val', style: 'left: '+(startPos + (diff * counter)) +'px;'});
+					counter++;
+				}	
+			
+				
+			}) // end of function afterRender
+        });
+    } // end of function init
+}); // end of extend
+</pre>
+</body>
+</html>

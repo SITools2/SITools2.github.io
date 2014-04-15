@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser, 
+ showHelp*/
+Ext.namespace('sitools.admin.rssFeed');
+
+<span id='sitools-admin-rssFeed-rssFeedItemProps'>/**
+</span> * Create a new feed item for a specific feed
+ * 
+ * @param store, the RSS feed store
+ * @param parent, the grid parent
+ * @param action, the type of action ( create or modify )
+ * @param rec, the record to load in case of edit ( optional )
+ * @class sitools.admin.rssFeed.rssFeedItemProps
+ * @extends Ext.Window
+ */
+//sitools.component.rssFeedItemProps = Ext.extend(Ext.Window, {
+sitools.admin.rssFeed.rssFeedItemProps = Ext.extend(Ext.Window, {
+    width : 700,
+    height : 480,
+    modal : true,
+    resizable : false,
+    layout : 'fit',
+    
+
+    initComponent : function () {
+        this.title = i18n.get('title.feedItemDetails');
+        /* paramétres du formulaire */
+        var itemsForm = [ {
+            fieldLabel : i18n.get('label.titleRss'),
+            name : 'title',
+            anchor : '100%'
+        }, {
+            fieldLabel : i18n.get('label.description'),
+            name : 'description',
+            anchor : '100%',
+            xtype : &quot;textarea&quot;
+        }, {
+            fieldLabel : i18n.get('label.linkTitle'),
+            name : 'link',
+            anchor : '100%'
+        }, {
+            xtype : &quot;sitoolsSelectImage&quot;, 
+            fieldLabel : i18n.get('label.image'),
+            name : 'image',
+            anchor : '100%'
+        }, {
+            fieldLabel : i18n.get('label.authorName'),
+            name : 'name',
+            anchor : '100%'
+        }, {
+            fieldLabel : i18n.get('label.authorEmail'),
+            name : 'email',
+            anchor : '100%'
+        }/*
+             * , { fieldLabel : i18n.get('label.guid'), name : 'guid', anchor :
+             * '100%' }
+             */, {
+            xtype : 'compositefield',
+            fieldLabel : i18n.get('label.updatedDate'),
+            items : [ {
+                fieldLabel : i18n.get(&quot;label.day&quot;),
+                name : 'date',
+                xtype : &quot;datefield&quot;
+            }, {
+                name : 'hours',
+                xtype : 'numberfield',
+                width : 48,
+                maxValue : 23,
+                minValue : 0
+            }, {
+                xtype : 'displayfield',
+                value : i18n.get(&quot;label.hours&quot;)
+            }, {
+                name : 'minutes',
+                xtype : 'numberfield',
+                width : 48,
+                maxValue : 59,
+                minValue : 0
+
+            }, {
+                xtype : 'displayfield',
+                value : i18n.get(&quot;label.minutes&quot;)
+            }, {
+                xtype : 'button',
+                name : 'nowUpdated',
+                text : i18n.get(&quot;label.now&quot;),
+                width : 50,
+                flex : 0,
+                scope : this,
+                handler : this.nowDate
+            } ]
+        }, {
+            xtype : 'compositefield',
+            fieldLabel : i18n.get('label.publishedDate'),
+            items : [ {
+                fieldLabel : i18n.get(&quot;label.day&quot;),
+                name : 'datePub',
+                xtype : &quot;datefield&quot;,
+                allowBlank : false
+            }, {
+                name : 'hoursPub',
+                xtype : 'numberfield',
+                width : 48,
+                maxValue : 23,
+                minValue : 0,
+                allowBlank : false
+            }, {
+                xtype : 'displayfield',
+                value : i18n.get(&quot;label.hours&quot;)
+            }, {
+                name : 'minutesPub',
+                xtype : 'numberfield',
+                width : 48,
+                maxValue : 59,
+                minValue : 0,
+                allowBlank : false
+
+            }, {
+                xtype : 'displayfield',
+                value : i18n.get(&quot;label.minutes&quot;)
+            }, {
+                xtype : 'button',
+                name : 'nowPublished',
+                text : i18n.get(&quot;label.now&quot;),
+                width : 50,
+                flex : 0,
+                scope : this,
+                handler : this.nowDate
+            }]
+        } ];
+
+        this.formPanel = new Ext.FormPanel({
+            labelWidth : 100, // label settings here cascade unless overridden
+            defaultType : 'textfield',
+            items : itemsForm,
+            border : false,
+            padding : 10
+        });
+
+        this.items = [ this.formPanel ];
+        this.buttons = [ {
+            text : i18n.get('label.ok'),
+            scope : this,
+            handler : this.onValidate
+        }, {
+            text : i18n.get('label.cancel'),
+            scope : this,
+            handler : function () {
+                this.close();
+            }
+        } ];
+        sitools.admin.rssFeed.rssFeedItemProps.superclass.initComponent.call(this);
+    },
+
+<span id='sitools-admin-rssFeed-rssFeedItemProps-method-afterRender'>    /**
+</span>     * If the &quot;action&quot; is &quot;modify&quot;, fill fields with the record data
+     */
+    afterRender : function () {
+        sitools.admin.rssFeed.rssFeedItemProps.superclass.afterRender.apply(this, arguments);
+        if (this.action == &quot;modify&quot;) {
+            var form = this.formPanel.getForm();
+
+            var record = this.rec.copy();
+            Ext.data.Record.id(record); // automatically generate a unique
+            // sequential id
+
+            var dateStr = this.rec.get(&quot;updatedDate&quot;);
+
+            var date = new Date(dateStr);
+            record.set(&quot;date&quot;, date.format('m/d/Y'));
+            record.set(&quot;hours&quot;, date.format('H'));
+            record.set(&quot;minutes&quot;, date.format('i'));
+
+            var dateStrPub = this.rec.get(&quot;publishedDate&quot;);
+
+            var datePub = new Date(dateStrPub);
+            record.set(&quot;datePub&quot;, datePub.format('m/d/Y'));
+            record.set(&quot;hoursPub&quot;, datePub.format('H'));
+            record.set(&quot;minutesPub&quot;, datePub.format('i'));
+
+            var author = record.get(&quot;author&quot;);
+            if (!Ext.isEmpty(author)) {
+                record.set('name', author.name);
+                record.set('email', author.email);
+            }
+            if (!Ext.isEmpty(record.get('image'))) {
+				record.set(&quot;image&quot;, record.get('image').url);
+            }
+            
+            form.loadRecord(record);
+            
+
+        }
+    },
+
+<span id='sitools-admin-rssFeed-rssFeedItemProps-method-onValidate'>    /**
+</span>     * Save dates fields 
+     */
+    onValidate : function () {
+        var frm = this.findByType('form')[0].getForm();
+        if (!frm.isValid()) {
+            Ext.Msg.alert(i18n.get('label.warning'), i18n.get('warning.invalidForm'));
+            return;
+        }
+        var rec;
+        if (this.action == &quot;create&quot;) {
+            rec = new Ext.data.Record();
+        } else {
+            rec = this.rec;
+        }
+        // store the form fields
+        var form = this.formPanel.getForm();
+        if (!form.isValid()) {
+            Ext.Msg.alert(i18n.get('label.error'), i18n.get('warning.invalidForm'));
+            return false;
+        }
+        var mins = null;
+        var hours = null;
+        var dateStr = null;
+
+        var minsPub = null;
+        var hoursPub = null;
+        var dateStrPub = null;
+
+        var author = {};
+        rec.set(&quot;author&quot;, author);
+        Ext.iterate(form.getValues(), function (key, value) {
+            if (key == &quot;date&quot;) {
+                dateStr = value;
+            } else if (key == &quot;hours&quot;) {
+                hours = value;
+            } else if (key == &quot;minutes&quot;) {
+                mins = value;
+            } else if (key == &quot;datePub&quot;) {
+                dateStrPub = value;
+            } else if (key == &quot;hoursPub&quot;) {
+                hoursPub = value;
+            } else if (key == &quot;minutesPub&quot;) {
+                minsPub = value;
+            } else if (key == &quot;name&quot; || key == &quot;email&quot;) {
+                author[key] = value;
+            } else if (key == &quot;image&quot;) {
+				if (! Ext.isEmpty(value)) {
+					var type = this.getTypeFromUrl(value);
+					rec.set(key, {
+						url : value, 
+						type : type
+					});
+				}
+            } else {
+                rec.set(key, value);
+            }
+
+        }, this);
+        var date;
+        if (dateStr !== null &amp;&amp; dateStr !== &quot;&quot;) {
+
+            if (hours !== null &amp;&amp; mins !== null) {
+                dateStr += &quot; &quot; + hours + &quot;:&quot; + mins;
+            }
+            date = new Date(dateStr);
+            rec.set(&quot;updatedDate&quot;, date);
+        }
+        if (dateStrPub !== null &amp;&amp; dateStrPub !== &quot;&quot;) {
+
+            if (hoursPub !== null &amp;&amp; hoursPub !== &quot;&quot; &amp;&amp; minsPub !== null &amp;&amp; minsPub !== &quot;&quot;) {
+                dateStrPub += &quot; &quot; + hoursPub + &quot;:&quot; + minsPub;
+            }
+            date = new Date(dateStrPub);
+            rec.set(&quot;publishedDate&quot;, date);
+        }
+
+        if (this.action == &quot;create&quot;) {
+            this.store.add(rec);
+        }
+
+        this.parent.getView().refresh();
+        this.close();
+
+    },
+
+<span id='sitools-admin-rssFeed-rssFeedItemProps-method-nowDate'>    /**
+</span>     * Set dates fields with date of the current day
+     * @param button, the button clic
+     * @param e, the event click
+     */
+    nowDate : function (button, e) {
+        var date = new Date(), form, record;
+        if (button.name == &quot;nowUpdated&quot;) {
+            form = this.formPanel.getForm();
+            record = new Ext.data.Record(form.getValues());
+            record.set(&quot;date&quot;, date.format('m/d/Y'));
+            record.set(&quot;hours&quot;, date.format('H'));
+            record.set(&quot;minutes&quot;, date.format('i'));
+            form.loadRecord(record);
+        }
+        if (button.name == &quot;nowPublished&quot;) {
+            form = this.formPanel.getForm();
+            record = new Ext.data.Record(form.getValues());
+            record.set(&quot;datePub&quot;, date.format('m/d/Y'));
+            record.set(&quot;hoursPub&quot;, date.format('H'));
+            record.set(&quot;minutesPub&quot;, date.format('i'));
+            form.loadRecord(record);
+        }
+
+    },
+    
+<span id='sitools-admin-rssFeed-rssFeedItemProps-method-getTypeFromUrl'>    /**
+</span>     * Get the image extension from the url 
+     * @param url, the image url
+     */
+    getTypeFromUrl : function (url) {
+		var tmp = url.split(&quot;.&quot;);
+		var type = tmp[tmp.length - 1];
+		switch (type.toLowerCase()) {
+		case &quot;jpg&quot; :
+		case &quot;jpeg&quot; : 
+		case &quot;jpe&quot; : 
+			type = &quot;image/jpeg&quot;;
+			break;
+		case &quot;gif&quot; : 
+		case &quot;man&quot; : 
+			type = &quot;image/gif&quot;;
+			break;
+		case &quot;png&quot; : 
+			type = &quot;image/png&quot;;
+			break;	
+		case &quot;tif&quot; : 
+		case &quot;tiff&quot; : 
+			type = &quot;image/tiff&quot;;
+			break;	
+		case &quot;pbm&quot; : 
+			type = &quot;image/x-portable-bitmap&quot;;
+			break;	
+		case &quot;pgm&quot; : 
+			type = &quot;image/x-portable-graymap&quot;;
+			break;	
+		case &quot;ppm&quot; : 
+			type = &quot;image/x-portable-pixmap&quot;;
+			break;
+		default : 
+			type = null;
+		}
+		return type;
+		
+    }
+});
+</pre>
+</body>
+</html>

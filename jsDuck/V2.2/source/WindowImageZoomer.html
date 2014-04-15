@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span> * Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * 
+ * This file is part of SITools2.
+ * 
+ * SITools2 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * SITools2 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ***************************************/
+/*global Ext, sitools, getDesktop, i18n, viewer*/
+Ext.ns('sitools.widget');
+
+<span id='sitools-user-component-dataviews-services-WindowImageZoomer'>/**
+</span> * A specific window to display preview Images in user desktop. 
+ * @class sitools.user.component.dataviews.services.WindowImageZoomer
+ * @config {boolean} resizeImage true to resize the image according to the desktop, image ratio is also keeped. 
+ * false to keep the image size with scrollbars if needed. Default to false
+ * @extends Ext.Window
+ */
+sitools.user.component.dataviews.services.WindowImageZoomer = Ext.extend(Ext.Window, {
+	resizeImage : false,
+	maximizable : true,
+	modal : true,
+	minHeight : 0,
+	minWidth : 0,
+	padding : '2px 2px 2px 2px',
+	
+	initComponent : function (config) {
+		viewer.onload = function (self) {
+	        viewer.toolbarextjs(self);
+	        viewer.preview(self);
+		};
+		
+
+		if (Ext.isEmpty(this.parameters)) {
+            this.parameters = sitools.user.component.dataviews.services.WindowImageZoomer.getDefaultParameters();
+        }
+		
+		Ext.each(this.parameters, function (config) {
+            if (!Ext.isEmpty(config.value)) {
+                switch (config.name) {
+                case &quot;columnAlias&quot; :
+                    this.columnImage = config.value;
+                    break;
+                    
+                case &quot;thumbnailColumnImage&quot; :
+                    this.thumbnailColumnImage = config.value;
+                    break;
+                    
+                case &quot;sizeLimitWidth&quot; :
+                    this.sizeLimitWidth = config.value;
+                    break;
+                    
+                case &quot;sizeLimitHeight&quot; :
+                    this.sizeLimitHeight = config.value;
+                    break;  
+                    
+                case &quot;zoomFactor&quot; :
+                    this.zoomFactor = config.value + &quot;%&quot;;
+                    break;
+                
+                case &quot;maxZoom&quot; :
+                    this.maxZoom = config.value + &quot;%&quot;;
+                    break;  
+                }
+            }
+        }, this);
+		
+		
+		var rec;
+		if (Ext.isEmpty(this.record)) {
+		    rec = this.dataview.getSelections()[0];
+	    } else {
+	        rec = this.record;
+	    }
+
+        if (Ext.isEmpty(this.columnImage)) {
+            this.columnImage = this.columnAlias;
+        }		
+		
+		this.src = rec.get(this.columnImage);
+		if (!Ext.isEmpty(this.thumbnailColumnImage)) {
+            this.previewSrc = rec.get(this.thumbnailColumnImage);
+        } else {
+            this.previewSrc = this.src;
+        }
+		this.title = this.columnImage;
+        
+		var id = Ext.id();
+		this.panel = new Ext.Panel({
+            bodyCfg : {
+                tag : 'img',
+                src : this.src,
+                id : id
+            },
+            listeners :  {
+                scope : this,
+                render : function () {
+                    this.panel.body.on('load', this.onImageLoad, this, {
+                        single : true
+                    });
+                    
+                }
+            }
+        });
+		
+		this.items=[this.panel];
+
+		this.listeners = {
+            scope : this,
+            
+            resize : function (window, width, height) {
+                if (!Ext.isEmpty(this.viewer)) {
+                    var frameElementWidth = width - this.getAdditionalWidth();
+                    var frameElementHeight = height - this.getAdditionalHeight();
+                    this.viewer.setFrameProp([ frameElementWidth + &quot;px&quot;, frameElementHeight + &quot;px&quot; ]);
+                    this.viewer.reset();
+                    this.viewer.fireEvent(&quot;resize&quot;);
+                    
+                }
+                
+            }
+            
+        };
+		
+		// this.items = [this.panel];
+		this.autoScroll = true;
+		this.constrain = true;
+		
+		sitools.user.component.dataviews.services.WindowImageZoomer.superclass.initComponent.apply(this, arguments);
+	},
+	
+<span id='sitools-user-component-dataviews-services-WindowImageZoomer-method-onImageLoad'>	/**
+</span>     * Method called when the image is loaded. It is in charge of resizing the image according to the desktop size
+     */
+    onImageLoad : function () {
+        var img = this.panel.getEl().child(&quot;img&quot;);
+        this.viewer = new viewer({
+            image : img.dom,
+            frame : [ this.sizeLimitWidth + &quot;px&quot;, this.sizeLimitHeight + &quot;px&quot; ],
+            zoomFactor : this.zoomFactor,
+            maxZoom : this.maxZoom,
+            previewSrc : this.previewSrc
+        });
+        this.updateWindowSize(this.sizeLimitHeight, this.sizeLimitWidth)
+        this.doLayout();
+	},
+	
+	getAdditionalHeight : function () {
+	    var height = 4;
+        var enteteEl = this.getEl().child(&quot;.x-window-tl&quot;);
+        height += enteteEl.getHeight();
+        if (!Ext.isEmpty(this.viewer) &amp;&amp; !Ext.isEmpty(this.viewer.toolbarHeight)) { 
+            height += this.viewer.toolbarHeight;
+        }
+        
+        return height;
+        
+	},
+	
+	getAdditionalWidth : function () {
+	    return 4;
+	},
+	
+	updateWindowSize : function (frameHeight, frameWidth) {
+	    var height = parseInt(frameHeight);
+        //add the padding
+        height += this.getAdditionalHeight();
+        var width = parseInt(frameWidth);
+        width += this.getAdditionalWidth();
+        this.setSize(width, height);
+	}
+
+});
+
+Ext.reg('sitools.user.component.dataviews.services.WindowImageZoomer', sitools.user.component.dataviews.services.WindowImageZoomer);
+
+sitools.user.component.dataviews.services.WindowImageZoomer.getParameters = function () {
+    return [
+        {
+            jsObj : &quot;Ext.form.ComboBox&quot;,
+            config : {
+                fieldLabel : i18n.get('headers.previewUrl'),
+                width : 200,
+                typeAhead : true,
+                mode : 'local',
+                forceSelection : true,
+                triggerAction : 'all',
+                valueField : 'display',
+                displayField : 'display',
+                value : 'Image',
+                store : new Ext.data.ArrayStore({
+                    autoLoad : true,
+                    fields : [ 'value', 'display', 'tooltip' ],
+                    data : [ [ '', '' ], [ 'Image', 'Image', i18n.get(&quot;label.image.tooltip&quot;) ], [ 'URL', 'URL', i18n.get(&quot;label.url.tooltip&quot;) ],
+                            [ 'DataSetLink', 'DataSetLink', i18n.get(&quot;label.datasetlink.tooltip&quot;) ] ]
+                }),
+                listeners : {
+                    scope : this,
+                    change : function (combo, newValue, oldValue) {
+                    }
+                },
+                name : &quot;featureType&quot;,
+                id : &quot;featureType&quot;
+            }
+        }, {
+            jsObj : &quot;Ext.form.ComboBox&quot;,
+            config : {
+                fieldLabel : i18n.get('label.columnImage'),
+                width : 200,
+                typeAhead : true,
+                mode : 'local',
+                forceSelection : true,
+                triggerAction : 'all',
+                tpl : '&lt;tpl for=&quot;.&quot;&gt;&lt;div class=&quot;x-combo-list-item comboItem&quot;&gt;{columnAlias}&lt;/div&gt;&lt;/tpl&gt;',
+                store : new Ext.data.JsonStore({
+                    fields : [ 'columnAlias' ],
+                    url : Ext.getCmp(&quot;dsFieldParametersPanel&quot;).urlDataset,
+                    root : &quot;dataset.columnModel&quot;,
+                    autoLoad : true,
+                    listeners : {
+                        load : function (store) {
+                            store.add(new Ext.data.Record({'columnAlias':&quot;&quot;}));
+                        }
+                        
+                    }
+                }),
+                valueField : 'columnAlias',
+                displayField : 'columnAlias',
+                listeners : {
+                    render : function (c) {
+                        Ext.QuickTips.register({
+                            target : c,
+                            text : i18n.get('label.columnImageTooltip')
+                        });
+                    }
+                },
+                name : &quot;columnAlias&quot;,
+                id : &quot;columnAlias&quot;,
+                value : &quot;&quot;
+            }
+        }, {
+            jsObj : &quot;Ext.form.ComboBox&quot;,
+            config : {
+                fieldLabel : i18n.get('label.thumbnailColumnImage'),
+                width : 200,
+                typeAhead : true,
+                mode : 'local',
+                forceSelection : true,
+                triggerAction : 'all',
+                tpl : '&lt;tpl for=&quot;.&quot;&gt;&lt;div class=&quot;x-combo-list-item comboItem&quot;&gt;{columnAlias}&lt;/div&gt;&lt;/tpl&gt;',
+                store : new Ext.data.JsonStore({
+                    fields : [ 'columnAlias' ],
+                    url : Ext.getCmp(&quot;dsFieldParametersPanel&quot;).urlDataset,
+                    root : &quot;dataset.columnModel&quot;,
+                    autoLoad : true,
+                    listeners : {
+                        load : function (store) {
+                            store.add(new Ext.data.Record({'columnAlias':&quot;&quot;}));
+                        }
+                        
+                    }
+                }),
+                valueField : 'columnAlias',
+                displayField : 'columnAlias',
+                listeners : {
+                    render : function (c) {
+                        Ext.QuickTips.register({
+                            target : c,
+                            text : i18n.get('label.thumbnailColumnImageTooltip')
+                        });
+                    }
+                },
+                name : &quot;thumbnailColumnImage&quot;,
+                id : &quot;thumbnailColumnImage&quot;,
+                value : &quot;&quot;
+            }
+        }, {
+            jsObj : &quot;Ext.form.TextField&quot;,
+            config : {
+                fieldLabel : i18n.get(&quot;label.sizeLimitWidth&quot;),
+                allowBlank : false,
+                width : 200,
+                listeners : {
+                    render : function (c) {
+                        Ext.QuickTips.register({
+                            target : c,
+                            text : i18n.get('label.sizeLimitWidthTooltip')
+                        });
+                    }
+                },
+                name : &quot;sizeLimitWidth&quot;,
+                value : &quot;500&quot;
+            }
+        }, {
+            jsObj : &quot;Ext.form.TextField&quot;,
+            config : {
+                fieldLabel : i18n.get('label.sizeLimitHeight'),
+                allowBlank : false,
+                width : 200,
+                listeners : {
+                    render : function (c) {
+                        Ext.QuickTips.register({
+                            target : c,
+                            text : i18n.get('label.sizeLimitHeightTooltip')
+                        });
+                    }
+                },
+                name : &quot;sizeLimitHeight&quot;,
+                value : &quot;500&quot;
+            }
+        }, {
+            jsObj : &quot;Ext.form.TextField&quot;,
+            config : {
+                fieldLabel : i18n.get('label.zoomFactor'),
+                allowBlank : false,
+                width : 200,
+                listeners : {
+                    render : function (c) {
+                        Ext.QuickTips.register({
+                            target : c,
+                            text : i18n.get('label.zoomFactorTooltip')
+                        });
+                    }
+                },
+                name : &quot;zoomFactor&quot;,
+                value : &quot;20&quot;
+            }
+        }, {
+            jsObj : &quot;Ext.form.TextField&quot;,
+            config : {
+                fieldLabel : i18n.get('label.maxZoom'),
+                allowBlank : false,
+                width : 200,
+                listeners : {
+                    render : function (c) {
+                        Ext.QuickTips.register({
+                            target : c,
+                            text : i18n.get('label.maxZoomTooltip')
+                        });
+                    }
+                },
+                name : &quot;maxZoom&quot;,
+                value : &quot;10000&quot;
+            }
+        } 
+    ];
+};
+
+sitools.user.component.dataviews.services.WindowImageZoomer.getDefaultParameters = function () {
+    return [ {
+        name : &quot;featureType&quot;,
+        value : &quot;Image&quot;
+    }, {
+        name : &quot;columnAlias&quot;,
+        value : &quot;&quot;
+    }, {
+        name : &quot;sizeLimitWidth&quot;,
+        value : &quot;500&quot;
+    }, {
+        name : &quot;sizeLimitHeight&quot;,
+        value : &quot;500&quot;
+    }, {
+        name : &quot;zoomFactor&quot;,
+        value : &quot;20&quot;
+    }, {
+        name : &quot;maxZoom&quot;,
+        value : &quot;10000&quot;
+    } ];
+};
+
+sitools.user.component.dataviews.services.WindowImageZoomer.executeAsService = function (config) {
+    var windowImageZoomer = new sitools.user.component.dataviews.services.WindowImageZoomer(config);
+    windowImageZoomer.show();
+};
+
+</pre>
+</body>
+</html>

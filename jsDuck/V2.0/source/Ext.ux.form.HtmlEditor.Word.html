@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-ux-form-HtmlEditor-Word'>/**
+</span> * @author Shea Frederick - http://www.vinylfox.com
+ * @class Ext.ux.form.HtmlEditor.Word
+ * @extends Ext.util.Observable
+ * &lt;p&gt;A plugin that creates a button on the HtmlEditor for pasting text from Word without all the jibberish html.&lt;/p&gt;
+ */
+Ext.ux.form.HtmlEditor.Word = Ext.extend(Ext.util.Observable, {
+    // Word language text
+    langTitle: 'Word Paste',
+    langToolTip: 'Cleanse text pasted from Word or other Rich Text applications',
+    wordPasteEnabled: true,
+    // private
+	curLength: 0,
+	lastLength: 0,
+	lastValue: '',
+	// private
+    init: function(cmp){
+        
+        this.cmp = cmp;
+        this.cmp.on('render', this.onRender, this);
+		this.cmp.on('initialize', this.onInit, this, {delay:100, single: true});
+        
+    },
+	// private
+	onInit: function(){
+		
+		Ext.EventManager.on(this.cmp.getDoc(), {
+            'keyup': this.checkIfPaste,
+            scope: this
+        });
+		this.lastValue = this.cmp.getValue();
+		this.curLength = this.lastValue.length;
+		this.lastLength = this.lastValue.length;
+		
+	},
+	// private
+	checkIfPaste: function(e){
+		
+		var diffAt = 0;
+		this.curLength = this.cmp.getValue().length;
+		
+		if (e.V == e.getKey() &amp;&amp; e.ctrlKey &amp;&amp; this.wordPasteEnabled){
+			
+			this.cmp.suspendEvents();
+			
+			diffAt = this.findValueDiffAt(this.cmp.getValue());
+			var parts = [
+				this.cmp.getValue().substr(0, diffAt),
+				this.fixWordPaste(this.cmp.getValue().substr(diffAt, (this.curLength - this.lastLength))),
+				this.cmp.getValue().substr((this.curLength - this.lastLength)+diffAt, this.curLength)
+			];
+			this.cmp.setValue(parts.join(''));
+			
+			this.cmp.resumeEvents();
+		}
+		
+		this.lastLength = this.cmp.getValue().length;
+		this.lastValue = this.cmp.getValue();
+		
+	},
+	// private
+	findValueDiffAt: function(val){
+		
+		for (i=0;i&lt;this.curLength;i++){
+			if (this.lastValue[i] != val[i]){
+				return i;			
+			}
+		}
+		
+	},
+<span id='Ext-ux-form-HtmlEditor-Word-method-fixWordPaste'>    /**
+</span>     * Cleans up the jubberish html from Word pasted text.
+     * @param wordPaste String The text that needs to be cleansed of Word jibberish html.
+     * @return {String} The passed in text with all Word jibberish html removed.
+     */
+    fixWordPaste: function(wordPaste) {
+        
+        var removals = [/&amp;nbsp;/ig, /[\r\n]/g, /&lt;(xml|style)[^&gt;]*&gt;.*?&lt;\/\1&gt;/ig, /&lt;\/?(meta|object|span)[^&gt;]*&gt;/ig,
+			/&lt;\/?[A-Z0-9]*:[A-Z]*[^&gt;]*&gt;/ig, /(lang|class|type|href|name|title|id|clear)=\&quot;[^\&quot;]*\&quot;/ig, /style=(\'\'|\&quot;\&quot;)/ig, /&lt;![\[-].*?-*&gt;/g, 
+			/MsoNormal/g, /&lt;\\?\?xml[^&gt;]*&gt;/g, /&lt;\/?o:p[^&gt;]*&gt;/g, /&lt;\/?v:[^&gt;]*&gt;/g, /&lt;\/?o:[^&gt;]*&gt;/g, /&lt;\/?st1:[^&gt;]*&gt;/g, /&amp;nbsp;/g, 
+            /&lt;\/?SPAN[^&gt;]*&gt;/g, /&lt;\/?FONT[^&gt;]*&gt;/g, /&lt;\/?STRONG[^&gt;]*&gt;/g, /&lt;\/?H1[^&gt;]*&gt;/g, /&lt;\/?H2[^&gt;]*&gt;/g, /&lt;\/?H3[^&gt;]*&gt;/g, /&lt;\/?H4[^&gt;]*&gt;/g, 
+            /&lt;\/?H5[^&gt;]*&gt;/g, /&lt;\/?H6[^&gt;]*&gt;/g, /&lt;\/?P[^&gt;]*&gt;&lt;\/P&gt;/g, /&lt;!--(.*)--&gt;/g, /&lt;!--(.*)&gt;/g, /&lt;!(.*)--&gt;/g, /&lt;\\?\?xml[^&gt;]*&gt;/g, 
+            /&lt;\/?o:p[^&gt;]*&gt;/g, /&lt;\/?v:[^&gt;]*&gt;/g, /&lt;\/?o:[^&gt;]*&gt;/g, /&lt;\/?st1:[^&gt;]*&gt;/g, /style=\&quot;[^\&quot;]*\&quot;/g, /style=\'[^\&quot;]*\'/g, /lang=\&quot;[^\&quot;]*\&quot;/g, 
+            /lang=\'[^\&quot;]*\'/g, /class=\&quot;[^\&quot;]*\&quot;/g, /class=\'[^\&quot;]*\'/g, /type=\&quot;[^\&quot;]*\&quot;/g, /type=\'[^\&quot;]*\'/g, /href=\'#[^\&quot;]*\'/g, 
+            /href=\&quot;#[^\&quot;]*\&quot;/g, /name=\&quot;[^\&quot;]*\&quot;/g, /name=\'[^\&quot;]*\'/g, / clear=\&quot;all\&quot;/g, /id=\&quot;[^\&quot;]*\&quot;/g, /title=\&quot;[^\&quot;]*\&quot;/g, 
+            /&lt;span[^&gt;]*&gt;/g, /&lt;\/?span[^&gt;]*&gt;/g, /&lt;title&gt;(.*)&lt;\/title&gt;/g, /class=/g, /&lt;meta[^&gt;]*&gt;/g, /&lt;link[^&gt;]*&gt;/g, /&lt;style&gt;(.*)&lt;\/style&gt;/g, 
+            /&lt;w:[^&gt;]*&gt;(.*)&lt;\/w:[^&gt;]*&gt;/g];
+					
+        Ext.each(removals, function(s){
+            wordPaste = wordPaste.replace(s, &quot;&quot;);
+        });
+        
+        // keep the divs in paragraphs
+        wordPaste = wordPaste.replace(/&lt;div[^&gt;]*&gt;/g, &quot;&lt;p&gt;&quot;);
+        wordPaste = wordPaste.replace(/&lt;\/?div[^&gt;]*&gt;/g, &quot;&lt;/p&gt;&quot;);
+        return wordPaste;
+        
+    },
+	// private
+    onRender: function() {
+        
+        this.cmp.getToolbar().add({
+            iconCls: 'x-edit-wordpaste',
+            pressed: true,
+            handler: function(t){
+                t.toggle(!t.pressed);
+                this.wordPasteEnabled = !this.wordPasteEnabled;
+            },
+            scope: this,
+            tooltip: {
+                text: this.langToolTip
+            },
+            overflowText: this.langTitle
+        });
+		
+    }
+});</pre>
+</body>
+</html>

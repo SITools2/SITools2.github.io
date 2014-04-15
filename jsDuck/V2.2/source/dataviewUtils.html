@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/*******************************************************************************
+</span> * Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * 
+ * This file is part of SITools2.
+ * 
+ * SITools2 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * SITools2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * SITools2. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ******************************************************************************/
+
+/*global Ext, sitools, i18n, sql2ext, extColModelToSrv, window,
+ extColModelToJsonColModel, DEFAULT_NEAR_LIMIT_SIZE,
+ DEFAULT_LIVEGRID_BUFFER_SIZE, SITOOLS_DEFAULT_IHM_DATE_FORMAT,
+ DEFAULT_PREFERENCES_FOLDER, SitoolsDesk, getDesktop, userLogin, projectGlobal, ColumnRendererEnum, SITOOLS_DATE_FORMAT
+*/
+Ext.namespace('sitools.user.component.dataviews');
+
+<span id='global-property-dataviewUtils'>/**
+</span> * A Simple Object to publish common methods to use dataviews in Sitools2.
+ * @type 
+ */
+sitools.user.component.dataviews.dataviewUtils = {
+//sitools.user.component.liveGrid.dataviewUtils = {
+<span id='global-method-getFormParamsFromRecsSelected'>    /**
+</span>     * build the param that will represent the active selection.
+     * @param [Ext.data.Record] recSelected the selected records
+     * @returns {} this object contains the param that will use FORM API 
+     */
+    getFormParamsFromRecsSelected : function (recSelected) {
+        var rec = recSelected[0], result = {};
+        var primaryKeyName = &quot;&quot;;
+        Ext.each(rec.fields.items, function (field) {
+            if (field.primaryKey) {
+                primaryKeyName = field.name;
+            }
+        });
+        if (Ext.isEmpty(primaryKeyName)) {
+            Ext.Msg.alert(i18n.get('label.error'), i18n.get('label.noPrimaryKey'));
+            return;
+        }
+        // build the primaryKey Value
+        var primaryKeyValues = [];
+        Ext.each(recSelected, function (record) {
+            primaryKeyValues.push(record.get(primaryKeyName));
+        });
+
+        // use the form API to request the selected records
+        result[&quot;p[0]&quot;] = &quot;LISTBOXMULTIPLE|&quot; + primaryKeyName + &quot;|&quot; + primaryKeyValues.join(&quot;|&quot;);
+        return result;
+    },
+    
+
+<span id='global-method-getRendererLiveGrid'>    /**
+</span>     * Get the renderer for a column from its featureType for the DataView
+     * @param {Object} item col the Column definition
+     * @param {Object} dataviewConfig the specific dataview Configuration.
+     * @return {function} the renderer for a column
+     */
+    getRendererLiveGrid : function (item, dataviewConfig) {
+        var renderer;
+        if (!Ext.isEmpty(item.columnRenderer)) {
+            renderer = function (value, metadata, record, rowIndex, colIndex,
+                    store) {
+                if (!Ext.isEmpty(value)) {
+                    if (!Ext.isEmpty(item.columnRenderer.toolTip)){
+                        metadata.attr = 'ext:qtip=&quot;' + item.columnRenderer.toolTip + '&quot;';
+                    }
+                    
+                    var imageStyle = &quot;max-width:&quot; + (item.width - 10) + &quot;px;&quot;;
+                    if (!Ext.isEmpty(dataviewConfig) &amp;&amp; !Ext.isEmpty(dataviewConfig.lineHeight)) {
+                        imageStyle += &quot;max-height: &quot; + (dataviewConfig.lineHeight - 10) + &quot;px;&quot;;
+                    }
+                    var html = sitools.user.component.dataviews.dataviewUtils.getRendererHTML(item, imageStyle );
+                    var str;
+                    if (!Ext.isEmpty(html)) {
+                        if (item.columnRenderer.behavior == ColumnRendererEnum.IMAGE_FROM_SQL) {
+                            var imageUrl = record.get(item.columnRenderer.columnAlias);                     
+                            str = String.format(html, value, imageUrl);
+                        } else {
+                            str = String.format(html, value);
+                        }
+                    }
+                    return str;
+                } else {
+                    return value;
+                }                
+            };
+        } else {
+            renderer = function (value) {
+                var valueFormat = value;
+                if (sql2ext.get(item.sqlColumnType) == 'dateAsString') {
+                    valueFormat = sitools.user.component.dataviews.dataviewUtils.formatDate(
+                            value, item);
+                }
+                if (sql2ext.get(item.sqlColumnType) == 'boolean') {
+                    valueFormat = value ? i18n.get('label.true') : i18n
+                            .get('label.false');
+                }
+                return valueFormat;
+            };
+        }
+        return renderer;
+    },
+    
+
+    
+<span id='global-method-getRendererDataView'>    /**
+</span>     * Get the template to render a column from its featureType for the DataView
+     * @param {Object} col the Column definition
+     * @param {String} style the style to add to the label part
+     * @param {Object} dataviewConfig the specific dataview Configuration.
+     * @return {String} a template to render a column from its featureType for the DataView
+     */
+    getRendererDataView : function (col, style, dataviewConfig) {
+            var tplString = &quot;&quot;, value, behavior, label, valueDisplayed;
+            var columnRenderer = col.columnRenderer;
+            if (!Ext.isEmpty(columnRenderer)) {
+                behavior = columnRenderer.behavior;
+                var html = sitools.user.component.dataviews.dataviewUtils.getRendererHTML(col, dataviewConfig);
+                switch (behavior) {
+                case ColumnRendererEnum.URL_LOCAL :
+                case ColumnRendererEnum.URL_EXT_NEW_TAB :
+                case ColumnRendererEnum.URL_EXT_DESKTOP :
+               
+                case ColumnRendererEnum.DATASET_ICON_LINK :
+                    if (!Ext.isEmpty(columnRenderer.linkText)) {
+                        tplString += String.format(&quot;&lt;tpl if=\&quot;this.isNotEmpty({0})\&quot;&gt;&quot;, col.columnAlias);              
+                        value = String.format(html, &quot;{&quot; + col.columnAlias + &quot;}&quot;);
+                        tplString += String.format('&lt;span class=&quot;dataview_columnValue&quot;&gt;&lt;div class=x-view-entete style=&quot;{2}&quot;&gt;{0} &lt;/div&gt; {1}&lt;/span&gt;', col.header, value, style);
+                        tplString += &quot;&lt;/tpl&gt;&quot;;            
+                        tplString += String.format(&quot;&lt;tpl if=\&quot;this.isEmpty({0})\&quot;&gt;&quot;, col.columnAlias);
+                        value = &quot;&quot;;
+                        tplString += String.format('&lt;span class=&quot;dataview_columnValue&quot;&gt;&lt;div class=x-view-entete style=&quot;{2}&quot;&gt;{0} &lt;/div&gt; {1}&lt;/span&gt;', col.header, value, style);
+                        tplString += &quot;&lt;/tpl&gt;&quot;;
+                    } else if (!Ext.isEmpty(columnRenderer.image)) {
+                        tplString += String.format(&quot;&lt;tpl if=\&quot;this.isNotEmpty({0})\&quot;&gt;&quot;, col.columnAlias);
+                        tplString += String.format('&lt;li  class=&quot;img-link&quot; ext:qtip=&quot;{0}&quot;&gt;', col.header);
+                        tplString += String.format(html, &quot;{&quot; + col.columnAlias + &quot;}&quot;);
+                        tplString += '&lt;/li&gt;&lt;/tpl&gt;';
+                    }
+                    break;
+                case ColumnRendererEnum.IMAGE_THUMB_FROM_IMAGE :
+                    tplString += String.format(&quot;&lt;tpl if=\&quot;this.isNotEmpty({0})\&quot;&gt;&quot;, col.columnAlias);
+                    tplString += String.format('&lt;li  class=&quot;img-link&quot; ext:qtip=&quot;{0}&quot;&gt;', col.header);
+                    tplString += String.format(html, &quot;{&quot; + col.columnAlias + &quot;}&quot;);
+                    tplString += '&lt;/li&gt;&lt;/tpl&gt;';
+                    break;
+                case ColumnRendererEnum.IMAGE_FROM_SQL :
+                    var imageUrl = &quot;&quot;;
+                    if (!Ext.isEmpty(columnRenderer.url)) {
+                        imageUrl = columnRenderer.url;
+                    } else if (!Ext.isEmpty(columnRenderer.columnAlias)) {
+                        imageUrl = &quot;{&quot; + columnRenderer.columnAlias + &quot;}&quot;;            
+                    }
+                    tplString += String.format(&quot;&lt;tpl if=\&quot;this.isNotEmpty({0})\&quot;&gt;&quot;, col.columnAlias);
+                    tplString += String.format('&lt;li  class=&quot;img-link&quot; ext:qtip=&quot;{0}&quot;&gt;', col.header, imageUrl);
+                    tplString += String.format(html, &quot;{&quot; + col.columnAlias + &quot;}&quot;, imageUrl);
+                    tplString += '&lt;/li&gt;&lt;/tpl&gt;';
+                    break;
+                default :                                 
+                    tplString += String.format(&quot;&lt;tpl if=\&quot;this.isNotEmpty({0})\&quot;&gt;&quot;, col.columnAlias);
+                    value = String.format(html, &quot;{&quot; + col.columnAlias + &quot;}&quot;);
+                    tplString += String.format('&lt;span class=&quot;dataview_columnValue&quot;&gt;&lt;div class=x-view-entete style=&quot;{2}&quot;&gt;{0} &lt;/div&gt; {1}&lt;/span&gt;', col.header, value, style);
+                    tplString += &quot;&lt;/tpl&gt;&quot;;            
+                    tplString += String.format(&quot;&lt;tpl if=\&quot;this.isEmpty({0})\&quot;&gt;&quot;, col.columnAlias);
+                    value = &quot;&quot;;
+                    tplString += String.format('&lt;span class=&quot;dataview_columnValue&quot;&gt;&lt;div class=x-view-entete style=&quot;{2}&quot;&gt;{0} &lt;/div&gt; {1}&lt;/span&gt;', col.header, value, style);
+                    tplString += &quot;&lt;/tpl&gt;&quot;;                    
+                    break;
+                }
+            } else {
+                if (sql2ext.get(col.sqlColumnType) == 'dateAsString') {
+                    tplString += String.format('&lt;span class=&quot;dataview_columnValue&quot;&gt;&lt;div class=x-view-entete style=&quot;{2}&quot;&gt;{0} &lt;/div&gt; &lt;tpl if=\&quot;this.isValidDate({1})\&quot;&gt;{[Date.parseDate(values.{1}, SITOOLS_DATE_FORMAT).format(&quot;{3}&quot;)]}&lt;/tpl&gt;&lt;/span&gt;', 
+                        col.header, 
+                        col.columnAlias, 
+                        style, 
+                        Ext.isEmpty(col.format) ? SITOOLS_DEFAULT_IHM_DATE_FORMAT : col.format);
+                }
+                else {
+                    tplString += String.format('&lt;span class=&quot;dataview_columnValue&quot;&gt;&lt;div class=x-view-entete style=&quot;{2}&quot;&gt;{0} &lt;/div&gt; {{1}}&lt;/span&gt;', col.header, col.columnAlias, style);
+                }
+            }
+            return tplString;
+        },
+    
+<span id='global-method-getRendererHTML'>    /**
+</span>     * Get the HTML specific part to render a column corresponding to its featureType (columnRenderer)
+     * It is a formated date where {0} must be replaced by the column value and {1} by the imageUrl to display in big only for ColumnRendererEnum.IMAGE_FROM_SQL
+     * @param {Object} item the column definition
+     * @param {Object} dataviewConfig the specific dataview Configuration.
+     * @return {String} a formated HTML String 
+     */
+    getRendererHTML : function (item, imageStyle) {
+        var renderer, valueDisplayed, imageUrl;
+        var html;
+        if (!Ext.isEmpty(item.columnRenderer) &amp;&amp; !Ext.isEmpty(item.columnRenderer.behavior)) {
+            
+            var columnRenderer = item.columnRenderer;
+            switch (columnRenderer.behavior) {
+            case ColumnRendererEnum.URL_LOCAL :
+            case ColumnRendererEnum.URL_EXT_NEW_TAB :
+            case ColumnRendererEnum.URL_EXT_DESKTOP :
+                if (!Ext.isEmpty(columnRenderer.linkText)) {
+                    html = &quot;&lt;span class='link featureType' sitools:column='&quot;+item.columnAlias+&quot;'&gt;&quot; + columnRenderer.linkText + &quot;&lt;/span&gt;&quot;;
+                } else if (!Ext.isEmpty(columnRenderer.image)) {
+                    html = &quot;&lt;div class='image-link featureType' sitools:column='&quot;+item.columnAlias+&quot;'&gt;&lt;img src=\&quot;&quot; + columnRenderer.image.url + &quot;\&quot; class='sitools-display-image' style ='&quot; + imageStyle + &quot;' &gt;&lt;/img&gt;&lt;/div&gt;&quot;;
+                }
+                break;
+            case ColumnRendererEnum.IMAGE_NO_THUMB :
+                html = &quot;&lt;span class='link featureType' sitools:column='&quot;+item.columnAlias+&quot;'&gt;&quot; + columnRenderer.linkText + &quot;&lt;/span&gt;&quot;; 
+                break;
+            case ColumnRendererEnum.IMAGE_THUMB_FROM_IMAGE :
+                html = &quot;&lt;div class='image-link featureType' sitools:column='&quot;+item.columnAlias+&quot;'&gt;&lt;img class='sitools-display-image' src='{0}' style ='&quot; + imageStyle + &quot;'&gt;&lt;/img&gt;&lt;/div&gt;&quot;;  
+                break;
+            case ColumnRendererEnum.IMAGE_FROM_SQL :
+                html = &quot;&lt;div class='image-link featureType' sitools:column='&quot;+item.columnAlias+&quot;'&gt;&lt;img class='sitools-display-image image-link' src='{1}' style ='&quot; + imageStyle + &quot;'&gt;&lt;/div&gt;&quot;; 
+                break;
+            case ColumnRendererEnum.DATASET_LINK :
+                html = &quot;&lt;span class='link featureType' sitools:column='&quot;+item.columnAlias+&quot;'&gt;{0}&lt;/span&gt;&quot;; 
+                break;
+            case ColumnRendererEnum.DATASET_ICON_LINK :
+                if (!Ext.isEmpty(columnRenderer.image)) {
+                    imageUrl = columnRenderer.image.url;                    
+                }
+                html = &quot;&lt;div class='image-link featureType' sitools:column='&quot;+item.columnAlias+&quot;'&gt;&lt;img style ='&quot; + imageStyle + &quot;' class='sitools-display-image' src='&quot; + imageUrl + &quot;'&gt;&lt;/div&gt;&quot;;
+                break;
+            default : 
+                html = &quot;{0}&quot;; 
+                break;
+            }
+        } 
+
+        return html;
+    },
+    
+    getRendererViewDataDetails : function (item) {
+        
+        
+    },
+    
+
+<span id='global-method-featureTypeAction'>    /**
+</span>     * Execute the action on a featureType column. It can be either a
+     * Gui_Service action if one is configured, or a classic featureType
+     * action
+     * 
+     * @param column
+     *            {Object} the column
+     * @param record
+     *            {Ext.data.Record} the record
+     * @param controller
+     *            {sitools.user.component.dataviews.services.GuiServiceController}
+     *            the current Gui_Service controller
+     */
+    featureTypeAction : function (column, record, controller) {
+        var service = controller.getService(column.columnAlias);
+        if (!Ext.isEmpty(service)) {
+            controller.callGuiService(service.id, record, column.columnAlias);
+        }
+        else {
+            this.executeFeatureType(column, record);
+        }
+    },
+<span id='global-method-executeFeatureType'>    /**
+</span>     * Execute the featureType action depending on the given column and record
+     * 
+     * @param column
+     *            {Object} the column
+     * @param record
+     *            {Ext.data.Record} the record
+     */
+    executeFeatureType : function (column, record) {
+        if (!Ext.isEmpty(column.columnRenderer) &amp;&amp; !Ext.isEmpty(column.columnRenderer.behavior)) {
+            var value = record.get(column.columnAlias);
+            var columnRenderer = column.columnRenderer;
+            switch (columnRenderer.behavior) {
+            case ColumnRendererEnum.URL_LOCAL :
+                sitools.user.component.dataviews.dataviewUtils.downloadData(value);
+                break;
+            case ColumnRendererEnum.URL_EXT_NEW_TAB :
+                window.open(value); 
+                break;
+            case ColumnRendererEnum.URL_EXT_DESKTOP :
+                sitools.user.component.dataviews.dataviewUtils.showDisplayableUrl(value, columnRenderer.displayable); 
+                break;
+            case ColumnRendererEnum.IMAGE_NO_THUMB :
+                sitools.user.component.dataviews.dataviewUtils.showPreview(value, columnRenderer.linkText); 
+                break;
+            case ColumnRendererEnum.IMAGE_THUMB_FROM_IMAGE :
+            case ColumnRendererEnum.IMAGE_FROM_SQL :
+                sitools.user.component.dataviews.dataviewUtils.showPreview(value, column.header); 
+                break;
+            case ColumnRendererEnum.DATASET_LINK :
+            case ColumnRendererEnum.DATASET_ICON_LINK :
+                sitools.user.component.dataviews.dataviewUtils.showDetailsData(value, columnRenderer.columnAlias, columnRenderer.datasetLinkUrl); 
+                break;
+            default : 
+                break;
+            }
+        } 
+    },
+    
+    
+    
+    formatDate : function (value, item) {
+        var valueFormat;
+        var result = Date.parseDate(value, SITOOLS_DATE_FORMAT, true);                
+        // try to build Date with &quot;Y-m-d&quot; format
+        if (Ext.isEmpty(result)) {
+            valueFormat = &quot;&quot;;
+        }
+        else {
+            if (Ext.isEmpty(item.format)) {
+                valueFormat = result.format(SITOOLS_DEFAULT_IHM_DATE_FORMAT);
+            }
+            else {
+                try {
+                    valueFormat = result.format(item.format);
+                }
+                catch (err) {
+                    valueFormat = &quot;unable to format Date&quot;;
+                }
+            }
+        }
+        return valueFormat;    
+    }, 
+<span id='global-static-method-downloadData'>    /**
+</span>     * @static
+     * Execute a REST OPTION request to the value url. 
+     * Switch on Content-Type value to determine if we open a new iframe, or a window. 
+     * @param {} value the url to request 
+     */
+    downloadData : function (value) {
+    //    value = encodeURIComponent(value);
+       //build first request to get the headers
+        Ext.Ajax.request({
+            url : value,
+            method : 'HEAD',
+            scope : this,
+            success : function (ret) {
+                try {
+                    var headerFile = ret.getResponseHeader(&quot;Content-Type&quot;)
+                            .split(&quot;;&quot;)[0].split(&quot;/&quot;)[0];
+                    if (headerFile == &quot;text&quot;) {
+                        Ext.Ajax.request({
+                            url : value,
+                            method : 'GET',
+                            scope : this,
+                            success : function (ret) {
+                                var windowConfig = {
+                                    id : &quot;winPreferenceDetailId&quot;,
+                                    title : value, 
+                                    iconCls : &quot;version&quot;
+                                };
+                                var jsObj = Ext.Panel;
+                                var componentCfg = {
+                                    layout : 'fit',
+                                    autoScroll : true,
+                                    html : ret.responseText
+                                };
+                                SitoolsDesk.addDesktopWindow(
+                                        windowConfig, componentCfg,
+                                        jsObj);
+                            }
+                        });
+                    } else if (headerFile == &quot;image&quot;) {
+                        sitools.user.component.dataviews.dataviewUtils.showPreview(value, item.header);
+                    } else {
+                        sitools.user.component.dataviews.dataviewUtils.downloadFile(value);         
+                    }
+                } catch (err) {
+                    Ext.Msg.alert(i18n.get('label.error'), err);
+                }
+            },
+            failure : function (ret) {
+                return null;
+            }
+        });
+    }, 
+<span id='global-static-method-showDisplayableUrl'>    /**
+</span>     * @static Build a MIF panel with a given url and load it into the desktop
+     * @param {}
+     *            value the url to request
+     * @param {boolean}
+     *            true if the url is displayable in a window, false otherwise
+     */
+    showDisplayableUrl : function (value, isDisplayable, customConfig) {
+        if (isDisplayable) {
+            
+            if (customConfig) {
+                var windowConfig = customConfig;
+            }
+            else {
+                var windowConfig = {
+                    title : value,
+                    id : value, 
+                    iconCls : &quot;version&quot;
+                };
+            }
+            
+            var jsObj = Ext.ux.ManagedIFrame.Panel;
+            var componentCfg = {
+                defaults : {
+                    padding : 10
+                },
+                layout : 'fit',
+                region : 'center',
+                defaultSrc : value,
+                listeners : {
+                    documentloaded : function (iframe){
+                        this.ownerCt.syncSize();
+                    }
+                }
+            };
+            
+        SitoolsDesk.addDesktopWindow(
+                windowConfig, componentCfg,
+                jsObj);
+        } else {             
+            sitools.user.component.dataviews.dataviewUtils.downloadFile(value);                
+        }
+        
+    }, 
+<span id='global-method-downloadFile'>    /**
+</span>     * Use a spcialized MIF to download datas...
+     * @param {String} url the url to request.
+     */
+    downloadFile : function (url) {
+        if (Ext.getCmp(&quot;mifToDownload&quot;)) {
+            Ext.getCmp(&quot;mifToDownload&quot;).destroy();
+        }
+        
+        var forceDlParam = &quot;forceDownload=true&quot;;
+        var defaultSrc = url + ((url.indexOf(&quot;?&quot;) === -1) ? &quot;?&quot; : &quot;&amp;&quot;) + forceDlParam;
+        
+        var mifToDownload = new Ext.ux.ManagedIFrame.Panel({
+            layout : 'fit',
+            id : &quot;mifToDownload&quot;, 
+            region : 'center',
+            defaultSrc : defaultSrc, 
+            renderTo : Ext.getBody(), 
+            cls : 'x-hidden'
+        });
+        
+    }, 
+<span id='global-static-method-showDetailsData'>    /**
+</span>     * @static 
+     * Definition of the showDetailData method used by the columnRenderer. Calls the
+     * Livegrid corresponding to the dataset linked to the column. To filter the
+     * data : use the form API : [&quot;RADIO|&quot; + columnAlias + &quot;|'&quot; + value + &quot;'&quot;]
+     * @param {string} value
+     * @param {string} columnAlias
+     * @param {string} datasetUrl
+     */
+    showDetailsData : function (value, columnAlias, datasetUrl) {
+        var desktop = getDesktop();
+    
+        // récupération des données du dataset
+        Ext.Ajax.request({
+            scope : this,
+            method : 'GET',
+            url : datasetUrl,
+            success : function (response, opts) {
+                try {
+                    var json = Ext.decode(response.responseText);
+                    if (!json.success) {
+                        Ext.Msg.alert(i18n.get('label.error'), json.message);
+                        return;
+                    }
+                    var formParams = [ &quot;RADIO|&quot; + columnAlias + &quot;|&quot; + value ];
+                    var dataset = json.dataset;
+                    var jsObj = eval(dataset.datasetView.jsObject);
+                    var componentCfg = {
+                        dataUrl : dataset.sitoolsAttachementForUsers,
+                        datasetId : dataset.id,
+                        datasetCm : dataset.columnModel,
+                        formParams : formParams, 
+                        datasetName : dataset.name, 
+                        dictionaryMappings : dataset.dictionaryMappings, 
+                        datasetViewConfig : dataset.datasetViewConfig, 
+                        preferencesPath : &quot;/&quot; + dataset.name, 
+                        preferencesFileName : &quot;datasetView&quot;
+                        
+                    };
+                    
+                    var windowConfig = {
+                        id : &quot;wind&quot; + dataset.id + columnAlias + value,
+                        title : i18n.get('label.dataTitle') + &quot; : &quot; + dataset.name,
+                        datasetName : dataset.name,
+                        type : &quot;data&quot;,
+                        saveToolbar : true, 
+                        iconCls : &quot;dataDetail&quot;
+                    };
+                    SitoolsDesk.addDesktopWindow(windowConfig, componentCfg, jsObj);
+    
+                } catch (err) {                
+                }
+            }
+        });
+
+    }, 
+<span id='global-static-method-showPreview'>    /**
+</span>     * @static 
+     * Definition of the showPreview method used by the columnRenderer.
+     * @param {string} value The img src
+     */
+    showPreview : function (value, title) {
+        var previewWin = new sitools.widget.WindowImageViewer({            
+            title : title,
+            src : value,
+            hideAction : 'close',
+            resizeImage : false
+        });
+        
+        previewWin.show();
+        previewWin.toFront();
+    }, 
+<span id='global-method-isNoClientAccess'>    /**
+</span>     * Return true if the column is NoClientAccess
+     * @param {Object} column the column object
+     * @return {boolean} true if the column should not be used in client
+     */
+    isNoClientAccess : function (column) {
+        return !Ext.isEmpty(column.columnRenderer) &amp;&amp;  ColumnRendererEnum.NO_CLIENT_ACCESS == column.columnRenderer.behavior;
+    }, 
+<span id='global-method-getFilters'>    /**
+</span>     * @param {Array} listeColonnes
+     *            ColumnModel of the grid
+     * @param {Array} activeFilters
+     *            Definition of the filters used to build the grid
+     * 
+     * @returns {Array} The filters configuration for the grid
+     */
+    getFilters : function (listeColonnes, activeFilters) {
+
+        var filters = [];
+        var i = 0;
+        if (!Ext.isEmpty(listeColonnes)) {
+            // First loop on all the columns
+            Ext.each(listeColonnes, function (item, index, totalItems) {
+                if (item.filter) {
+                    var boolActiveFilter = false, activeFilterValue = &quot;&quot;, activeComparison = &quot;&quot;;
+                    // loop on active filters to determine if there is an active
+                    // filter on the column
+                    Ext.each(activeFilters, function (activeFilter) {
+                        if (item.columnAlias == activeFilter.columnAlias) {
+                            boolActiveFilter = true;
+                            // construct the value for the specific filter
+                            if (activeFilter.data.type == 'numeric') {
+                                if (!Ext.isObject(activeFilterValue)) {
+                                    activeFilterValue = {};
+                                }
+                                activeFilterValue[activeFilter.data.comparison] = activeFilter.data.value;
+                            } else if (activeFilter.data.type == 'date') {
+                                var date = new Date();
+                                var tmp = activeFilter.data.value.split('-');
+                                date.setFullYear(tmp[0], tmp[1] - 1, tmp[2]);
+
+                                if (!Ext.isObject(activeFilterValue)) {
+                                    activeFilterValue = {};
+                                }
+                                if (activeFilter.data.comparison == 'eq') {
+                                    activeFilterValue.on = date;
+                                }
+                                if (activeFilter.data.comparison == 'gt') {
+                                    activeFilterValue.after = date;
+                                }
+                                if (activeFilter.data.comparison == 'lt') {
+                                    activeFilterValue.before = date;
+                                }
+                            } else {
+                                activeFilterValue = activeFilter.data.value;
+                            }
+                        }
+                    });
+                    var filter = {
+                        type : sql2ext.get(item.sqlColumnType),
+                        active : boolActiveFilter,
+                        dataIndex : item.columnAlias,
+                        columnAlias : item.columnAlias,
+                        value : activeFilterValue
+                    };
+
+                    filters.push(filter);
+                }
+                i++;
+
+            }, this);
+        }
+        return filters;
+
+    },
+    
+    createColMenu : function (view, columnModel) {
+        var colCount = columnModel.getColumnCount();
+        var menu = new Ext.menu.Menu();
+        
+        for (var i = 0; i &lt; colCount; i++) {
+            if (columnModel.config[i].hideable !== false &amp;&amp; !columnModel.config[i].isSelectionModel) {
+                menu.add(new Ext.menu.CheckItem({
+                    itemId : 'col-' + columnModel.getColumnId(i),
+                    text : columnModel.getColumnHeader(i),
+                    checked : !columnModel.isHidden(i),
+                    hideOnClick : false,
+                    disabled : columnModel.config[i].hideable === false,
+                    listeners : {
+                        scope : view,
+                        checkchange : function (ci, checked) {
+                            if (checked) {
+                                var colModel = extColModelToSrv(columnModel);
+                                view.grid.getStore().load({
+                                    params : {
+                                        colModel : Ext.util.JSON.encode(colModel)
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }));
+            }
+        }
+        menu.on('itemclick', view.handleHdMenuClick, view);
+        
+        return menu;
+    },
+    
+    copyImageToClipboard : function CopyToClip(img) {
+       
+    }
+};</pre>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools*/
+/*
+ * @include &quot;../ComponentFactory.js&quot;
+ */
+Ext.ns('sitools.common.forms.components');
+
+<span id='sitools-common-forms-components-mapPanel'>/**
+</span> * A Map Panel to request on a specific Layer.
+ * @requires sitools.common.forms.ComponentFactory
+ * @class sitools.common.forms.components.mapPanel
+ * @extends Ext.Container
+ */
+sitools.common.forms.components.mapPanel = Ext.extend(Ext.Container, {
+//sitools.component.users.SubSelectionParameters.SingleSelection.mapPanel = Ext.extend(Ext.Container, {
+	defaultLayers : [&quot;basic&quot;], 
+	defaultWmsUrl : &quot;http://vmap0.tiles.osgeo.org/wms/vmap0&quot;, 
+    initComponent : function () {
+ 		this.context = new sitools.common.forms.ComponentFactory(this.context);
+        var layersName = [], wmsUrl = &quot;&quot;;
+ 		
+ 		if (Ext.isArray(this.extraParams)) {
+ 			Ext.each(this.extraParams, function (param) {
+ 				switch (param.name) {
+ 					case &quot;url&quot; : 
+ 						wmsUrl = param.value;
+ 					break;
+ 					case &quot;layer&quot; : 
+ 						layersName.push(param.value);
+ 					break;
+ 				}
+ 			});
+ 		}
+ 	
+    	
+	    var map = new OpenLayers.Map();
+	    var layer, layerName;
+	    if (Ext.isEmpty(wmsUrl)) {
+	    	layersName = this.defaultLayers;
+	    	wmsUrl = this.defaultWmsUrl;
+	    }
+	    
+	    
+	    for (var index = 0; index &lt; layersName.length; index++) {
+	    	layerName = layersName[index] || layerName;
+	    	layer = new OpenLayers.Layer.WMS(
+		        layerName,
+		        wmsUrl, 
+		        {layers: layerName},
+            	{isBaseLayer: index == 0}
+		    );
+		    map.addLayer(layer);
+	    }
+	    
+	    var vectorLayer = new OpenLayers.Layer.Vector(&quot;Vector Layer&quot;, {});
+		
+		map.addLayer(vectorLayer);
+		
+		map.addControl(new OpenLayers.Control.MouseToolbar());
+		map.addControl(new OpenLayers.Control.MousePosition());
+		
+		var action, actions = {}, toolbarItems = [];
+	    action = new GeoExt.Action({
+	        text: i18n.get('label.navigate'),
+	        iconCls: 'btn-navigate', 
+	        control: new OpenLayers.Control.Navigation(),
+	        map: map,
+	        // button options
+	        toggleGroup: &quot;draw&quot;,
+	        allowDepress: false,
+	        pressed: true,
+	        tooltip: i18n.get('label.navigate'),
+	        // check item options
+	        group: &quot;draw&quot;,
+	        checked: true
+	    });
+	    actions[&quot;nav&quot;] = action;
+	    toolbarItems.push(action);
+	    
+        
+        var ctrl_draw = new OpenLayers.Control.DrawFeature(
+            vectorLayer, OpenLayers.Handler.RegularPolygon, {
+	            callbacks : {
+	            	&quot;create&quot; : function () {
+	            		this.layer.removeAllFeatures();
+	            	}
+	            }, 
+	            handlerOptions : {
+	            	sides : 4, 
+	            	irregular : true
+	            }
+    		}
+        );
+        map.addControl(ctrl_draw);
+	    action = new GeoExt.Action({
+	        text: i18n.get('label.drawPoly'),
+	        iconCls: 'btn-drawPoly', 
+	        control: ctrl_draw,
+	        map: map,
+	        // button options
+	        toggleGroup: &quot;draw&quot;,
+	        allowDepress: false,
+	        tooltip: i18n.get('label.drawPoly'),
+	        // check item options
+	        group: &quot;draw&quot;
+	    });
+	    actions[&quot;draw_poly&quot;] = action;
+	    toolbarItems.push(action);
+
+	    var ctrl_drag = new OpenLayers.Control.DragFeature(vectorLayer);
+	    
+	    map.addControl(ctrl_drag);
+	    ctrl_drag.activate();
+	    this.mapPanel = new GeoExt.MapPanel({
+	        height: 300,
+	        width: 300,
+	        map: map,
+	        center: new OpenLayers.LonLat(5, 45),
+	        zoom: 4, 
+	        tbar : new Ext.Toolbar({
+	        	defaults : {
+	        		width : 100
+	        	}, 
+	        	items : toolbarItems
+	        })
+	    });
+	    Ext.apply(this, {
+	    	layout : &quot;hbox&quot;,
+	    	stype : &quot;sitoolsFormContainer&quot;,
+	        items : [this.mapPanel], 
+	        listeners : {
+	        	scope : this, 
+	        	resize : function (mainContainer, adjWidth, adjHeight) {
+	        		this.mapPanel.setSize({
+	        			height : adjHeight, 
+	        			width : adjWidth 
+	        		})
+	        	}
+	        }
+        });
+        sitools.common.forms.components.mapPanel.superclass.initComponent.apply(this,
+                arguments);
+    },
+
+    getSelectedValue : function () {
+        try {
+        	var layer = this.mapPanel.map.getLayersBy(&quot;name&quot;, &quot;Vector Layer&quot;)[0];
+        	return layer.features[0].geometry.getBounds();
+        }
+        catch (err) {
+        	return null;
+        }
+    },
+    getParameterValue : function () {
+		var value = this.getSelectedValue();
+		if (Ext.isEmpty(value)) {
+		    return null;
+		}
+	   	return {
+	    	type : this.type, 
+	    	code : this.code, 
+	    	value : value.left + &quot;,&quot; + value.bottom + &quot;,&quot; + value.right + &quot;,&quot; + value.top
+	    };
+//      	return this.type + &quot;|&quot; + this.code + &quot;|&quot; + value.left + &quot;,&quot; + value.bottom + &quot;,&quot; + value.right + &quot;,&quot; + value.top;
+
+    }
+});
+</pre>
+</body>
+</html>

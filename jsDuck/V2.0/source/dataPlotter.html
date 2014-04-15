@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, projectGlobal, commonTreeUtils, showResponse, DEFAULT_PREFERENCES_FOLDER, 
+ document, i18n, $, Flotr, userLogin, SitoolsDesk, sql2ext, loadUrl,
+ SITOOLS_DATE_FORMAT, SITOOLS_DEFAULT_IHM_DATE_FORMAT, DEFAULT_LIVEGRID_BUFFER_SIZE, WARNING_NB_RECORDS_PLOT*/
+/*
+ * @include &quot;../viewDataDetail/viewDataDetail.js&quot;
+ * @include &quot;../../sitoolsProject.js&quot;
+ */
+<span id='global-property-'>/**
+</span> * 
+ * &lt;a href=&quot;https://sourceforge.net/tracker/?func=detail&amp;aid=3313793&amp;group_id=531341&amp;atid=2158259&quot;&gt;[3313793]&lt;/a&gt;&lt;br/&gt;
+ * 16/06/2011 m.gond {Display the right number of data plotted} &lt;br/&gt;
+ * 
+ * ExtJS layout for plotting data
+ */
+
+Ext.namespace('sitools.user.component');
+
+<span id='sitools-user-component-dataPlotter-cfg-componentType'><span id='sitools-user-component-dataPlotter-cfg-datasetId'><span id='sitools-user-component-dataPlotter-cfg-formMultiDsParams'><span id='sitools-user-component-dataPlotter-cfg-formParam'><span id='sitools-user-component-dataPlotter-cfg-datasetName'><span id='sitools-user-component-dataPlotter-cfg-selections'><span id='sitools-user-component-dataPlotter-cfg-filters'><span id='sitools-user-component-dataPlotter-cfg-columnModel'><span id='sitools-user-component-dataPlotter-cfg-dataUrl'><span id='sitools-user-component-dataPlotter'>/**
+</span></span></span></span></span></span></span></span></span></span> * @cfg {String} dataUrl the dataset url attachment
+ * @cfg {} columnModel the dataset's column model
+ * @cfg {} filters the list of filters to apply (filters from the dataview)
+ * @cfg {String} selections the selections as a String to add to the URL (selections from the dataview) 
+ * @cfg {String} datasetName the name of the dataset
+ * @cfg {} formParam list of parameters from a query form
+ * @cfg {} formMultiDsParams list of parameters from a multidataset query form
+ * @cfg {String} datasetId the id of the dataset
+ * @cfg {string} componentType Should be &quot;plot&quot;
+ * @requires sitools.user.component.viewDataDetail
+ * @class sitools.user.component.dataPlotter
+ * @extends Ext.Panel
+ */
+sitools.user.component.dataPlotter = function (config) {
+//sitools.component.users.datasets.dataPlotter = function (config) {
+
+    Ext.apply(this, config);
+    
+    this.dataUrl = config.dataUrl;
+    this.datasetName = config.datasetName;
+    this.datasetId = config.datasetId;
+	
+<span id='sitools-user-component-dataPlotter-property-hasPlotted'>	/** Variable to know if the plot has been done once */
+</span>    this.hasPlotted = false;
+
+<span id='sitools-user-component-dataPlotter-method-getNumericFields'>    /** function to get numeric fields */
+</span>    function getNumericFields(arrayFields) {
+        var numericFields = [];
+        var store = new Ext.data.JsonStore({
+			fields : [{
+				name : &quot;columnAlias&quot;, 
+				type : &quot;string&quot;
+			}, {
+				name : &quot;sqlColumnType&quot;, 
+				type : &quot;string&quot;
+			}]
+        });
+        Ext.each(arrayFields, function (field) {
+            if (!Ext.isEmpty(field.sqlColumnType)) {
+                var extType = sql2ext.get(field.sqlColumnType);
+                if (extType.match(/^(numeric)+[48]?$/gi) !== null &amp;&amp; !field.hidden) {
+                    store.add(new Ext.data.Record(field));
+                }
+                if (extType.match(/dateAsString/gi) !== null &amp;&amp; !field.hidden) {
+                    store.add(new Ext.data.Record(field));
+                }
+            }  
+        }, this);
+        
+        return store;
+    }
+    
+<span id='sitools-user-component-dataPlotter-method-getVisibleFields'>    /** function to get numeric fields */
+</span>    function getVisibleFields(arrayFields) {
+        var visibleFields = [];
+        Ext.each(arrayFields, function (field) {
+            if (!field.hidden) {
+                visibleFields.push(field.columnAlias);
+            }
+        }, this);
+        return visibleFields;
+    }
+
+<span id='sitools-user-component-dataPlotter-property-bufferRange'>    /**
+</span>     * Buffer range for display in the bottom bar
+     */
+    this.bufferRange = 300;
+
+<span id='sitools-user-component-dataPlotter-property-dataUrl'>    /**
+</span>     * Dataset url for data details
+     */
+    var dataUrl = config.dataUrl;
+
+    this.columnModel = config.columnModel;
+    
+<span id='sitools-user-component-dataPlotter-property-initialFields'>    /** Initial fields list */
+</span>    var initialFields = getNumericFields(this.columnModel);
+<span id='sitools-user-component-dataPlotter-property-pointTagFields'>    /** Point tag field list */
+</span>    var pointTagFields = getVisibleFields(this.columnModel);
+<span id='sitools-user-component-dataPlotter-property-isSelection'>    /**
+</span>     * Whether or not there was a selection
+     */
+    this.isSelection = !Ext.isEmpty(config.selections); 
+    
+<span id='sitools-user-component-dataPlotter-property-'>    /** Initial data */
+</span>//    var rawData = config.dataplot.data.items;
+
+<span id='sitools-user-component-dataPlotter-property-titleX'>    /** field for x axis label */
+</span>    this.titleX = new Ext.form.Field({
+        fieldLabel : i18n.get('label.plot.form.xlabel'), 
+        anchor : &quot;95%&quot;,
+        name : &quot;titleX&quot;,
+        listeners : {
+            scope : this,
+            change : this.handlePlotLayout
+        }
+        
+    });
+    
+<span id='sitools-user-component-dataPlotter-property-xFormat'>    /** field for x axis label */
+</span>    this.xFormat = null;
+
+<span id='sitools-user-component-dataPlotter-property-titleY'>    /** field for y axis label */
+</span>    this.titleY = new Ext.form.Field({
+        fieldLabel : i18n.get('label.plot.form.ylabel'), 
+        anchor : &quot;95%&quot;,
+        name : &quot;titleY&quot;,
+        listeners : {
+            scope : this,
+            change : this.handlePlotLayout
+        }
+    });
+<span id='sitools-user-component-dataPlotter-property-yFormat'>    /** field for x axis label */
+</span>    this.yFormat = null;
+
+    
+<span id='sitools-user-component-dataPlotter-property-comboX'>    /** combobox for x field */
+</span>    this.comboX = new Ext.form.ComboBox({
+        store : initialFields, 
+        anchor : &quot;95%&quot;,
+        name : &quot;comboX&quot;,
+        allowBlank : false,
+        emptyText : i18n.get('label.plot.select.xaxis'),
+        fieldLabel : i18n.get('label.plot.select.xcolumn'),
+        selectOnFocus : true,
+        triggerAction : 'all',
+        valueField : &quot;columnAlias&quot;, 
+        displayField : &quot;columnAlias&quot;, 
+        editable : false,
+        mode : 'local',
+        listeners : {
+            scope : this, 
+            select : function (combo, record, index) {
+                this.titleX.setValue(combo.getValue());
+                var extType = sql2ext.get(record.get(&quot;sqlColumnType&quot;));
+                if (extType.match(/dateAsString/gi) !== null) {
+                    if (Ext.isEmpty(this.xFormat)) {
+						this.xFormat = new Ext.form.Field({
+	                        fieldLabel : i18n.get('label.plot.form.xFormat'), 
+					        anchor : &quot;95%&quot;,
+							name : &quot;xFormat&quot;,
+							value : config.userPreference &amp;&amp; config.userPreference.xFormat ? config.userPreference.xFormat : SITOOLS_DEFAULT_IHM_DATE_FORMAT,
+                            listeners : {
+					            scope : this,
+					            change : this.handlePlotLayout
+					        }
+					    });
+	                    this.fieldSetX.insert(1, this.xFormat);
+                    }
+                }
+                else {
+					this.fieldSetX.remove(this.xFormat);
+					this.xFormat = null;
+                }
+                this.fieldSetX.doLayout();
+            },
+            expand : function (combo) {
+                combo.store.clearFilter(true);
+                if (this.comboY.getValue() !== '' &amp;&amp; this.comboY.getValue() !== null) {
+                    combo.store.filterBy(function (record, id) {
+                        return record.get('field1') !== this.comboY.getValue();
+                    }, this);
+                }
+
+            }
+        }
+    });
+    
+<span id='sitools-user-component-dataPlotter-property-comboY'>    /** combo box for y data */
+</span>    this.comboY = new Ext.form.ComboBox({
+        store : initialFields, 
+        name : &quot;comboY&quot;,
+        allowBlank : false,
+        anchor : &quot;95%&quot;,
+        emptyText : i18n.get('label.plot.select.yaxis'),
+        fieldLabel : i18n.get('label.plot.select.ycolumn'),
+        selectOnFocus : true,
+        editable : false,
+        valueField : &quot;columnAlias&quot;, 
+        displayField : &quot;columnAlias&quot;, 
+        triggerAction : 'all',
+        mode : 'local',
+        listeners : {
+            scope : this, 
+            select : function (combo, record, index) {
+                this.titleY.setValue(combo.getValue());
+                var extType = sql2ext.get(record.get(&quot;sqlColumnType&quot;));
+                if (extType.match(/dateAsString/gi) !== null) {
+                    if (Ext.isEmpty(this.yFormat)) {
+						this.yFormat = new Ext.form.Field({
+	                        fieldLabel : i18n.get('label.plot.form.yFormat'), 
+					        anchor : &quot;95%&quot;,
+							name : &quot;yFormat&quot;,
+							value : config.userPreference &amp;&amp; config.userPreference.yFormat ? config.userPreference.yFormat : SITOOLS_DEFAULT_IHM_DATE_FORMAT,
+                            listeners : {
+                                scope : this,
+                                change : this.handlePlotLayout
+                            }
+					    });
+//	                    if (Ext.isEmpty(xFormat)) {
+//							this.leftPanel.insert(2, yFormat);
+//	                    }
+//	                    else {
+//							this.leftPanel.insert(3, yFormat);
+//	                    }
+					    this.fieldSetY.insert(1, this.yFormat);
+                    }
+                }
+                else {
+					this.fieldSetY.remove(this.yFormat);
+					this.yFormat = null;
+                }
+                this.fieldSetY.doLayout();
+            },
+            expand : function (combo) {
+                combo.store.clearFilter(true);
+                if (this.comboX.getValue() !== '' &amp;&amp; this.comboX.getValue() !== null) {
+                    combo.store.filterBy(function (record, id) {
+                        return record.get('field1') !== this.comboX.getValue();
+                    }, this);
+                }
+
+            }
+        }
+    });
+
+<span id='sitools-user-component-dataPlotter-property-titlePlot'>    /** field for x axis label */
+</span>    this.titlePlot = new Ext.form.Field({
+        anchor : &quot;95%&quot;,
+        fieldLabel : i18n.get('label.plot.form.title'), 
+        name : &quot;titlePlot&quot;,
+        listeners : {
+            scope : this,
+            change : this.handlePlotLayout
+        }
+    });
+    
+<span id='sitools-user-component-dataPlotter-property-numberRecords'>     /** field for x axis label */
+</span>    var numberRecords = new Ext.form.NumberField({
+        anchor : &quot;95%&quot;,
+        fieldLabel : i18n.get('label.plot.form.nbRecords'), 
+        name : &quot;nbRecords&quot;,
+        value : DEFAULT_LIVEGRID_BUFFER_SIZE,
+        disabled : this.isSelection,
+        allowBlank : false
+    });
+
+<span id='sitools-user-component-dataPlotter-property-checkLine'>    /** checkbox for drawing line */
+</span>    this.checkLine = new Ext.form.Checkbox({
+        fieldLabel : i18n.get('label.plot.form.drawline'), 
+        name : &quot;checkLine&quot;,
+        scope : this,
+        listeners : {
+            scope : this,
+            check : this.handlePlotLayout            
+        }
+    });
+    
+   
+
+<span id='sitools-user-component-dataPlotter-property-comboTag'>    /** Combo box for tag title */
+</span>    this.comboTag = new Ext.form.ComboBox({
+        store : pointTagFields,
+        name : &quot;this.comboTag&quot;,
+        anchor : &quot;95%&quot;,
+        allowBlank : true,
+        emptyText : i18n.get('label.plot.select.tag'),
+        fieldLabel : i18n.get('label.plot.select.tagcolumn'),
+        selectOnFocus : true,
+        triggerAction : 'all',
+        mode : 'local',
+        scope : this,
+        listeners : {
+            scope : this,
+            select : this.handlePlotLayout
+        }
+    });
+    
+    this.comboXColor = new sitools.widget.colorField({
+		fieldLabel : i18n.get('label.plot.label.color'),
+        anchor : &quot;95%&quot;,
+		name : &quot;comboXColor&quot;,
+        value : &quot;#000000&quot;,
+        listeners : {
+            scope : this,
+            select : this.handlePlotLayout
+        }
+	});
+    
+    this.comboYColor = new sitools.widget.colorField({
+		fieldLabel : i18n.get('label.plot.label.color'),
+        anchor : &quot;95%&quot;,
+		name : &quot;comboYColor&quot;, 
+		value : &quot;#000000&quot;,
+        listeners : {
+            scope : this,
+            select : this.handlePlotLayout
+        }
+	});
+	this.fieldSetX = new Ext.form.FieldSet({
+		title : i18n.get('title.plot.xAxis'), 
+		items : [this.comboX, this.titleX, this.comboXColor], 
+		collapsible : true
+	});
+	this.fieldSetY = new Ext.form.FieldSet({
+		title : i18n.get('title.plot.yAxis'), 
+		items : [this.comboY, this.titleY, this.comboYColor], 
+		collapsible : true
+	});
+    
+   
+    
+    var urlRecords = config.dataUrl + '/records';
+    //if there was a selection let's add the selection string to the urlRecords
+    if (this.isSelection) {
+        urlRecords += &quot;?1=1&amp;&quot; + config.selections;   
+    }
+    var sitoolsAttachementForUsers = config.dataUrl;
+    
+    this.storeData = new sitools.user.component.dataviews.tplView.StoreTplView({
+        datasetCm : this.columnModel,         
+        urlRecords : urlRecords,
+        sitoolsAttachementForUsers : sitoolsAttachementForUsers,
+        userPreference : config.userPreference, 
+        formParams : (!this.isSelection ? config.formParams : undefined), 
+        formMultiDsParams : (!this.isSelection ? config.formMultiDsParams : undefined), 
+        mainView : this,
+        datasetId : config.datasetId,
+        isFirstCountDone : false,
+        autoLoad : false,
+        filters : config.filters
+    });
+    
+    
+    this.storeData.addListener(&quot;load&quot;, function (store, records, options) {
+        this.displayPlot(records);
+    }, this);
+    
+    
+    this.storeData.on(&quot;beforeload&quot;, function (store, options) {
+        //set the nocount param to false.
+        //before load is called only when a new action (sort, filter) is applied
+        var noCount;
+        
+        if (!store.isFirstCountDone) {
+            options.params.nocount = false;
+        } else {
+            options.params.nocount = true;
+        }
+        
+        if (!this.isSelection &amp;&amp; !Ext.isEmpty(store.filters)) {
+            var params = store.buildQuery(store.filters.getFilterData());
+            Ext.apply(options.params, params);
+        }
+        
+        this.storeData.storeOptions(options);
+        
+    }, this);
+    
+    
+<span id='sitools-user-component-dataPlotter-property-drawPlotButton'>        /** button to draw the plot */
+</span>    this.drawPlotButton = new Ext.Button({
+        text : i18n.get('label.plot.draw'),
+        disabled : true,
+        listeners : {
+            scope : this, 
+			click : function (button, e) {
+                var form = this.leftPanel.getForm();
+                var pageSize = form.findField(&quot;nbRecords&quot;).getValue();
+                
+                if (pageSize &gt; WARNING_NB_RECORDS_PLOT) {   
+                    Ext.Msg.show({
+						title: i18n.get(&quot;label.warning&quot;),
+						msg: String.format(i18n.get(&quot;label.plot.toManyRecordsAsked&quot;), pageSize, WARNING_NB_RECORDS_PLOT) ,
+						buttons: Ext.Msg.YESNO,
+						icon: Ext.MessageBox.WARNING,
+						scope : this,
+						fn : function (buttonId) {
+                            if (buttonId === 'yes') {
+                                this.loadPlot(pageSize);
+                            }						
+						}
+					});
+                } else {
+                    this.loadPlot(pageSize);  
+                }
+            }
+        }
+    });
+    
+    var bbar;
+    if (this.isSelection) {
+        bbar = new Ext.Toolbar({
+            hidden : true,
+	        items : [ '-&gt;', {
+	            id : 'plot-tb-text',
+	            xtype : 'tbtext'
+	//            text : 'Displaying ' + bufferSize + ' record' + (bufferSize &gt; 1 ? 's' : '') + ' from ' + (bufferRange[0] + 1) + ' to ' + (bufferRange[1] + 1)
+	        } ]
+	    });
+    } else {
+        bbar = new Ext.PagingToolbar({
+            hidden : true,
+	        store: this.storeData,       // grid and PagingToolbar using same store
+	        displayInfo: true,
+	        pageSize: DEFAULT_LIVEGRID_BUFFER_SIZE,
+            items : []
+	    });        
+    }
+    
+    
+    
+<span id='sitools-user-component-dataPlotter-property-rightPanel'>    /** right panel is the plot place */
+</span>    this.rightPanel = new Ext.Panel({
+        id : 'plot-right-panel',
+        title : i18n.get('title.plot.panel'),
+        region : 'center',
+        margins : '2 2 2 1',
+        scope : this,
+        listeners : {
+            scope : this,
+            bodyresize : function (window, width, height) {
+                if (this.isVisible() &amp;&amp; this.hasPlotted) {
+                    if (!Ext.isEmpty(this.storeData.data)) {
+	                    this.displayPlot(this.storeData.data.items);
+                    }
+                }
+            },
+            afterRender : function () {
+                 // create a new loadingMask
+		        this.loadMask = new Ext.LoadMask(this.rightPanel.getEl(), {
+		            msg : i18n.get(&quot;label.plot.waitForPlot&quot;),
+                    store : this.storeData
+		        });
+                
+            }
+        },
+        bbar : bbar
+    });
+    
+   
+
+<span id='sitools-user-component-dataPlotter-property-leftPanel'>    /** left panel is a form */
+</span>    this.leftPanel = new Ext.FormPanel({
+        title : i18n.get('title.plot.form'),
+        region : 'west',
+        split : true,
+        width : 300,
+        autoScroll : true, 
+        collapsible : true,
+        margins : '2 1 2 2',
+        cmargins : '2 2 2 2',
+        padding : '5',
+        monitorValid : true,
+        items : [ this.titlePlot, numberRecords, this.checkLine, this.comboTag, this.fieldSetX, this.fieldSetY],
+        buttons : [this.drawPlotButton],
+        listeners : {
+            scope : this,
+            clientvalidation : function (panel, valid) {
+                if (valid &amp;&amp; (this.comboX.getValue() !== this.comboY.getValue())) {
+                    this.drawPlotButton.setDisabled(false);
+                } else {
+                    this.drawPlotButton.setDisabled(true);
+                }
+            }
+        }
+    });
+    
+    
+<span id='sitools-user-component-dataPlotter-property-'>    /** Automatic plot refresh when buffering */
+</span>//    rightPanel.addListener('buffer', 
+//		function (storage, rowindex, min, total) {
+//			if (this.isVisible() &amp;&amp; this.hasPlotted) {
+//				rawData = storage.data.items;
+//				bufferSize = storage.bufferSize;
+//				bufferRange = storage.bufferRange;
+//				bbar.findById('plot-tb-text').setText(
+//                'Displaying ' + bufferSize + ' record' + (bufferSize &gt; 1 ? 's' : '') + ' from ' + (bufferRange[0] + 1) + ' to ' + (bufferRange[1] + 1));
+//				var plotConfig = getPlotConfig(columnModel, rawData);
+//				this.plot = Flotr.draw($(rightPanel.body.id), [ plotConfig.data ], plotConfig.config);
+//			}
+//		}, 
+//		this
+//	);
+
+    
+
+    // /** Function to transform log checks in plot styles */
+    // function scaleTypeFromCheckBox (checkbox) {
+    // var style = 'linear';
+    // if (checkbox.getValue()) {
+    // style = 'logarithmic';
+    // }
+    // return style;
+    // }
+
+    
+    
+    /*
+     * Constructor call
+     */
+    sitools.user.component.dataPlotter.superclass.constructor.call(this, Ext.apply({
+        id : 'plot-panel',
+        datasetName : config.datasetName, 
+        layout : 'border',
+        items : [ this.leftPanel, this.rightPanel ]
+//        bbar : bbar
+    }, config));
+    
+};
+
+Ext.extend(sitools.user.component.dataPlotter, Ext.Panel, {
+<span id='sitools-user-component-dataPlotter-method-_getSettings'>	/** 
+</span>     * Must be implemented to save window Settings
+     * @return {}
+     */
+    _getSettings : function () {
+        return {
+			datasetName : this.datasetName, 
+			leftPanelValues : this.leftPanel.getForm().getValues(), 
+            preferencesPath : this.preferencesPath, 
+            preferencesFileName : this.preferencesFileName
+        };
+    }, 
+<span id='sitools-user-component-dataPlotter-method-afterRender'>    /**
+</span>     * Load the userPreferences...
+     */
+    afterRender : function () {
+		sitools.user.component.dataPlotter.superclass.afterRender.call(this);
+		this.el.on(&quot;contextmenu&quot;, function (e, t, o) {
+			e.stopEvent();
+            if (this.hasPlotted) {
+				var ctxMenu = new Ext.menu.Menu({
+					items : [{
+						text : i18n.get('label.plot.savePng'), 
+						scope : this, 
+						handler : function () {
+							this.plot.saveImage(&quot;png&quot;, &quot;plotImage&quot;);
+						}
+					}]
+				});
+				ctxMenu.showAt(e.getXY());
+	//			this.plot.saveImage(&quot;png&quot;);
+            }
+		}, this);
+        
+        
+        
+		if (Ext.isEmpty(this.userPreference)) {
+			return;
+		}
+		var record, idx;
+		//load the preference a first Time...
+		this.leftPanel.getForm().loadRecord(new Ext.data.Record(this.userPreference.leftPanelValues));
+		//fire select to create optional fields...
+		var comboX = this.leftPanel.find(&quot;name&quot;, &quot;comboX&quot;)[0];
+		if (!Ext.isEmpty(this.comboX.getValue())) {
+			idx = this.comboX.getStore().find(&quot;columnAlias&quot;, this.userPreference.comboX); 
+			record = this.comboX.getStore().getAt(idx);
+			if (record) {
+				this.comboX.fireEvent(&quot;select&quot;, this.comboX, record, idx);
+			}
+		}
+		var comboY = this.leftPanel.find(&quot;name&quot;, &quot;comboY&quot;)[0];
+		if (!Ext.isEmpty(this.comboY.getValue())) {
+			idx = this.comboY.getStore().find(&quot;columnAlias&quot;, this.userPreference.comboY);
+			record = this.comboY.getStore().getAt(idx);
+			if (record) {
+				this.comboY.fireEvent(&quot;select&quot;, this.comboY, record, idx);
+			}
+		}
+		//reload the preference with all fields...
+		this.leftPanel.getForm().loadRecord(new Ext.data.Record(this.userPreference));
+    
+        
+    },
+<span id='sitools-user-component-dataPlotter-method-displayPlot'>    /**
+</span>     * @private
+     * Main function to display the plot directly from its data. Without a server call
+     * @param {Array} records the list records to show in the plot
+     */
+    displayPlot : function (records) {
+        this.storeData.isFirstCountDone = true;
+        var plotConfig = this.getPlotConfig(this.columnModel, records);
+        this.plot = Flotr.draw($(this.rightPanel.body.id), [ plotConfig.data ], plotConfig.config);
+        $(this.rightPanel.body.id).stopObserving('flotr:click');
+        $(this.rightPanel.body.id).observe('flotr:click', this.showDataDetail.bindAsEventListener(this));
+        $(this.rightPanel.body.id).stopObserving('flotr:select');
+        $(this.rightPanel.body.id).observe('flotr:select', function (evt) {
+            var area = evt.memo[0];
+            var options = plotConfig.config;
+            options.xaxis.min = area.x1;
+            options.xaxis.max = area.x2;
+            options.yaxis.min = area.y1;
+            options.yaxis.max = area.y2;
+            this.plot = Flotr.draw($(this.id), [ plotConfig.data ], options);
+        });
+        this.hasPlotted = true;        
+        
+        if (this.isSelection) {
+            this.rightPanel.getBottomToolbar().findById('plot-tb-text').setText(String.format(i18n.get(&quot;label.plot.displayNbRecords&quot;),
+                    records.length));
+            
+        } 
+        this.rightPanel.getBottomToolbar().setVisible(true);
+        this.doLayout();
+        
+        
+    },
+<span id='sitools-user-component-dataPlotter-method-loadPlot'>    /**
+</span>     * @private
+     * Main function to display the plot by getting the data from the server
+     * @param {int} pageSize the number of records to get
+     */
+    loadPlot : function (pageSize) {
+        var form = this.leftPanel.getForm();
+        
+        if (!this.isSelection) {
+            this.rightPanel.getBottomToolbar().pageSize = pageSize;
+        }
+        
+        this.storeData.load({
+            params : {
+                start : 0,
+                limit : pageSize
+            }
+            
+        });
+    },
+    
+<span id='sitools-user-component-dataPlotter-property-'>    /**
+</span>     * 
+     */
+    
+    
+<span id='sitools-user-component-dataPlotter-method-createData'>    /**
+</span>     * @private
+     * Create plot-able dataset from the store
+     * @param {} columnModel the columnModel of the dataset
+     * @param {} storeItems the records from the store
+     * @return the plot-able data 
+     */
+    createData : function (columnModel, storeItems) {
+        var outData = [];
+        Ext.each(storeItems, function (item) {
+            var tag = this.comboTag.getValue() !== '' ? item.get(this.comboTag.getValue()) : null;
+            var colXType = sql2ext.get(this.getColumn(columnModel, this.comboX.getValue()).sqlColumnType);
+            var colYType = sql2ext.get(this.getColumn(columnModel, this.comboY.getValue()).sqlColumnType);
+            var xValue, yValue;
+            switch (colXType) {
+            case &quot;dateAsString&quot; : 
+                xValue = Date.parseDate(item.get(this.comboX.getValue()), SITOOLS_DATE_FORMAT, true);
+                if (!Ext.isEmpty(xValue)) {
+                    xValue = xValue.getTime();  
+                }
+                break;
+            case &quot;numeric&quot; : 
+                xValue = parseFloat(item.get(this.comboX.getValue()));
+                break;
+            default : 
+                xValue = item.get(this.comboX.getValue());
+                break;
+            }
+            switch (colYType) {
+            case &quot;dateAsString&quot; : 
+                var value = item.get(this.comboY.getValue());
+                yValue = Date.parseDate(value, SITOOLS_DATE_FORMAT, true);
+                
+                if (!Ext.isEmpty(yValue)) {
+                    yValue = yValue.getTime();  
+                }
+                break;
+            case &quot;numeric&quot; : 
+                yValue = parseFloat(item.get(this.comboY.getValue()));
+                break;
+            default : 
+                yValue = item.get(this.comboY.getValue());
+                break;
+            }
+            outData.push([ xValue, yValue, item.id, tag ? tag : item.id ]);
+        }, this);
+        return outData;
+    },
+<span id='sitools-user-component-dataPlotter-method-getColumn'>    /**
+</span>     * Get a column from the given columnModel corresponding to the given columnAlias
+     * @param {} columnModel the list of columns
+     * @param {} columnAlias the column alias to search for
+     * @return {} the columnFound or undefined if not found 
+     */
+    getColumn : function (columnModel, columnAlias) {
+        var result;
+        for (var i = 0; i &lt; columnModel.length; i++) {
+            if (columnModel[i].columnAlias == columnAlias) {
+                result = columnModel[i];
+            }
+        }
+        return result;
+    },
+    
+
+<span id='sitools-user-component-dataPlotter-method-getPlotConfig'>    /**
+</span>     * @private
+     * Create the config for a plot and add the given data to it 
+     * @param {} columnModel the column model
+     * @param {} newdata the list of records to plot
+     * @return {} the config of the plot
+     */
+    getPlotConfig : function (columnModel, newdata) {
+        var d1 = this.createData(columnModel, newdata);
+        var yAxisFormat = &quot;Normal&quot;;
+        var colY = this.getColumn(columnModel, this.comboY.getValue());
+        var colYType = sql2ext.get(colY.sqlColumnType);
+        
+        var xAxisFormat = &quot;Normal&quot;;
+        var colX = this.getColumn(columnModel, this.comboX.getValue());
+        var colXType = sql2ext.get(colX.sqlColumnType);
+<span id='sitools-user-component-dataPlotter-method-colXFormater'>        /**
+</span>         * Formater for the X axis
+         */
+        var colXFormater = function  (value) {
+            if (colXType == &quot;dateAsString&quot;) {
+                var dt = new Date();
+                dt.setTime(value);
+                return dt.format(this.xFormat ? this.xFormat.getValue() : SITOOLS_DEFAULT_IHM_DATE_FORMAT);   
+            }
+            return value;
+        };
+<span id='sitools-user-component-dataPlotter-method-colYFormater'>        /**
+</span>         * Formater for the Y axis
+         */
+        var colYFormater = function (value) {
+            if (colYType == &quot;dateAsString&quot;) {
+                var dt = new Date();
+                dt.setTime(value);
+                return dt.format(this.yFormat ? this.yFormat.getValue() : SITOOLS_DEFAULT_IHM_DATE_FORMAT);   
+            }
+            return value;
+        }
+        
+        var plotConfig = {
+            HtmlText : false,
+            colors : [ '#00A8F0', '#C0D800', '#cb4b4b', '#4da74d', '#9440ed' ], // =&gt;
+            // The
+            // default
+            // colorscheme.
+            // When
+            // there
+            // are
+            // &gt; 5
+            // series,
+            // additional
+            // colors
+            // are
+            // generated.
+            title : this.titlePlot.getValue(),
+            legend : {
+                show : true, // =&gt; setting to true will show the legend, hide
+                // otherwise
+                noColumns : 1, // =&gt; number of colums in legend table
+                labelFormatter : null, // =&gt; fn: string -&gt; string
+                labelBoxBorderColor : '#ccc', // =&gt; border color for the
+                // little label boxes
+                container : null, // =&gt; container (as jQuery object) to put
+                // legend in, null means default on top of
+                // graph
+                position : 'ne', // =&gt; position of default legend container
+                // within plot
+                margin : 5, // =&gt; distance from grid edge to default legend
+                // container within plot
+                backgroundColor : '#CCCCCC', // =&gt; null means auto-detect
+                backgroundOpacity : 1.0
+            // =&gt; set to 0 to avoid background, set to 1 for a solid background
+            },
+            xaxis : {
+                ticks : null, // =&gt; format: either [1, 3] or [[1, 'a'], 3]
+                noTicks : 5, // =&gt; number of ticks for automagically
+                color : this.comboXColor.getValue() ? this.comboXColor.getValue() : &quot;#000000&quot;, 
+                //bind the formater to have the keed the correct scope
+                tickFormatter : colXFormater.bind(this), 
+                // generated ticks
+                tickDecimals : null, // =&gt; no. of decimals, null means auto
+                min : null, // =&gt; min. value to show, null means set
+                // automatically
+                max : null, // =&gt; max. value to show, null means set
+                // automatically
+                autoscaleMargin : 0, // =&gt; margin in % to add if auto-setting
+                // min/max
+                title : this.titleX.getValue(), 
+                mode : colXType == &quot;dateAsString&quot; ? &quot;time&quot; : &quot;Normal&quot;, 
+                labelsAngle : colXType == &quot;dateAsString&quot; ? 45 : 0, 
+                timeFormat : this.xFormat ? this.xFormat.getValue() : SITOOLS_DATE_FORMAT
+
+            // ,
+            // scale : scaleTypeFromCheckBox(logX)
+            },
+            yaxis : {
+                ticks : null, // =&gt; format: either [1, 3] or [[1, 'a'], 3]
+                color : this.comboYColor.getValue() ? this.comboYColor.getValue() : &quot;#000000&quot;, 
+                noTicks : 5, // =&gt; number of ticks for automagically
+                // generated ticks
+                tickDecimals : null, // =&gt; no. of decimals, null means auto
+                //bind the formater to have the keed the correct scope
+                tickFormatter : colYFormater.bind(this), 
+                min : null, // =&gt; min. value to show, null means set
+                // automatically
+                max : null, // =&gt; max. value to show, null means set
+                // automatically
+                autoscaleMargin : 0, // =&gt; margin in % to add if auto-setting
+                // min/max
+                title : this.titleY.getValue(), 
+                mode : colYType == &quot;dateAsString&quot; ? &quot;time&quot; : &quot;Normal&quot;, 
+                labelsAngle : 0, 
+                timeFormat : SITOOLS_DATE_FORMAT
+                
+            // ,
+            // scale : scaleTypeFromCheckBox(logY)
+            },
+            y2axis : {
+                title : ' '
+            },
+            points : {
+                show : true, // =&gt; setting to true will show points, false
+                // will hide
+                radius : 3, // =&gt; point radius (pixels)
+                lineWidth : 2, 
+                fill : true, // =&gt; true to fill the points with a color,
+                // false for (transparent) no fill
+                fillColor : '#ffffff' // =&gt; fill color
+            },
+            lines : {
+                show : this.checkLine.getValue(), // =&gt; setting to true will show
+                // lines, false will hide
+                lineWidth : 0.1, // =&gt; line width in pixels
+                fill : false, // =&gt; true to fill the area from the line to the
+                // x axis, false for (transparent) no fill
+                fillColor : null
+            // =&gt; fill color
+            },
+            grid : {
+                color : '#545454', // =&gt; primary color used for outline and
+                // labels
+                backgroundColor : '#FFFFFF', // =&gt; null for transparent, else
+                // color
+                tickColor : '#dddddd', // =&gt; color used for the ticks
+                labelMargin : 3
+            // =&gt; margin in pixels
+            },
+            selection : {
+                mode : 'xy', // =&gt; one of null, 'x', 'y' or 'xy'
+                color : '#B6D9FF', // =&gt; selection box color
+                fps : 10
+            // =&gt; frames-per-second
+            },
+            spreadsheet : {
+                show : false
+            },
+            mouse : {
+                track : true, // =&gt; true to track the mouse, no tracking
+                // otherwise
+                position : 'se', // =&gt; position of the value box (default
+                // south-east)
+                margin : 2, // =&gt; margin in pixels of the valuebox
+                color : '#ff3f19', // =&gt; line color of points that are drawn
+                // when mouse comes near a value of a series
+                trackDecimals : 1, // =&gt; decimals for the track values
+                sensibility : 10 * 1000000000, // =&gt; the lower this number, the more
+                // precise you have to aim to show a value
+                radius : 3
+            // =&gt; radius of the track point
+            },
+            shadowSize : 4
+        // =&gt; size of the 'fake' shadow
+        };
+        var out = {
+            data : d1,
+            config : plotConfig
+        };
+        return out;
+    },
+    
+<span id='sitools-user-component-dataPlotter-method-showDataDetail'>    /**
+</span>     * Function to show the details of a record
+     * @param {} evt the event calling the function
+     */
+    showDataDetail : function (evt) {
+        var idx = encodeURIComponent(evt.memo[1].prevHit.primaryKey);
+        var jsObj = sitools.user.component.viewDataDetail;
+        var componentCfg = {
+            datasetUrl : this.dataUrl, 
+            baseUrl : this.dataUrl + '/records',
+            datasetId : this.datasetId, 
+            fromWhere : &quot;plot&quot;,
+            url : this.dataUrl + '/records/' + idx, 
+            preferencesPath : &quot;/&quot; + this.datasetName, 
+            preferencesFileName : &quot;dataDetails&quot;
+        };
+        
+        var windowConfig = {
+            id : &quot;simpleDataDetail&quot; + this.datasetId, 
+            title : i18n.get('label.viewDataDetail') + &quot; : &quot; + evt.memo[1].prevHit.primaryKey,
+            datasetName : this.datasetName, 
+            saveToolbar : false, 
+            type : &quot;simpleDataDetail&quot;, 
+            iconCls : &quot;dataDetail&quot;
+        };
+        SitoolsDesk.addDesktopWindow(windowConfig, componentCfg, jsObj, true);
+    },
+    
+<span id='sitools-user-component-dataPlotter-method-handlePlotLayout'>    /**
+</span>     * Handler to change the plot layout.
+     * Should be used in a form param event
+     */
+    handlePlotLayout : function () {
+        if (this.hasPlotted) {
+            this.displayPlot(this.storeData.data.items);
+        }
+    }
+	
+});
+
+Ext.reg('sitools.user.component.dataPlotter', sitools.user.component.dataPlotter);
+</pre>
+</body>
+</html>

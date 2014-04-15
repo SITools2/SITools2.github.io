@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.dialog.add(&quot;about&quot;,function(a){a=a.lang.about;return{title:CKEDITOR.env.ie?a.dlgTitle:a.title,minWidth:390,minHeight:230,contents:[{id:&quot;tab1&quot;,label:&quot;&quot;,title:&quot;&quot;,expand:!0,padding:0,elements:[{type:&quot;html&quot;,html:'&lt;style type=&quot;text/css&quot;&gt;.cke_about_container{color:#000 !important;padding:10px 10px 0;margin-top:5px}.cke_about_container p{margin: 0 0 10px;}.cke_about_container .cke_about_logo{height:81px;background-color:#fff;background-image:url('+CKEDITOR.plugins.get(&quot;about&quot;).path+'dialogs/logo_ckeditor.png);background-position:center; background-repeat:no-repeat;margin-bottom:10px;}.cke_about_container a{cursor:pointer !important;color:#00B2CE !important;text-decoration:underline !important;}&lt;/style&gt;&lt;div class=&quot;cke_about_container&quot;&gt;&lt;div class=&quot;cke_about_logo&quot;&gt;&lt;/div&gt;&lt;p&gt;CKEditor '+
+CKEDITOR.version+&quot; (revision &quot;+CKEDITOR.revision+')&lt;br&gt;&lt;a href=&quot;http://ckeditor.com/&quot;&gt;http://ckeditor.com&lt;/a&gt;&lt;/p&gt;&lt;p&gt;'+a.help.replace(&quot;$1&quot;,'&lt;a href=&quot;http://docs.ckeditor.com/user&quot;&gt;'+a.userGuide+&quot;&lt;/a&gt;&quot;)+&quot;&lt;/p&gt;&lt;p&gt;&quot;+a.moreInfo+'&lt;br&gt;&lt;a href=&quot;http://ckeditor.com/about/license&quot;&gt;http://ckeditor.com/about/license&lt;/a&gt;&lt;/p&gt;&lt;p&gt;'+a.copy.replace(&quot;$1&quot;,'&lt;a href=&quot;http://cksource.com/&quot;&gt;CKSource&lt;/a&gt; - Frederico Knabben')+&quot;&lt;/p&gt;&lt;/div&gt;&quot;}]}],buttons:[CKEDITOR.dialog.cancelButton]}});</pre>
+</body>
+</html>

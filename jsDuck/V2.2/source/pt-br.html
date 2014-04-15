@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.plugins.setLang(&quot;specialchar&quot;,&quot;pt-br&quot;,{euro:&quot;Euro&quot;,lsquo:&quot;Aspas simples esquerda&quot;,rsquo:&quot;Aspas simples direita&quot;,ldquo:&quot;Aspas duplas esquerda&quot;,rdquo:&quot;Aspas duplas direita&quot;,ndash:&quot;Traço&quot;,mdash:&quot;Travessão&quot;,iexcl:&quot;Ponto de exclamação invertido&quot;,cent:&quot;Cent&quot;,pound:&quot;Cerquilha&quot;,curren:&quot;Dinheiro&quot;,yen:&quot;Yen&quot;,brvbar:&quot;Bara interrompida&quot;,sect:&quot;Símbolo de Parágrafo&quot;,uml:&quot;Trema&quot;,copy:&quot;Direito de Cópia&quot;,ordf:&quot;Indicador ordinal feminino&quot;,laquo:&quot;Aspas duplas angulares esquerda&quot;,not:&quot;Negação&quot;,reg:&quot;Marca Registrada&quot;,
+macr:&quot;Mácron&quot;,deg:&quot;Grau&quot;,sup2:&quot;2 Superscrito&quot;,sup3:&quot;3 Superscrito&quot;,acute:&quot;Acento agudo&quot;,micro:&quot;Micro&quot;,para:&quot;Pé de mosca&quot;,middot:&quot;Ponto mediano&quot;,cedil:&quot;Cedilha&quot;,sup1:&quot;1 Superscrito&quot;,ordm:&quot;Indicador ordinal masculino&quot;,raquo:&quot;Aspas duplas angulares direita&quot;,frac14:&quot;Um quarto&quot;,frac12:&quot;Um meio&quot;,frac34:&quot;Três quartos&quot;,iquest:&quot;Interrogação invertida&quot;,Agrave:&quot;A maiúsculo com acento grave&quot;,Aacute:&quot;A maiúsculo com acento agudo&quot;,Acirc:&quot;A maiúsculo com acento circunflexo&quot;,Atilde:&quot;A maiúsculo com til&quot;,Auml:&quot;A maiúsculo com trema&quot;,
+Aring:&quot;A maiúsculo com anel acima&quot;,AElig:&quot;Æ maiúsculo&quot;,Ccedil:&quot;Ç maiúlculo&quot;,Egrave:&quot;E maiúsculo com acento grave&quot;,Eacute:&quot;E maiúsculo com acento agudo&quot;,Ecirc:&quot;E maiúsculo com acento circumflexo&quot;,Euml:&quot;E maiúsculo com trema&quot;,Igrave:&quot;I maiúsculo com acento grave&quot;,Iacute:&quot;I maiúsculo com acento agudo&quot;,Icirc:&quot;I maiúsculo com acento circunflexo&quot;,Iuml:&quot;I maiúsculo com crase&quot;,ETH:&quot;Eth maiúsculo&quot;,Ntilde:&quot;N maiúsculo com til&quot;,Ograve:&quot;O maiúsculo com acento grave&quot;,Oacute:&quot;O maiúsculo com acento agudo&quot;,Ocirc:&quot;O maiúsculo com acento circunflexo&quot;,
+Otilde:&quot;O maiúsculo com til&quot;,Ouml:&quot;O maiúsculo com trema&quot;,times:&quot;Multiplicação&quot;,Oslash:&quot;Diâmetro&quot;,Ugrave:&quot;U maiúsculo com acento grave&quot;,Uacute:&quot;U maiúsculo com acento agudo&quot;,Ucirc:&quot;U maiúsculo com acento circunflexo&quot;,Uuml:&quot;U maiúsculo com trema&quot;,Yacute:&quot;Y maiúsculo com acento agudo&quot;,THORN:&quot;Thorn maiúsculo&quot;,szlig:&quot;Eszett minúsculo&quot;,agrave:&quot;a minúsculo com acento grave&quot;,aacute:&quot;a minúsculo com acento agudo&quot;,acirc:&quot;a minúsculo com acento circunflexo&quot;,atilde:&quot;a minúsculo com til&quot;,auml:&quot;a minúsculo com trema&quot;,
+aring:&quot;a minúsculo com anel acima&quot;,aelig:&quot;æ minúsculo&quot;,ccedil:&quot;ç minúsculo&quot;,egrave:&quot;e minúsculo com acento grave&quot;,eacute:&quot;e minúsculo com acento agudo&quot;,ecirc:&quot;e minúsculo com acento circunflexo&quot;,euml:&quot;e minúsculo com trema&quot;,igrave:&quot;i minúsculo com acento grave&quot;,iacute:&quot;i minúsculo com acento agudo&quot;,icirc:&quot;i minúsculo com acento circunflexo&quot;,iuml:&quot;i minúsculo com trema&quot;,eth:&quot;eth minúsculo&quot;,ntilde:&quot;n minúsculo com til&quot;,ograve:&quot;o minúsculo com acento grave&quot;,oacute:&quot;o minúsculo com acento agudo&quot;,ocirc:&quot;o minúsculo com acento circunflexo&quot;,
+otilde:&quot;o minúsculo com til&quot;,ouml:&quot;o minúsculo com trema&quot;,divide:&quot;Divisão&quot;,oslash:&quot;o minúsculo com cortado ou diâmetro&quot;,ugrave:&quot;u minúsculo com acento grave&quot;,uacute:&quot;u minúsculo com acento agudo&quot;,ucirc:&quot;u minúsculo com acento circunflexo&quot;,uuml:&quot;u minúsculo com trema&quot;,yacute:&quot;y minúsculo com acento agudo&quot;,thorn:&quot;thorn minúsculo&quot;,yuml:&quot;y minúsculo com trema&quot;,OElig:&quot;Ligação tipográfica OE maiúscula&quot;,oelig:&quot;Ligação tipográfica oe minúscula&quot;,372:&quot;W maiúsculo com acento circunflexo&quot;,374:&quot;Y maiúsculo com acento circunflexo&quot;,
+373:&quot;w minúsculo com acento circunflexo&quot;,375:&quot;y minúsculo com acento circunflexo&quot;,sbquo:&quot;Aspas simples inferior direita&quot;,8219:&quot;Aspas simples superior esquerda&quot;,bdquo:&quot;Aspas duplas inferior direita&quot;,hellip:&quot;Reticências&quot;,trade:&quot;Trade mark&quot;,9658:&quot;Ponta de seta preta para direita&quot;,bull:&quot;Ponto lista&quot;,rarr:&quot;Seta para direita&quot;,rArr:&quot;Seta dupla para direita&quot;,hArr:&quot;Seta dupla direita e esquerda&quot;,diams:&quot;Ouros&quot;,asymp:&quot;Aproximadamente&quot;});</pre>
+</body>
+</html>

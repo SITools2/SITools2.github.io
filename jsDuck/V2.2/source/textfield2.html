@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.dialog.add(&quot;textfield&quot;,function(b){function e(a){var a=a.element,c=this.getValue();c?a.setAttribute(this.id,c):a.removeAttribute(this.id)}function f(a){this.setValue(a.hasAttribute(this.id)&amp;&amp;a.getAttribute(this.id)||&quot;&quot;)}var g={email:1,password:1,search:1,tel:1,text:1,url:1};return{title:b.lang.forms.textfield.title,minWidth:350,minHeight:150,onShow:function(){delete this.textField;var a=this.getParentEditor().getSelection().getSelectedElement();if(a&amp;&amp;&quot;input&quot;==a.getName()&amp;&amp;(g[a.getAttribute(&quot;type&quot;)]||
+!a.getAttribute(&quot;type&quot;)))this.textField=a,this.setupContent(a)},onOk:function(){var a=this.getParentEditor(),c=this.textField,b=!c;b&amp;&amp;(c=a.document.createElement(&quot;input&quot;),c.setAttribute(&quot;type&quot;,&quot;text&quot;));c={element:c};b&amp;&amp;a.insertElement(c.element);this.commitContent(c);b||a.getSelection().selectElement(c.element)},onLoad:function(){this.foreach(function(a){if(a.getValue&amp;&amp;(a.setup||(a.setup=f),!a.commit))a.commit=e})},contents:[{id:&quot;info&quot;,label:b.lang.forms.textfield.title,title:b.lang.forms.textfield.title,
+elements:[{type:&quot;hbox&quot;,widths:[&quot;50%&quot;,&quot;50%&quot;],children:[{id:&quot;_cke_saved_name&quot;,type:&quot;text&quot;,label:b.lang.forms.textfield.name,&quot;default&quot;:&quot;&quot;,accessKey:&quot;N&quot;,setup:function(a){this.setValue(a.data(&quot;cke-saved-name&quot;)||a.getAttribute(&quot;name&quot;)||&quot;&quot;)},commit:function(a){a=a.element;this.getValue()?a.data(&quot;cke-saved-name&quot;,this.getValue()):(a.data(&quot;cke-saved-name&quot;,!1),a.removeAttribute(&quot;name&quot;))}},{id:&quot;value&quot;,type:&quot;text&quot;,label:b.lang.forms.textfield.value,&quot;default&quot;:&quot;&quot;,accessKey:&quot;V&quot;,commit:function(a){if(CKEDITOR.env.ie&amp;&amp;
+!this.getValue()){var c=a.element,d=new CKEDITOR.dom.element(&quot;input&quot;,b.document);c.copyAttributes(d,{value:1});d.replace(c);a.element=d}else e.call(this,a)}}]},{type:&quot;hbox&quot;,widths:[&quot;50%&quot;,&quot;50%&quot;],children:[{id:&quot;size&quot;,type:&quot;text&quot;,label:b.lang.forms.textfield.charWidth,&quot;default&quot;:&quot;&quot;,accessKey:&quot;C&quot;,style:&quot;width:50px&quot;,validate:CKEDITOR.dialog.validate.integer(b.lang.common.validateNumberFailed)},{id:&quot;maxLength&quot;,type:&quot;text&quot;,label:b.lang.forms.textfield.maxChars,&quot;default&quot;:&quot;&quot;,accessKey:&quot;M&quot;,style:&quot;width:50px&quot;,
+validate:CKEDITOR.dialog.validate.integer(b.lang.common.validateNumberFailed)}],onLoad:function(){CKEDITOR.env.ie7Compat&amp;&amp;this.getElement().setStyle(&quot;zoom&quot;,&quot;100%&quot;)}},{id:&quot;type&quot;,type:&quot;select&quot;,label:b.lang.forms.textfield.type,&quot;default&quot;:&quot;text&quot;,accessKey:&quot;M&quot;,items:[[b.lang.forms.textfield.typeEmail,&quot;email&quot;],[b.lang.forms.textfield.typePass,&quot;password&quot;],[b.lang.forms.textfield.typeSearch,&quot;search&quot;],[b.lang.forms.textfield.typeTel,&quot;tel&quot;],[b.lang.forms.textfield.typeText,&quot;text&quot;],[b.lang.forms.textfield.typeUrl,
+&quot;url&quot;]],setup:function(a){this.setValue(a.getAttribute(&quot;type&quot;))},commit:function(a){var c=a.element;if(CKEDITOR.env.ie){var d=c.getAttribute(&quot;type&quot;),e=this.getValue();d!=e&amp;&amp;(d=CKEDITOR.dom.element.createFromHtml('&lt;input type=&quot;'+e+'&quot;&gt;&lt;/input&gt;',b.document),c.copyAttributes(d,{type:1}),d.replace(c),a.element=d)}else c.setAttribute(&quot;type&quot;,this.getValue())}}]}]}});</pre>
+</body>
+</html>

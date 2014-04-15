@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, SITOOLS_DATE_FORMAT, SITOOLS_DEFAULT_IHM_DATE_FORMAT, i18n, userLogin, DEFAULT_WIN_HEIGHT, DEFAULT_WIN_WIDTH, getDesktop, projectGlobal, SitoolsDesk, DEFAULT_PREFERENCES_FOLDER, alertFailure*/
+/*global loadUrl*/
+/*
+ * @include &quot;formComponentsPanel.js&quot;
+ * @include &quot;resultsProjectForm.js&quot;
+ */
+Ext.namespace('sitools.user.component.forms');
+
+<span id='sitools-user-component-forms-projectForm-cfg-dictionaryName'><span id='sitools-user-component-forms-projectForm-cfg-urlServiceDatasetSearch'><span id='sitools-user-component-forms-projectForm-cfg-urlServicePropertiesSearch'><span id='sitools-user-component-forms-projectForm-cfg-properties'><span id='sitools-user-component-forms-projectForm-cfg-formCss'><span id='sitools-user-component-forms-projectForm-cfg-formHeight'><span id='sitools-user-component-forms-projectForm-cfg-formWidth'><span id='sitools-user-component-forms-projectForm-cfg-formParameters'><span id='sitools-user-component-forms-projectForm-cfg-formName'><span id='sitools-user-component-forms-projectForm-cfg-formId'><span id='sitools-user-component-forms-projectForm'>/**
+</span></span></span></span></span></span></span></span></span></span></span> * The global Panel. A panel with a formComponentsPanel and the buttons. 
+ * @cfg {string} formId Id of the selected Form
+ * @cfg {string} formName Name of the selected Form 
+ * @cfg {Array} formParameters Array of all form Parameters
+ * @cfg {number} formWidth Form Width 
+ * @cfg {number} formHeight Form Height 
+ * @cfg {string} formCss Name of a specific css class to apply to form 
+ * @cfg {Array} properties An array of Properties. 
+ * @cfg {string} urlServicePropertiesSearch The url to request properties
+ * @cfg {string} urlServiceDatasetSearch the url to request for Multids Search
+ * @cfg {string} dictionaryName the Name of the dictionary attached to the form
+ * @class sitools.user.component.forms.projectForm
+ * @extends Ext.Panel
+ * @requires sitools.user.component.formComponentsPanel
+ */
+sitools.user.component.forms.projectForm = Ext.extend(Ext.Panel, {
+    initComponent : function () {
+        var config = this; 
+        this.componentType = &quot;formProject&quot;;
+    
+<span id='sitools-user-component-forms-projectForm-property-componentList'>        /**
+</span>         * The panel that displays all form components as defined by the administrator. 
+         */
+        this.componentList = new sitools.user.component.formComponentsPanel({
+            width : config.formWidth,
+            height : config.formHeight, 
+            css : config.formCss, 
+            formId : config.formId
+        });
+        if (!Ext.isEmpty(config.formParameters)) {
+            this.componentList.loadParameters(config.formParameters, config.dataUrl, &quot;project&quot;);
+        }
+    
+        var displayComponentPanel = new Ext.Panel({
+            title : i18n.get('label.formConcepts'), 
+            region : &quot;center&quot;, 
+            flex : 2, 
+            autoScroll : true,
+            items : [ this.componentList ],
+            layout : &quot;absolute&quot;,
+            listeners : {
+                scope : this, 
+                resize : function () {
+                    if (!Ext.isEmpty(this.componentList.getEl())) {
+                        var cmpChildSize = this.componentList.getSize();
+                        var size = this.body.getSize();
+                        var xpos = 0, ypos = 0;
+                        if (size.height &gt; cmpChildSize.height) {
+                            ypos = (size.height - cmpChildSize.height) / 2;
+                        }
+                        if (size.width &gt; cmpChildSize.width) {
+                            xpos = (size.width - cmpChildSize.width) / 2;
+                        }
+                        this.componentList.setPosition(xpos, ypos);
+                        
+                    }
+                }
+            }    
+        });
+        
+<span id='sitools-user-component-forms-projectForm-property-propertyPanel'>        /**
+</span>         * The panel that displays Property search
+         * Each property adds a formField with the buildPropertyField method
+         */
+        this.propertyPanel = new Ext.form.FormPanel({
+            title : i18n.get(&quot;label.defineProperties&quot;), 
+            padding : 10,
+            labelWidth : 100, 
+            flex : 2,
+            autoScroll : true, 
+            defaults : {
+                labelSeparator : &quot;&quot;
+            },
+            buttons : [{
+                text : i18n.get('label.refreshDatasets'), 
+                scope : this, 
+                handler : this.propertySearch
+            }]
+        });
+        if (!Ext.isEmpty(this.properties)) {
+            Ext.each(this.properties, function (prop) {
+                var field = this.buildPropertyField(prop);
+                this.propertyPanel.add(field);
+            }, this);
+        }
+        
+        
+        var storeDatasets = new Ext.data.JsonStore({
+            restful  : true, 
+            fields : [{
+                name : &quot;id&quot;, 
+                type : &quot;string&quot;
+            }, {
+                name : &quot;name&quot;, 
+                type : &quot;string&quot;
+            }, {
+                name : &quot;visible&quot;, 
+                type : &quot;boolean&quot;
+            }], 
+            url : projectGlobal.sitoolsAttachementForUsers + this.urlServicePropertiesSearch, 
+            root : &quot;collection.dataSets&quot;, 
+            listeners : {
+                load : function (store, recs) {
+                    Ext.each(recs, function (rec) {
+                        rec.set(&quot;visible&quot;, true);
+                    });
+                }
+            }, 
+            autoLoad : true
+        });
+        
+        var visible = new Ext.grid.CheckColumn({
+            header : i18n.get('headers.visible'),
+            dataIndex : 'visible',
+            width : 55
+        });
+        
+        var cmDatasets = new Ext.grid.ColumnModel({
+            columns : [ {
+                header : i18n.get('headers.name'),
+                dataIndex : 'name',
+                width : 120
+            }, visible]
+        });
+        
+        var smDatasets = new Ext.grid.RowSelectionModel({
+            singleSelect : true
+        });
+        
+<span id='sitools-user-component-forms-projectForm-property-datasetPanel'>        /**
+</span>         * The dataset list. 
+         * It is updated when user pressed on refresh dataset button.
+         */
+        this.datasetPanel = new Ext.grid.EditorGridPanel({
+            title : i18n.get('label.defineDatasets'), 
+            store : storeDatasets, 
+            cm : cmDatasets, 
+            sm : smDatasets, 
+            flex : 1, 
+            autoScroll : true, 
+            viewConfig : {
+                forceFit : true 
+            }, 
+            plugins : [visible]
+        });
+        
+        var firstPanel = new Ext.Panel({
+            height : 300, 
+            items : [this.propertyPanel, this.datasetPanel], 
+            layout : &quot;hbox&quot;, 
+            collapsedTitle : i18n.get('label.advancedSearch'),
+            region : &quot;north&quot;,
+            collapsible : true, 
+            collapsed : true, 
+            flex : 2, 
+            layoutConfig : {
+                align : &quot;stretch&quot;   
+            }
+        });
+<span id='sitools-user-component-forms-projectForm-property-searchButton'>        /**
+</span>         * A simple button to launch the main request on each selected dataset. 
+         */
+        this.searchButton = new Ext.Button({
+            text : i18n.get('label.search'),
+            scope : this,
+            handler : function (button) {
+                this.onSearch(button);
+            }
+        });
+        
+        Ext.apply(this, {
+            height : config.formHeight,
+            layout : &quot;border&quot;, 
+            layoutConfig : {
+                align : &quot;stretch&quot;
+            },
+            items : [ firstPanel, displayComponentPanel ],
+            buttons : [this.searchButton], 
+            listeners : {
+                scope : this, 
+                propertyChanged : function () {
+                    var properties = this.propertyPanel.items.items;
+                    var params = {};
+                    var j = 0;
+                    var k = {};
+                    for (var i = 0; i &lt; properties.length; i++) {
+                        var prop = properties[i];
+                        if (!Ext.isEmpty(prop.getAPIValue())) {
+                            params[&quot;k[&quot; + j + &quot;]&quot;] = prop.getAPIValue();
+                            j++;
+                        }
+                    }
+                    this.datasetPanel.getStore().load({
+                        params : params
+                    });
+                }, 
+                multiDsSearchDone : function () {
+                    this.searchButton.setDisabled(false);
+                }
+
+            }
+        });
+        sitools.user.component.forms.projectForm.superclass.initComponent.call(this);
+    }, 
+<span id='sitools-user-component-forms-projectForm-method-onSearch'>    /**
+</span>     * Build the query for the multiDs search
+     * @param {Ext.Button} button The button that launch the request (to be disabled)
+     * @returns
+     */
+    onSearch : function (button) {
+        button.setDisabled(true);
+        var containers = this.find(&quot;stype&quot;, 'sitoolsFormContainer');
+        var formMultiDsParams = [];
+        var glue = &quot;&quot;;
+        var i = 0;
+        var datasets = [];
+        this.datasetPanel.getStore().each(function (rec) {
+            if (rec.get(&quot;visible&quot;)) {
+                datasets.push(rec.get('id'));
+            }
+        });
+        if (datasets.length &lt;= 0) {
+            Ext.Msg.alert(i18n.get('label.error'), i18n.get('label.atLeastOneDataset'));
+            button.setDisabled(false);
+            return;
+        }
+        
+        if (! Ext.isEmpty(this.nbDatasetsMax) &amp;&amp; datasets.length &gt; this.nbDatasetsMax) {          
+            Ext.Msg.alert(i18n.get('label.error'), String.format(i18n.get('label.toManyDatasetsAllowed'), this.nbDatasetsMax));
+            button.setDisabled(false);
+            return;
+        }
+        
+        Ext.each(containers, function (container) {
+            // var f = form.getForm();
+
+            if (Ext.isFunction(container.getParameterValue)) {
+                var param = container.getParameterValue();
+                
+                if (!Ext.isEmpty(param)) {
+                    formMultiDsParams.push(this.paramValueToApi(param));
+                }
+            }
+        }, this);
+        
+        var urlService = projectGlobal.sitoolsAttachementForUsers + this.urlServiceDatasetSearch;
+        
+        var params = {};
+        params.datasetsList = datasets.join(&quot;|&quot;);
+
+        i = 0;
+        
+        if (!Ext.isEmpty(formMultiDsParams)) {
+            Ext.each(formMultiDsParams, function (param) {
+                params[&quot;c[&quot; + i + &quot;]&quot;] = param;
+                i += 1;
+            }, this);
+        }
+
+        //Launch the first POST Request on service: 
+        Ext.Ajax.request({
+            method : &quot;POST&quot;, 
+            params : params, 
+            //Just to be sure that params are passed with the url request
+            jsonData : {}, 
+            scope : this, 
+            url : urlService, 
+            success : function (response) {
+                try {
+                    var json = Ext.decode(response.responseText);
+                    if (! json.success) {
+                        Ext.Msg.alert(i18n.get('label.error'), json.message);
+                        return;
+                    }
+                    var jsObj = SitoolsDesk.navProfile.multiDataset.getObjectResults();
+                    var componentCfg = {
+                        urlTask : json.TaskModel.statusUrl,
+                        formId : this.formId,
+                        formMultiDsParams : formMultiDsParams,
+                        datasets : datasets, 
+                        formName : this.formName, 
+                        callerId : this.id
+                    };
+
+                    var windowConfig = {
+                        id : &quot;windMultiDsResultForm&quot; + this.formId, 
+                        title : i18n.get('label.MultiDsResultForm') + &quot; : &quot; + this.formName, 
+                        saveToolbar : false, 
+                        iconCls : &quot;dataviews&quot;
+                    };
+                    SitoolsDesk.addDesktopWindow(windowConfig, componentCfg, jsObj);
+                    
+                }
+                catch (err) {
+                    Ext.Msg.alert(i18n.get('label.error'), err);
+                    return;
+                }
+            }, 
+                
+            failure : alertFailure
+        });
+        var desktop = getDesktop();
+        var win = desktop.getWindow(&quot;windMultiDsResultForm&quot; + this.formId);
+        if (win) {
+            win.close();
+        }
+
+    },
+<span id='sitools-user-component-forms-projectForm-method-_getSettings'>    /**
+</span>     * A method to save all the window settings to be abble to reload it when desktop is reloaded. 
+     * @return {}
+     */
+    _getSettings : function () {
+        return {
+            objectName : &quot;projectForm&quot;, 
+        	formId : this.formId,
+            formName : this.formName,
+            formParameters : this.formParameters,
+            formWidth : this.formWidth,
+            formHeight : this.formHeight, 
+            formCss : this.formCss, 
+            properties : this.properties, 
+            urlServicePropertiesSearch : this.urlServicePropertiesSearch, 
+            urlServiceDatasetSearch : this.urlServiceDatasetSearch, 
+            componentType : this.componentType, 
+            dictionaryName : this.dictionaryName,
+            preferencesPath : this.preferencesPath, 
+            preferencesFileName : this.preferencesFileName
+            
+        };
+    }, 
+<span id='sitools-user-component-forms-projectForm-method-paramValueToApi'>    /**
+</span>     * Build a string using a form param Value. 
+     * @param {} paramValue An object with attributes : at least type, code, value and optionnal userDimension, userUnit
+     * @return {string} something like &quot;TEXTFIELD|ColumnAlias|value&quot;
+     */
+    paramValueToApi : function (paramValue) {
+        var stringParam = paramValue.type + &quot;|&quot; + this.dictionaryName + &quot;,&quot; + paramValue.code + &quot;|&quot; + paramValue.value;
+        if (!Ext.isEmpty(paramValue.userDimension) &amp;&amp; !Ext.isEmpty(paramValue.userUnit)) {
+            stringParam += &quot;|&quot; + paramValue.userDimension + &quot;|&quot; + paramValue.userUnit.unitName; 
+        }  
+        return stringParam;
+    }, 
+<span id='sitools-user-component-forms-projectForm-method-getSearchButton'>    /**
+</span>     * Returns the search Button. 
+     * @return {}
+     */
+    getSearchButton : function () {
+        return this.searchButton;
+    }, 
+<span id='sitools-user-component-forms-projectForm-method-buildPropertyField'>    /**
+</span>     * Build for a properties a new formField depending on property type. 
+     * The property type could be one of : 
+     *  - TEXTFIELD, 
+     *  - NUMERIC_FIELD, 
+     *  - NUMERIC_BETWEEN, 
+     *  - DATE_BETWEEN
+     * @param {} prop the Json definition of a property. 
+     * @return {Ext.form.Field} a simple or composite field. 
+     */
+    buildPropertyField : function (prop) {
+        var field;
+        switch (prop.type) {
+        case &quot;TEXTFIELD&quot; : 
+            field = {
+                xtype : &quot;textfield&quot;, 
+                name : prop.name, 
+                anchor : '98%', 
+                enableKeyEvents : true, 
+                fieldLabel : prop.name, 
+                getAPIValue : function () {
+                    if (Ext.isEmpty(this.getValue())) {
+                        return null;
+                    }
+                    return String.format(&quot;{0}|{1}|{2}&quot;, prop.type, prop.name, this.getValue());
+                }
+            };          
+            break;
+        case &quot;NUMBER_FIELD&quot; : 
+            field = {
+                xtype : &quot;numberfield&quot;, 
+                name : prop.name, 
+                anchor : '98%', 
+                enableKeyEvents : true, 
+                fieldLabel : prop.name, 
+                getAPIValue : function () {
+                    if (Ext.isEmpty(this.getValue())) {
+                        return null;
+                    }
+                    return String.format(&quot;{0}|{1}|{2}&quot;, prop.type, prop.name, this.getValue());
+                }
+            };          
+            break;
+        case &quot;NUMERIC_BETWEEN&quot; : 
+            field = {
+                xtype: 'compositefield',
+                defaults: {
+                    flex: 1
+                },
+                msgTarget: 'under',
+                anchor : '98%', 
+                items: [
+                    {
+                        xtype: 'numberfield',
+                        name : prop.name + &quot;deb&quot;, 
+                        enableKeyEvents : true
+                    },
+                    {
+                        xtype: 'numberfield',
+                        name : prop.name + &quot;fin&quot;
+                
+                    }
+                ],
+                fieldLabel : prop.name, 
+                getAPIValue : function () {
+                    var deb = this.items.itemAt(0).getValue();
+                    var fin = this.items.itemAt(1).getValue();
+                    if (Ext.isEmpty(deb) || Ext.isEmpty(fin)) {
+                        return null;
+                    }
+                    return String.format(&quot;{0}|{1}|{2}|{3}&quot;, prop.type, prop.name, deb, fin);
+                }
+            };          
+            break;
+        case &quot;DATE_BETWEEN&quot; : 
+            field = {
+                xtype: 'compositefield',
+                defaults: {
+                    flex: 1
+                },
+                msgTarget: 'under',
+                anchor : '98%', 
+                items: [
+                    {
+                        xtype: 'datefield',
+                        name : prop.name + &quot;deb&quot;, 
+                        enableKeyEvents : true, 
+                        format : SITOOLS_DEFAULT_IHM_DATE_FORMAT, 
+                        showTime : true
+                    },
+                    {
+                        xtype: 'datefield',
+                        name : prop.name + &quot;fin&quot;, 
+                        format : SITOOLS_DEFAULT_IHM_DATE_FORMAT, 
+                        showTime : true
+                
+                    }
+                ],
+                fieldLabel : prop.name, 
+                getAPIValue : function () {
+                    var deb, fin;
+                    try {
+                        deb = this.items.itemAt(0).getValue().format(SITOOLS_DATE_FORMAT);
+                        fin = this.items.itemAt(1).getValue().format(SITOOLS_DATE_FORMAT);
+                    
+                    }
+                    catch (err) {
+                        return null;
+                    }
+                    if (Ext.isEmpty(deb) || Ext.isEmpty(fin)) {
+                        return null;
+                    }
+                    return String.format(&quot;{0}|{1}|{2}|{3}&quot;, prop.type, prop.name, deb, fin);
+                }
+            };          
+            break;
+        }
+        return field;
+    }, 
+<span id='sitools-user-component-forms-projectForm-method-propertySearch'>    /**
+</span>     * Method called when user pressed on refresh Datasets button. 
+     * Course properties and creates the parameters of the query to search the list of datasets
+     */
+    propertySearch : function () {
+        var properties = this.propertyPanel.items.items;
+        var params = {};
+        var j = 0;
+        var k = {};
+        for (var i = 0; i &lt; properties.length; i++) {
+            var prop = properties[i];
+            if (!Ext.isEmpty(prop.getAPIValue())) {
+                params[&quot;k[&quot; + j + &quot;]&quot;] = prop.getAPIValue();
+                j++;
+            }
+        }
+        this.datasetPanel.getStore().load({
+            params : params
+        });
+        this.datasetPanel.getView().refresh();
+    }
+    
+});
+
+</pre>
+</body>
+</html>

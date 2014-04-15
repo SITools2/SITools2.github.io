@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools*/
+/*
+ * @include &quot;../ComponentFactory.js&quot;
+ */
+Ext.ns('sitools.common.forms.components');
+
+<span id='sitools-common-forms-components-ComboBox'>/**
+</span> * @requires sitools.common.forms.ComponentFactory
+ * @class sitools.common.forms.components.ComboBox
+ * @extends Ext.Container
+ */
+sitools.common.forms.components.ComboBox = Ext.extend(Ext.Container, {
+//sitools.component.users.SubSelectionParameters.SingleSelection.ComboBox = Ext.extend(Ext.Container, {
+
+    initComponent : function () {
+		this.context = new sitools.common.forms.ComponentFactory(this.context);
+        var defaultValue = &quot;&quot;, value, items=[];
+		for (i = 0; i &lt; this.values.length; i++) {
+			value = this.values[i];
+			items.push([ value.value, value.value ]);
+			if (value.defaultValue) {
+				defaultValue = value.value;
+			}
+		}
+
+		var store;
+	    if (this.valueSelection == 'S') {
+		    store = new Ext.data.ArrayStore({
+		        fields : [ 'id', 'value' ],
+		        sortInfo: {
+		            field: 'value',
+		            direction: 'ASC'
+		        },
+		        data : items
+		    });
+	    } else {
+	        var params = {
+		        colModel : [ this.code ],
+		        distinct : true
+		    };
+
+	        
+		    store = new Ext.data.JsonStore({
+		        fields : [ {
+		            name : 'id',
+		            mapping : this.code
+		        }, {
+		            name : 'value',
+		            mapping : this.code
+		        } ],
+		        sortInfo: {
+		            field: 'value',
+		            direction: 'ASC'
+		        },
+		        autoLoad : !Ext.isEmpty(this.dataUrl) ? true : false,
+		        root : 'data',
+		        restful : true,
+		        url : this.dataUrl + &quot;/records&quot;,
+		        baseParams : params, 
+		        listeners : {
+		            load : function () {
+		                this.insert (0, [new Ext.data.Record({id : &quot;&quot;, value : &quot;&quot;})]);    
+		            }
+		        }
+		    });
+		    
+		    
+	    }
+	    this.combo = new Ext.form.ComboBox ({
+	        store : store,
+	        parameterId : this.parameterId, 
+	        sParentParam : this.parentParam, 
+	        valueField : 'id',
+	        displayField : 'value',
+	        typeAhead : true,
+	        mode : 'local',
+	        triggerAction : 'all',
+	        selectOnFocus : true,
+	        allowBlank : true,
+	        editable : this.valueSelection==&quot;S&quot; ? true : false,
+	        autoSelect : false,
+	        flex : 1, 
+	        height : this.height,
+	        value : defaultValue,
+            tpl : '&lt;tpl for=&quot;.&quot;&gt;&lt;div class=&quot;x-combo-list-item comboItem&quot;&gt;{value}&lt;/div&gt;&lt;/tpl&gt;', 
+			stype : &quot;sitoolsFormItem&quot;, 
+<span id='sitools-common-forms-components-ComboBox-property-parent'>	        /**
+</span>			 * The Parent Window.
+			 */
+	        parent : &quot;panelResultForm&quot; + this.formId, 
+
+<span id='sitools-common-forms-components-ComboBox-property-code'>	        /**
+</span>			 * The code of the parameter to notify changed event.
+			 */
+	        code : this.code,
+	        anchor : '90%', 
+	        listeners : {
+	            scope : this, 
+	            'select' : function () {
+	                var parentPanel = this.ownerCt.ownerCt;
+	                parentPanel.fireEvent('componentChanged', parentPanel, this);
+	            }
+	        }
+	    });
+	    Ext.apply(this, {
+	    	stype : &quot;sitoolsFormContainer&quot;,
+	        layout : &quot;hbox&quot;,
+	    	items : [this.combo]
+	    });
+	    sitools.common.forms.components.ComboBox.superclass.initComponent.apply(this,
+	            arguments);
+   	    if (!Ext.isEmpty(this.label)) {
+	    	this.items.insert(0, new Ext.Container({
+	            border : false,
+	            html : this.label,
+	            width : 100
+	        }));
+	    }
+
+    },
+
+    notifyValueSelected : function () {
+	    this.parent.notifyValueChanged(this.code);
+    },
+
+    isValueDefined : function () {
+	    if (this.combo.getValue() &amp;&amp; this.combo.getValue() !== &quot;&quot;) {
+		    return true;
+	    } else {
+		    return false;
+	    }
+    },
+    getSelectedValue : function () {
+	    if (this.combo.getValue() &amp;&amp; this.combo.getValue() !== &quot;&quot;) {
+		    return this.combo.getValue();
+	    } else {
+		    return null;
+	    }
+    },
+    setSelectedValue : function (value) {
+	    this.combo.setValue(value);
+    },
+    getParameterValue : function () {
+	    var value = this.getSelectedValue();
+	    if (Ext.isEmpty(value)) {
+		    return null;
+	    }
+//	    if (Ext.isString(value) &amp;&amp; ! Ext.isNumber(parseFloat(value))){
+//	        value = &quot;&quot; + value + &quot;&quot;;
+//	    }
+//	    return this.type + &quot;|&quot; + this.code + &quot;|&quot; + value;
+	   	return {
+	    	type : this.type, 
+	    	code : this.code, 
+	    	value : value
+	    };
+	    
+    }
+});
+</pre>
+</body>
+</html>

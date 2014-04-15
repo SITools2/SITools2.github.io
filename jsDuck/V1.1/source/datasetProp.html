@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, SITOOLS_DATE_FORMAT, SITOOLS_DEFAULT_IHM_DATE_FORMAT, alertFailure, LOCALE, ImageChooser, loadUrl*/
+Ext.namespace('sitools.component.datasets');
+
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-cfg-store'><span id='sitools-component-datasets-datasetsMultiTablesPanel-cfg-action'><span id='sitools-component-datasets-datasetsMultiTablesPanel-cfg-url'><span id='sitools-component-datasets-datasetsMultiTablesPanel'>/**
+</span></span></span></span> * Define the window of the dataset Configuration
+ * @cfg {String} url the Url to save the data (only when modify)
+ * @cfg {String} action (required) &quot;active&quot;, &quot;modify&quot; &quot;view&quot;
+ * @cfg {Ext.data.Store} store (required) : the datasets store 
+ * 
+ * @class sitools.component.datasets.datasetsMultiTablesPanel
+ * @requires Ext.ux.PanelRecherche
+ * @extends Ext.Window
+ */
+sitools.component.datasets.datasetsMultiTablesPanel = Ext.extend(Ext.Window, {
+	closeAction : 'close', 
+    initComponent : function () {
+        Ext.apply(this, sitools.admin.datasets.abstractDatasetWin);
+		//do it when loadUrl is ready.
+        this.urlDictionary = loadUrl.get('APP_URL') + loadUrl.get('APP_DICTIONARIES_URL');
+        this.urlDatasources = loadUrl.get('APP_URL') + loadUrl.get('APP_DATASOURCES_URL');
+        this.urlDimension = loadUrl.get('APP_URL') + loadUrl.get('APP_DIMENSIONS_ADMIN_URL') + '/dimension';
+        this.urlDatasetViews = loadUrl.get('APP_URL') + loadUrl.get('APP_DATASETS_VIEWS_URL');
+        var action = this.action;
+        if (this.action == 'modify') {
+            this.title = i18n.get('label.modifyDataset');
+        }
+        
+        if (this.action == 'create') {
+            this.title = i18n.get('label.datasetProject');
+        }
+        if (this.action == 'view') {
+            this.title = i18n.get('label.viewDataset');
+        }
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-gridColumn'>        /**
+</span>         * Construction de la grille Fields Setup
+         */
+        this.gridColumn = new sitools.admin.datasets.gridFieldSetup({
+			urlDictionary : this.urlDictionary, 
+			urlDimension : this.urlDimension, 
+			action : action, 
+			urlDataset : this.url
+        });
+		
+		this.gridColumn.addListener('activate', function (panel) {
+			if (action == 'view') {
+				panel.getEl().mask();
+			}
+		});
+		
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-formulairePrincipal'>		/**
+</span>		 * The main form of the dataset definition. 
+		 */
+		this.formulairePrincipal = new sitools.admin.datasets.datasetForm({
+			urlDatasetViews : this.urlDatasetViews, 
+			action : this.action, 
+			urlDatasources : this.urlDatasources, 
+			observer : this
+		});
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-httpProxyJDBC'>        /**
+</span>         * Proxy used to request a datasource
+         * @type Ext.data.HttpProxy
+         */
+        this.httpProxyJDBC = new Ext.data.HttpProxy({
+            url : loadUrl.get('APP_URL'),
+            restful : true,
+            method : 'GET'
+        });
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-storeTablesJDBC'>        /**
+</span>         * This store contains all tables of a datasource.
+         * @type Ext.data.JsonStore
+         */
+        this.storeTablesJDBC = new Ext.data.JsonStore({
+            root : &quot;database.tables&quot;,
+            fields : [ {
+                name : 'url'
+            }, {
+                name : 'schemaName',
+                mapping : 'schema'
+            }, {
+                name : 'name'
+            } ],
+            proxy : this.httpProxyJDBC,
+            listeners : {
+                scope : this,
+                beforeload : function () {
+                    this.dataSourceUrl = this.formulairePrincipal.getDataSourceUrl();
+                    this.httpProxyJDBC.setUrl(this.dataSourceUrl);
+                    this.httpProxyColumns.setUrl(this.dataSourceUrl);
+                }
+            }
+        });
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-cmTablesJDBC'>        /**
+</span>         * The columnModel of the grid that displays the tables of a datasource.
+         * @type Ext.grid.ColumnModel
+         */
+        this.cmTablesJDBC = new Ext.grid.ColumnModel({
+            columns : [ {
+                id : 'name',
+                header : i18n.get('headers.name'),
+                width : 160,
+                sortable : true,
+                dataIndex : 'name'
+            } ]
+        });
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-gridTablesJDBC'>        /**
+</span>         * The grid that displays the tables of a datasource.
+         * @type Ext.grid.ColumnModel
+         */
+        this.gridTablesJDBC = new Ext.grid.GridPanel({
+            layout : 'fit', 
+            store : this.storeTablesJDBC,
+            cm : this.cmTablesJDBC,
+            sm : new Ext.grid.RowSelectionModel({}),
+            enableDragDrop : true,
+            stripeRows : true,
+            title : 'Tables JDBC',
+            id : 'Tables_JDBC'
+        });
+
+        // Creation de la grid des tables du dataset
+        var cmTablesDataSet = new Ext.grid.ColumnModel({
+            columns : [ {
+                id : 'name',
+                header : i18n.get('headers.name'),
+                width : 160,
+                sortable : true,
+                dataIndex : 'name'
+            }, {
+                id : 'alias',
+                header : i18n.get('headers.tableAlias'),
+                width : 80,
+                sortable : true,
+                dataIndex : 'alias',
+                editor : new Ext.form.TextField({
+		            disabled : this.action == 'view' ? true : false
+                })
+            } ]
+        });
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-storeTablesDataset'>        /**
+</span>         * The store that contains the tables of a Dataset.
+         * @type Ext.grid.ColumnModel
+         */
+        this.storeTablesDataset = new sitools.widget.JsonStore({
+            id : 'storeTablesDataset',
+            fields : [ {
+                name : 'id',
+                type : 'string'
+            }, {
+                name : 'name',
+                type : 'string'
+            }, {
+                name : 'alias',
+                type : 'string'
+            }, {
+                name : 'schemaName',
+                type : 'string'
+            }
+
+            ]
+        });
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-gridTablesDataset'>        /**
+</span>         * The grid that displays the tables of a dataset.
+         * @type Ext.grid.ColumnModel
+         */
+        this.gridTablesDataset = new Ext.grid.EditorGridPanel({
+            layout : 'fit', 
+            store : this.storeTablesDataset,
+            cm : cmTablesDataSet,
+            sm : new Ext.grid.RowSelectionModel({}),
+            autoScroll : true,
+            enableDragDrop : true,
+            stripeRows : true,
+            title : 'Tables Dataset'
+        });
+
+        var displayPanelTables = new sitools.component.datasets.selectItems({
+			grid1 : this.gridTablesJDBC, 
+			grid2 : this.gridTablesDataset, 
+			defaultRecord : {}
+        });
+		
+        var panelSelectTables = new Ext.Panel({
+            title : i18n.get('label.selectTables'), // &quot;select Tables&quot;,
+            layout : 'fit', 
+            items : [ displayPanelTables ],
+            id : &quot;selectTablesPanel&quot;,
+            listeners : {
+                scope : this,
+                activate : function (panel) {
+                    this.storeTablesJDBC.load();
+					if (action == 'view') {
+						panel.getEl().mask();
+					}
+                }
+            }
+        });
+
+        // Creation de la grid des columns d'une table
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-httpProxyColumns'>        /**
+</span>         * The proxy used to get the description of a JDBC table
+         * @type Ext.data.HttpProxy
+         */
+        this.httpProxyColumns = new Ext.data.HttpProxy({
+            url : &quot;/&quot;,
+            restful : true,
+            method : 'GET'
+        });
+
+        var storeColumnTables = new Ext.data.JsonStore({
+            proxy : this.httpProxyColumns,
+            root : &quot;table.attributes&quot;,
+            autoLoad : false,
+            fields : [ {
+                name : 'name'
+            }, {
+                name : 'tableName'
+            }, {
+                name : 'schemaName'
+            }, {
+                name : 'structure'
+            }, {
+                name : 'nomAffiche'
+            }, {
+                name : 'sqlColumnType',
+                mapping : 'type'
+            }, {
+                name : 'javaSqlColumnType',
+                mapping : 'javaSqlType'
+            }, {
+                name : 'columnClass'
+            }],
+            listeners : {
+                scope : this,
+                beforeload : function (store) {                    
+                    var record = this.formulairePrincipal.getDataSourceCombo().getStore().getById(this.formulairePrincipal.getDataSourceCombo().getValue());
+                    this.dataSourceUrl = record.data.sitoolsAttachementForUsers;
+                    if (!this.dataSourceUrl) {
+                        return false;
+                    }
+                    this.httpProxyJDBC.setUrl(this.dataSourceUrl);
+                    this.httpProxyColumns.setUrl(this.dataSourceUrl);
+                },
+                add : function (store, records) {
+                    Ext.each(records, function (record) {
+                        record.data.structure = {
+                            tableName : record.data.tableName,
+                            tableAlias : record.data.tableAlias,
+                            schemaName : record.data.schemaName,
+                            dataIndex : record.data.dataIndex                            
+                        };
+                        var tmp = record.data.tableAlias ? record.data.tableAlias : record.data.tableName;
+                        tmp += &quot;.&quot; + record.data.dataIndex;
+                        record.data.nomAffiche = tmp;
+                    });
+                }
+            }
+
+        });
+
+        var cmColumnTables = new Ext.grid.ColumnModel({
+            columns : [ {
+                id : 'tableName',
+                header : i18n.get('headers.tableName'),
+                sortable : true,
+                dataIndex : 'tableName'
+            }, {
+                id : 'name',
+                header : i18n.get('headers.name'),
+                sortable : true,
+                dataIndex : 'dataIndex'
+            } ]
+        });
+
+        var cmColumnDataset = new Ext.grid.ColumnModel({
+            columns : [ {
+                id : 'tableAlias',
+                header : i18n.get('headers.tableAlias'),
+                sortable : true,
+                dataIndex : 'tableAlias'
+            }, {
+                id : 'tableName',
+                header : i18n.get('headers.tableName'),
+                sortable : true,
+                dataIndex : 'tableName'
+            }, {
+                id : 'name',
+                header : i18n.get('headers.name'),
+                sortable : true,
+                dataIndex : 'dataIndex'
+            } ]
+        });
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-gridColumnTables'>        /**
+</span>         * The grid used to display the columns of selected tables
+         * @type Ext.grid.GridPanel
+         */
+        this.gridColumnTables = new Ext.grid.GridPanel({
+			layout : 'fit', 
+            store : storeColumnTables,
+            id : &quot;gridColumnTables&quot;, 
+            cm : cmColumnTables,
+            enableDragDrop : true,
+            stripeRows : true,
+            title : 'Columns Table'
+        });
+
+        // !!! le store de cette grille est le meme que celui de fields
+        // setup....
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-gridColumnDataSet'>        /**
+</span>         * The grid used to display the columns of the Dataset
+         * @type Ext.grid.GridPanel
+         */
+        this.gridColumnDataSet = new Ext.grid.GridPanel({
+			layout : 'fit', 
+            store : this.gridColumn.getStore(),
+            cm : cmColumnDataset,
+            autoScroll : true,
+            enableDragDrop : true,
+            stripeRows : true,
+            title : 'Columns Dataset'
+        });
+
+        var defaultRecord = [ {
+            name : 'width',
+            value : this.defaultColumnWidth
+        }, {
+            name : 'visible',
+            value : this.defaultColumnVisible
+        }, {
+            name : 'sortable',
+            value : this.defaultColumnSortable
+        }, {
+            name : 'filter',
+            value : this.defaultColumnFiltrable
+        }, {
+            name : 'specificColumnType',
+            value : 'DATABASE'
+        } ];
+        var displayPanel = new sitools.component.datasets.selectItems({
+			grid1 : this.gridColumnTables, 
+			grid2 : this.gridColumnDataSet, 
+			defaultRecord : defaultRecord
+        });
+		displayPanel.addListener('activate', function (panel) {
+			if (action == 'view') {
+				panel.getEl().mask();
+			}
+		});
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-panelSelectFields'>        /**
+</span>         * the third tab of the window.
+         */
+        this.panelSelectFields = new Ext.Panel({
+            layout : 'fit', 
+            title : i18n.get('label.selectFields'),
+            items : [ displayPanel ],
+            id : &quot;datasetsMultiTablesPanel_SelectFields&quot;,
+            listeners : {
+                scope : this,
+                // lorsque l'on arrive sur ce panel, on charge le store
+                // de la
+                // table gridColumnTAbles
+                activate : function (panel) {
+					this.loadColumnsJDBC();
+					if (action == 'view') {
+						panel.getEl().mask();
+					}
+                }
+            }
+        });
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-wizardJoinCondition'>        /**
+</span>         * The panel that displays the join conditions.
+         * @type sitools.admin.datasets.joinPanel
+         */
+        this.wizardJoinCondition = new sitools.admin.datasets.joinPanel({
+			datasetId : this.datasetId, 
+			gridTablesDataset : this.gridTablesDataset, 
+			action : this.action,
+			storeColumnDataset : this.gridColumnDataSet.getStore()
+        });
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-wizardWhereClause'>        /**
+</span>         * the panel that displays the where clause
+         * @type Ext.ux.PanelRecherche
+         */
+        this.wizardWhereClause = new Ext.ux.PanelRecherche('whereClauseId', i18n.get('label.wizardWhereClause'), this.gridColumn.getStore(), 'where');
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-SqlWhereClause'>        /**
+</span>         * the panel that displays the SQL specific query.
+         * @type Ext.Panel
+         */
+        this.SqlWhereClause = new Ext.Panel({
+            height : 350,
+            items : [ {
+                xtype : 'form',
+                items : [ {
+                    xtype : 'textarea',
+                    id : &quot;sqlQuery&quot;,
+                    autoScroll : true,
+                    height : 350,
+                    anchor : '100%',
+                    name : &quot;sqlQuery&quot;, 
+                    validator : function (value) {
+						if (value.toLowerCase().match(&quot;where&quot;)) {
+							if (value.toLowerCase().match(&quot;from&quot;)) {
+								return true;
+							}
+							else {
+								return false;
+							}
+						}
+						else {
+							return false;
+						}
+						
+                    }, 
+                    invalidText : i18n.get('label.invalidSQl')
+                } ]
+
+            } ]
+        });
+        var selecteur = new Ext.form.FormPanel({
+            height : 30, 
+            flex : 0.1, 
+            id : &quot;selecteurId&quot;, 
+            items : [ {
+                xtype : 'radiogroup',
+                id : 'radioQueryType',
+                fieldLabel : i18n.get('label.queryType'),
+                width : 300,
+                height : 30,
+                items : [ {
+					disabled : this.action == 'view' ? true : false, 
+                    boxLabel : i18n.get('label.assistant'),
+                    name : 'queryType',
+                    inputValue : &quot;W&quot;,
+                    checked : true
+                }, {
+		            disabled : this.action == 'view' ? true : false, 
+                    boxLabel : i18n.get('label.sql'),
+                    name : 'queryType',
+                    inputValue : &quot;S&quot;
+                } ],
+                listeners : {
+                    scope : this,
+                    change : function (radioGroup, radio) {
+                        if (!Ext.isEmpty(radio)) {
+							this.queryType = radio.inputValue;
+                        }
+                        if (this.queryType == 'W') {
+	                        this.whereClausePanel.remove(this.SqlWhereClause, false);
+	                        this.SqlWhereClause.hide();
+	                        
+	                        this.whereClausePanel.add(this.wizardJoinCondition);
+	                        this.whereClausePanel.add(this.wizardWhereClause);
+	                        this.wizardJoinCondition.show();
+	                        this.wizardWhereClause.show();
+	                        
+	                        this.whereClausePanel.doLayout();
+                        } else {
+	                        this.whereClausePanel.remove(this.wizardJoinCondition, false);
+	                        this.whereClausePanel.remove(this.wizardWhereClause, false);
+	                        this.wizardJoinCondition.hide();
+	                        this.wizardWhereClause.hide();
+	                        
+	                        this.whereClausePanel.add(this.SqlWhereClause);
+	                        this.SqlWhereClause.show();
+	                        this.whereClausePanel.doLayout();
+                        }
+                    }
+                }
+            } ]
+        });
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-whereClausePanel'>        /**
+</span>         * A single container with a flex layout. 
+         * @type Ext.Panel
+         */
+        this.whereClausePanel = new Ext.Panel({
+			flex : 0.9, 
+			layout : &quot;vbox&quot;, 
+			layoutConfig : {
+				align : &quot;stretch&quot;
+			}
+		});    
+        var panelWhere = new Ext.Panel({
+            layout : &quot;vbox&quot;,
+            layoutConfig : {
+				align : &quot;stretch&quot;, 
+				flex : &quot;ratio&quot;
+            }, 
+            title : i18n.get('label.whereClause'),
+            items : [ selecteur, this.whereClausePanel],
+            listeners : {
+                scope : this,
+                activate : function () {
+                    if (this.queryType == 'W') {
+                        this.loadColumnsJDBC();
+                        this.wizardJoinCondition.buildDefault();
+                        this.whereClausePanel.add([this.wizardJoinCondition, this.wizardWhereClause]);
+                        this.whereClausePanel.doLayout();
+                        //this.wizardJoinCondition.show();
+                        //this.wizardWhereClause.show();
+                        //this.SqlWhereClause.hide();
+                    } else {
+                        this.whereClausePanel.add(this.SqlWhereClause);
+                        this.whereClausePanel.doLayout();
+                        //this.wizardJoinCondition.hide();
+                        //this.wizardWhereClause.hide();
+                        //this.SqlWhereClause.show();
+                    }
+                }
+            }
+
+        });
+		panelWhere.addListener('activate', function () {
+			if (action == 'view') {
+				this.getEl().mask();
+			}
+		});
+		
+		var storeProperties = new Ext.data.JsonStore({
+            fields : [ {
+                name : 'name',
+                type : 'string'
+            }, {
+                name : 'type',
+                type : 'string'
+            }, {
+                name : 'value',
+                type : 'string'
+            } ],
+            autoLoad : false
+        });
+        var smProperties = new Ext.grid.RowSelectionModel({
+            singleSelect : true
+        });
+        
+        var storeTypesProperties = new Ext.data.JsonStore({
+            fields : ['name'],
+            data : [{name : &quot;String&quot;}, {name : &quot;Enum&quot;}, {name : &quot;Numeric&quot;}, {name : &quot;Date&quot;}]
+        });
+	    var comboTypesProperties = new Ext.form.ComboBox({
+	        store : storeTypesProperties, 
+	        mode : 'local',
+	        typeAhead : true,
+	        triggerAction : 'all',
+	        forceSelection : true,
+	        selectOnFocus : true,
+	        dataIndex : 'orderBy',
+	        lazyRender : true,
+	        listClass : 'x-combo-list-small',
+	        valueField : 'name',
+	        displayField : 'name',
+	        tpl : '&lt;tpl for=&quot;.&quot;&gt;&lt;div class=&quot;x-combo-list-item comboItem&quot;&gt;{name}&lt;/div&gt;&lt;/tpl&gt;', 
+	        width : 55
+	    });
+
+        var cmProperties = new Ext.grid.ColumnModel({
+            columns : [ {
+                header : i18n.get('headers.name'),
+                dataIndex : 'name',
+                editor : new Ext.form.TextField()
+            }, {
+                header : i18n.get('headers.type'),
+                dataIndex : 'type', 
+                editor : comboTypesProperties
+            }, {
+                header : i18n.get('headers.value'),
+                dataIndex : 'value',
+                editor : new Ext.form.TextField()
+            }],
+            defaults : {
+                sortable : false,
+                width : 100
+            }
+        });
+        var tbar = {
+            defaults : {
+                scope : this
+            },
+            items : [ {
+                text : i18n.get('label.create'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/toolbar_create.png',
+                handler : this.onCreateProperty
+            }, {
+                text : i18n.get('label.delete'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/toolbar_delete.png',
+                handler : this.onDeleteProperty
+            } ]
+        };
+        
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-gridProperties'>        /**
+</span>         * A panel to display Properties and manage them. 
+         * The editor for the value column is build on the beforeEdit event and the value is formated to string if the afteredit event;
+         */
+        this.gridProperties = new Ext.grid.EditorGridPanel({
+            title : i18n.get('title.properties'),
+            id : 'componentGridProperties',
+            tbar : tbar, 
+            anchor : &quot;95%&quot;, 
+            height : 180,
+            store : storeProperties,
+            cm : cmProperties,
+            sm : smProperties,
+            viewConfig : {
+                forceFit : true
+            }, 
+            listeners : {
+				scope : this, 
+				activate : function (panel) {
+                    if (action == 'view') {
+						panel.getEl().mask();
+					}
+                },
+				beforeedit : function (e) {
+					//Créer l'éditeur en fonction du type 
+					if (e.column == 2) {
+						var grid = e.grid;
+						var rec = e.record;
+						var column = grid.getColumnModel().columns[e.column];
+						if (Ext.isEmpty(rec.get(&quot;type&quot;))) {
+							return false;
+						}
+						var editor;
+						switch (rec.get('type')) {
+						case &quot;String&quot; : 
+							editor = new Ext.form.TextField();
+							break;
+						
+						case &quot;Numeric&quot; : 
+							editor = new Ext.form.NumberField();
+							break;
+						case &quot;Date&quot; : 
+							editor = new Ext.form.DateField({
+								format : SITOOLS_DEFAULT_IHM_DATE_FORMAT, 
+								showTime : true
+							});
+							break;
+						case &quot;Enum&quot; : 
+							editor = new Ext.form.TextField();
+							break;
+						}
+						
+						column.setEditor(editor);
+					}
+					return true;
+				}, 
+				afteredit : function (e) {
+					//Formatter en string
+					if (e.column == 2) {
+						var grid = e.grid;
+						var rec = e.record;
+						var column = grid.getColumnModel().columns[e.column];
+						var value = e.value;
+						if (Ext.isEmpty(rec.get(&quot;type&quot;))) {
+							return false;
+						}
+						switch (rec.get('type')) {
+						case &quot;String&quot; : 
+							value = String.format(value);
+							break;
+						
+						case &quot;Numeric&quot; : 
+							value = Ext.util.Format(value, &quot;0.00&quot;);
+							break;
+						case &quot;Date&quot; : 
+							value = value.format(SITOOLS_DEFAULT_IHM_DATE_FORMAT);
+							break;
+						case &quot;Enum&quot; : 
+							value = String.format(value);
+							break;
+						}
+						rec.set(&quot;value&quot;, value);	
+					}
+					
+				}
+            }
+        });
+        
+        this.viewConfigPanel = new sitools.admin.datasets.datasetViewConfig({
+			urlDatasetViews : this.urlDatasetViews, 
+			action : this.action
+        });
+        
+
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-property-tabPanel'>        /**
+</span>         * The main tabPanel of the window
+         * @type Ext.TabPanel
+         */
+        this.tabPanel = new Ext.TabPanel({
+            height : 450, 
+            layoutConfig : {
+				layoutOnCardChange : true
+            }, 
+            activeTab : 0,
+            items : [ this.formulairePrincipal, this.gridProperties, panelSelectTables, this.panelSelectFields, this.gridColumn, panelWhere, this.viewConfigPanel ],
+            buttons : [ {
+                text : i18n.get('label.ok'),
+                scope : this,
+                handler : this.onValidate, 
+                disabled : action == &quot;view&quot; ? true : false
+
+            }, {
+                text : i18n.get('label.cancel'),
+                scope : this,
+                handler : function () {
+                    this.close();
+                }
+            } ], 
+            listeners : {
+				scope : this, 
+				beforetabchange : function (tabP, newTab, currentTab) {
+					
+					if (!Ext.isEmpty(currentTab) &amp;&amp; currentTab.id == &quot;gridColumnSelect&quot;) {
+						
+						var check = this.gridColumn.gridFieldSetupValidation();
+						if (! check.success) {
+				            var tmp = new Ext.ux.Notification({
+					            iconCls : 'x-icon-information',
+					            title : i18n.get('label.error'),
+					            html : check.message,
+					            autoDestroy : true,
+					            hideDelay : 1000
+					        }).show(document);
+					        return false;
+				        }
+					}
+					return true;
+				}, 
+				datasourceChanged : function (field, newValue, oldValue) {
+					var record = this.formulairePrincipal.getDataSourceCombo().getStore().getById(newValue);
+                    this.dataSourceUrl = record.data.sitoolsAttachementForUsers;
+                    this.httpProxyJDBC.setUrl(this.dataSourceUrl);
+                    this.httpProxyColumns.setUrl(this.dataSourceUrl);
+                    if (newValue != oldValue) {
+                        if (this.gridColumnDataSet.getStore().getCount() &gt; 0  ||
+                                this.wizardWhereClause.getStore().getCount() &gt; 0 || this.storeTablesDataset.getCount() &gt; 0 ||
+                                (Ext.getCmp('sqlQuery').getValue() &amp;&amp; Ext.getCmp('sqlQuery').getValue() !== &quot;&quot;)) {
+                            var tot = Ext.Msg.show({
+                                title : i18n.get('label.delete'),
+                                buttons : Ext.Msg.YESNO,
+                                msg : i18n.get('warning.changeDatasource'),
+                                scope : this,
+                                fn : function (btn, text) {
+                                    if (btn == 'yes') {
+                                        this.gridColumnDataSet.getStore().removeAll();
+                                        this.wizardJoinCondition.deleteJoinPanelItems();
+                                        this.wizardWhereClause.getStore().removeAll();
+                                        this.storeTablesDataset.removeAll();
+                                        Ext.getCmp('sqlQuery').setValue(&quot;&quot;);
+                                    } else {
+                                        field.setValue(oldValue);
+                                    }
+                                }
+
+                            });
+                        }
+                    }
+				}
+            }
+
+        });
+        this.listeners = {
+			scope : this, 
+			resize : function (window, width, height) {
+				var size = window.body.getSize();
+				this.tabPanel.setSize(size);
+			}
+
+        };
+        this.items = [ this.tabPanel ];
+        sitools.component.datasets.datasetsMultiTablesPanel.superclass.initComponent.call(this);
+    }, 
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-method-onRender'>    /**
+</span>     * @method
+     * Execute the parent onRender, and load the dataset, if url is set.
+     */
+    onRender : function () {
+        sitools.component.datasets.datasetsMultiTablesPanel.superclass.onRender.apply(this, arguments);
+        if (this.url) {
+			this.loadDataset();
+        }
+    }, 
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-method-onValidate'>    /**
+</span>     * called when user click on Ok button. 
+     * it will 
+     * &lt;ul class=&quot;mdetail-params&quot;&gt;
+     * &lt;li&gt;check the dataset (calling datasetValidation())&lt;/li&gt;
+     * &lt;li&gt;build the json object of the Dataset&lt;/li&gt;
+     * &lt;li&gt;call a method (PUT or POST depending on Action config)&lt;/li&gt;
+     * &lt;/ul&gt;
+     * @method
+     */
+    onValidate : function () {
+        var datasetValidation = this.datasetValidation();
+        if (!datasetValidation.success) {
+            Ext.Msg.alert(i18n.get('label.error'), datasetValidation.message);
+            return;
+        }
+        
+        var f = this.findByType('form')[0].getForm();
+        if (!f.isValid()) {
+            Ext.Msg.alert(i18n.get('label.error'), i18n.get('warning.invalidForm'));
+            return;
+        }
+
+        var putObject = {};
+        Ext.iterate(f.getValues(), function (key, value) {
+            if (key == 'image') {
+                // TODO : definir une liste de mediaType et type
+                putObject.image = {};
+                putObject.image.url = value;
+                putObject.image.type = &quot;Image&quot;;
+                putObject.image.mediaType = &quot;Image&quot;;
+            } else if (key == 'comboDataSource') {
+                putObject.datasource = {};
+                putObject.datasource.url = this.dataSourceUrl;
+                putObject.datasource.id = this.formulairePrincipal.getDataSourceCombo().getValue();
+                putObject.datasource.type = &quot;datasource&quot;;
+                putObject.datasource.mediaType = &quot;datasource&quot;;
+            } else if (key != &quot;visible&quot;) {
+                putObject[key] = value;
+            }
+        }, this);
+        
+        putObject.datasetView = {};
+        var storeDatasetView = this.viewConfigPanel.getDatasetViewsCombo().getStore();
+        var indexSelected = storeDatasetView.find(&quot;id&quot;, this.viewConfigPanel.getDatasetViewsCombo().getValue());
+        var recDatasetView = storeDatasetView.getAt(indexSelected);
+        putObject.datasetView = recDatasetView.data;
+		
+        putObject.datasetViewConfig = this.viewConfigPanel.getParametersValue();
+        
+        //save Properties...
+        putObject.properties = [];
+        this.gridProperties.getStore().each(function (rec) {
+			if (rec.data.type == &quot;Date&quot;) {
+			    var dateValue = rec.get(&quot;value&quot;);
+			    var date = Date.parseDate(dateValue, SITOOLS_DEFAULT_IHM_DATE_FORMAT);
+			    if (!Ext.isEmpty(date)) {
+					rec.data.value = date.format(SITOOLS_DATE_FORMAT);
+			    }
+			}
+			putObject.properties.push(rec.data);
+        });
+        
+        //visible field handling
+        var visibleField = f.findField(&quot;visible&quot;);
+        putObject.visible = visibleField.getValue();
+        
+        putObject.queryType = this.queryType;
+
+        putObject.sqlQuery = Ext.getCmp('sqlQuery').getValue();
+
+        if (this.wizardJoinCondition &amp;&amp; this.wizardWhereClause) {
+            putObject.predicat = [];
+        }
+        if (this.wizardWhereClause) {
+            this.wizardWhereClause.getStore().each(function (item) {
+                putObject.predicat.push({
+                    closedParenthesis : item.data.parentheseFermante,
+                    openParenthesis : item.data.parentheseOuvrante,
+                    logicOperator : item.data.opLogique,
+                    compareOperator : item.data.operateur,
+                    leftAttribute : item.data.leftAttribute,
+                    rightValue : item.data.rightAttribute
+                });
+            });
+        }
+
+        putObject.structures = [];
+        this.gridTablesDataset.getStore().each(function (item) {
+            putObject.structures.push({
+                alias : item.data.alias,
+                name : item.data.name,
+                schemaName : item.data.schemaName,
+                type : 'table'
+            });
+        });
+
+        var store = this.gridColumn.getStore();
+        store.clearFilter();
+        if (store.getCount() &gt; 0) {
+            putObject.columnModel = [];
+            var i;
+            for (i = 0; i &lt; store.getCount(); i++) {
+                var rec = store.getAt(i).data;
+
+                var tmp = {
+                    id : rec.id,
+                    dataIndex : rec.dataIndex,
+                    header : rec.header,
+                    toolTip : rec.toolTip,
+                    width : rec.width,
+                    sortable : rec.sortable,
+                    orderBy : rec.orderBy, 
+                    visible : rec.visible,
+                    filter : rec.filter,
+                    sqlColumnType : rec.sqlColumnType,
+                    columnOrder : rec.columnOrder,
+                    primaryKey : rec.primaryKey,
+                    schema : rec.schemaName,
+                    tableAlias : rec.tableAlias,
+                    tableName : rec.tableName,
+                    specificColumnType : rec.specificColumnType,
+                    columnAlias : rec.columnAlias, 
+                    datasetDetailUrl : rec.datasetDetailUrl, 
+                    columnAliasDetail : rec.columnAliasDetail, 
+                    javaSqlColumnType : rec.javaSqlColumnType,
+                    format : rec.format,
+                    columnClass : rec.columnClass,
+                    image : rec.image, 
+                    dimensionId : rec.dimensionId, 
+                    unit : rec.unit
+                };
+                if (!Ext.isEmpty(rec.columnRendererCategory) &amp;&amp; !Ext.isEmpty(rec.columnRenderer)) {
+                    tmp.columnRenderer = rec.columnRenderer;
+                }
+
+                putObject.columnModel.push(tmp);
+            }
+        }
+        
+        //Gestion des structures
+        //build Default if the panel is not activated...
+        this.wizardJoinCondition.buildDefault();
+        this.treeStructure = this.wizardJoinCondition.items.items[0];
+        var mainTableNode = this.treeStructure.getRootNode();
+        if (Ext.isEmpty(mainTableNode)) {
+			Ext.Msg.alert(i18n.get('label.error'), i18n.get('label.noStructure'));
+			return;
+        }
+        var mainTable = mainTableNode.attributes.table;
+        
+		var tree = [];
+
+        var childs = mainTableNode.childNodes;
+        for (var j = 0; j &lt; childs.length; j++) {
+            this.getAllNodes(childs[j], tree);
+        }
+        
+        var structure = {
+			mainTable : mainTable, 
+			nodeList : tree
+        };
+        putObject.structure = structure;
+        
+        if (this.action == 'modify') {
+            Ext.Ajax.request({
+                url : this.url,
+                method : 'PUT',
+                scope : this,
+                jsonData : putObject,
+                success : function (ret) {
+                    var Json = Ext.decode(ret.responseText);
+                    if (!Json.success) {
+                        Ext.Msg.alert(i18n.get('label.warning'), Json.message);
+                        return;
+                    }
+                    this.close();
+                    this.store.reload();
+                },
+                failure : alertFailure
+            });
+        } else {
+            Ext.Ajax.request({
+                url : this.url,
+                method : 'POST',
+                scope : this,
+                jsonData : putObject,
+                success : function (ret) {
+                    var Json = Ext.decode(ret.responseText);
+                    if (!Json.success) {
+                        Ext.Msg.alert(i18n.get('label.warning'), Json.message);
+                        return;
+                    }
+                    this.close();
+                    this.store.reload();
+				},
+                failure : alertFailure
+            });
+
+        }
+
+    }, 
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-method-datasetValidation'>    /**
+</span>     * Validate the Dataset : 
+     *  - One and only one primary key
+     *  - columnAlias must be unique
+     * @returns {} an object with attributes : 
+     *  - success : boolean
+     *  - message : a message if success == false
+     * 
+     */
+    datasetValidation : function () {
+        var result = this.gridColumn.gridFieldSetupValidation();
+        
+        if (this.queryType == &quot;S&quot; &amp;&amp; (Ext.getCmp('sqlQuery').getValue().substr(0, 4) != &quot;FROM&quot; || !Ext.getCmp('sqlQuery').getValue().toLowerCase().match(&quot;where&quot;))) {
+			result = {
+                success : false, 
+                message : i18n.get('label.invalidSQl')
+            };
+        }
+        return result;
+    }, 
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-method-loadColumnsJDBC'>    /**
+</span>     * called to refresh the store of the gridColumnTables. 
+     * For each record in the gridTablesDataset, il will request the datasource to get the definition of a JDBC Table
+     * @method
+     */
+    loadColumnsJDBC : function () {
+        var store = this.gridTablesDataset.getStore();
+		var record = this.formulairePrincipal.getDataSourceCombo().getStore().getById(this.formulairePrincipal.getDataSourceCombo().getValue());
+        this.dataSourceUrl = record.data.sitoolsAttachementForUsers;
+        if (!this.dataSourceUrl) {
+            return false;
+        }
+		
+        if (store._getDirty() || store.getModifiedRecords().length &gt; 0) {
+            var storeFields = this.gridColumnTables.getStore();
+            storeFields.removeAll();
+
+            this.httpProxyJDBC.setUrl(this.dataSourceUrl);
+            this.httpProxyColumns.setUrl(this.dataSourceUrl);
+
+            store.each(function (rec) {
+                var storeFields = this.gridColumnTables.getStore();
+
+                Ext.Ajax.request({
+                    url : this.dataSourceUrl + &quot;/&quot; + rec.data.name,
+                    method : 'GET',
+                    params : {
+                        tableName : rec.data.name,
+                        tableAlias : rec.data.alias,
+                        schemaName : rec.data.schemaName
+                    },
+                    scope : this,
+                    success : function (ret, options) {
+                        var Json = Ext.decode(ret.responseText);
+                        if (Json.success) {
+                            var store = this.gridColumnTables.getStore();
+                            var columns = Json.table;
+                            Ext.each(columns.attributes, function (column, index, columns) {
+                                this.gridColumnTables.getStore().add(new Ext.data.Record({
+                                    dataIndex : column.name,
+                                    schemaName : options.params.schemaName,
+                                    tableName : options.params.tableName,
+                                    tableAlias : options.params.tableAlias,
+                                    sqlColumnType : column.type,
+                                    javaSqlColumnType : column.javaSqlType,
+                                    columnClass : column.columnClass
+                                }));
+                            }, this);
+
+                        } else {
+                            Ext.Msg.alert(i18n.get('label.warning'), Json.message);
+                        }
+                    },
+                    failure : alertFailure
+                });
+            }, this);
+            store._setDirty(false);
+            store.commitChanges();
+        }
+    }, 
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-method-onCreateProperty'>    /**
+</span>     * A method called on create button of the property grid. 
+     * Creates a new record with a String default type 
+     */
+    onCreateProperty : function () {
+        var e = new Ext.data.Record({
+			type : &quot;String&quot;
+        });
+        this.gridProperties.getStore().insert(0, e);
+    },
+<span id='sitools-component-datasets-datasetsMultiTablesPanel-method-onDeleteProperty'>    /**
+</span>     * Called on delete button of the property grid. 
+     * Deletes all selected records. 
+     */
+    onDeleteProperty : function () {
+        var s = this.gridProperties.getSelectionModel().getSelections();
+        var i, r;
+        for (i = 0; s[i]; i++) {
+            r = s[i];
+            this.gridProperties.getStore().remove(r);
+        }
+    }
+
+
+
+});
+
+Ext.reg('s-datasetsMultiTablesPanel', sitools.component.datasets.datasetsMultiTablesPanel);
+</pre>
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/*******************************************************************************
+</span> * Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * 
+ * This file is part of SITools2.
+ * 
+ * SITools2 is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * SITools2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * SITools2. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ******************************************************************************/
+/*global Ext, sitools, i18n, loadUrl, locale, Reference */
+
+Ext.namespace('sitools.user.modules');
+<span id='sitools-user-modules-datastorageExplorer'>/**
+</span> * Help Module
+ * 
+ * @class sitools.user.modules.datastorageExplorer
+ * @extends Ext.Panel
+ */
+sitools.user.modules.datastorageExplorer = Ext.extend(Ext.Panel, {
+
+    autoScroll : true,
+    id : 'datastorageExpId',
+    initComponent : function () {
+        
+        var noPreviewAvailableUrlTemplate = loadUrl.get('APP_URL') + loadUrl.get('APP_CLIENT_USER_URL') + &quot;/res/html/{locale}/noPreviewAvailable.html&quot;;
+        var localeStr = locale.getLocale();
+        this.noPreviewAvailableUrl = noPreviewAvailableUrlTemplate.replace(&quot;{locale}&quot;, localeStr); 
+        
+        // this.datastorageUrl = loadUrl.get('APP_URL') +
+        // &quot;/datastorage/user/postel-site/&quot;;
+
+        Ext.each(this.listProjectModulesConfig, function (config) {
+            switch (config.name) {
+            case &quot;dynamicUrlDatastorage&quot;:
+                this.datastorageUrl = loadUrl.get('APP_URL') + loadUrl.get('APP_DATASTORAGE_URL') + config.value;
+                break;
+
+            case &quot;nameDatastorage&quot;:
+                this.nameDatastorage = config.value;
+                break;
+            }
+        }, this);
+        // this.title = i18n.get('label.dsDirectory') + &quot; : &quot; +
+        // this.nameDatastorage;
+        this.layout = 'border';
+
+        this.uplLabel = {
+            xtype : 'label',
+            id : 'uplLabel',
+            text : i18n.get('label.uploadFile') + ' :'
+        };
+
+        this.uplButton = {
+            xtype : 'button',
+            id : 'uplButton',
+            // iconAlign : 'right',
+            iconCls : 'upload-icon',
+            text : i18n.get('label.uploadFile'),
+            tooltip : i18n.get('label.uploadFile'),
+            scope : this,
+            handler : function () {
+                var nodeSel = this.tree.getSelectionModel().getSelectedNode();
+                if (!Ext.isEmpty(nodeSel)) {
+                    this.onUpload(nodeSel);
+                } else {
+                    Ext.Msg.alert(i18n.get('label.warning'), i18n.get('label.noneNodeSelected'));
+                }
+            }
+        };
+
+        this.dwlLabel = {
+            xtype : 'label',
+            id : 'dwlLabel',
+            text : i18n.get('label.downloadFile') + ' :'
+        };
+
+        this.dwlButton = {
+            xtype : 'button',
+            id : 'dwlButton',
+            // iconAlign : 'right',
+            iconCls : 'download-icon',
+            text : i18n.get('label.downloadFile'),
+            tooltip : i18n.get('label.downloadFile'),
+            scope : this,
+            handler : function () {
+                var nodeSel = this.tree.getSelectionModel().getSelectedNode();
+                if (!Ext.isEmpty(nodeSel)) {
+                    var rec = this.dataview.getStore().getById(nodeSel.id);
+                    // the record exists in the dataview, lets show it
+                    if (nodeSel.leaf === &quot;true&quot;) {
+                        if (!Ext.isEmpty(rec)) {
+                            sitools.user.component.dataviews.dataviewUtils.downloadFile(rec.data.url);
+                        } else {
+                            this.loadDataview(nodeSel.parentNode);
+                            rec = this.dataview.getStore().getById(nodeSel.id);
+                            sitools.user.component.dataviews.dataviewUtils.downloadFile(rec.data.url);
+                        }
+                    }
+                } else {
+                    Ext.Msg.alert(i18n.get('label.warning'), i18n.get('label.noneNodeSelected'));
+                }
+            }
+        };
+
+        this.delLabel = {
+            xtype : 'label',
+            text : i18n.get('label.delete') + ' :'
+        };
+
+        this.delButton = {
+            xtype : 'button',
+            id : 'delButton',
+            // iconAlign : 'right',
+            iconCls : 'delete-icon',
+            text : i18n.get('label.delete'),
+            tooltip : i18n.get('label.delete'),
+            scope : this,
+            handler : function () {
+                var node = this.tree.getSelectionModel().getSelectedNode();
+                if (!Ext.isEmpty(node)) {
+                    Ext.Msg.confirm(i18n.get('label.info'), i18n.get('label.sureDelete') + node.attributes.text + &quot; ?&quot;, function (btn) {
+                        if (btn === 'yes') {
+                            if (!this.isRootNode(node)) {
+                                this.deleteNode(node);
+                            } else {
+                                Ext.Msg.alert(i18n.get('label.info'), i18n.get('label.cannotDeleteRootNode'));
+                            }
+                        }
+                    }, this);
+                } else {
+                    Ext.Msg.alert(i18n.get('label.warning'), i18n.get('label.noneNodeSelected'));
+                }
+            }
+        };
+
+        this.tbar = new Ext.Toolbar({
+            cls : &quot;services-toolbar&quot;,
+            items : [ '-&gt;']
+        });
+
+        this.tree = new Ext.tree.TreePanel({
+            region : 'west',
+            animate : true,
+            width : 300,
+            expanded : true,
+            autoScroll : true,
+            containerScroll : true,
+            bodyStyle : 'background-color:white;',
+            loader : new Ext.tree.TreeLoader({
+                baseParams : {
+                    index : &quot;&quot;
+                },
+                preloadChildren : true,
+                requestMethod : 'GET',
+                url : this.datastorageUrl,
+                createNode : function (attr) {
+                    var isPdf = function (text) {
+                        var imageRegex = /\.(pdf)$/;
+                        return (text.match(imageRegex));
+                    };
+
+                    var listeners = {
+                        scope : this,
+                        beforeappend : function (tree, parent, item) {
+                            if (item.attributes.leaf === &quot;true&quot;) {
+                                if (isPdf(item.attributes.text)) {
+                                    item.setIcon(loadUrl.get('APP_URL') + '/common/res/images/icons/icon-pdf-small.png');
+                                }
+                            }
+                            return true;
+                        }
+                    };
+                    Ext.apply(attr, {
+                        listeners : listeners
+                    });
+                    // apply baseAttrs, nice idea Corey!
+                    if (this.baseAttrs) {
+                        Ext.applyIf(attr, this.baseAttrs);
+                    }
+                    if (this.applyLoader !== false &amp;&amp; !attr.loader) {
+                        attr.loader = this;
+                    }
+                    if (Ext.isString(attr.uiProvider)) {
+                        attr.uiProvider = this.uiProviders[attr.uiProvider] || eval(attr.uiProvider);
+                    }
+                    if (attr.nodeType) {
+                        return new Ext.tree.TreePanel.nodeTypes[attr.nodeType](attr);
+                    } else {
+                        return attr.leaf ? new Ext.tree.TreeNode(attr) : new Ext.tree.AsyncTreeNode(attr);
+                    }
+                }
+            }),
+            rootVisible : true,
+            split : true,
+            collapsible : true,
+            root : {
+                text : this.nameDatastorage,
+                leaf : false,
+                url : this.datastorageUrl
+            },            
+            listeners : {
+                scope : this,
+                beforeload : function (node) {
+                    return node.isRoot || Ext.isDefined(node.attributes.children);
+                },
+                beforeexpandnode : function (node) {
+                    this.tree.getSelectionModel().clearSelections();
+                    node.removeAll();
+                    var reference = new Reference(node.attributes.url);
+                    var url = reference.getFile();
+                    Ext.Ajax.request({
+                        params : {
+                            index : &quot;&quot;
+                        },
+                        url : url,
+                        headers : {
+                            'Accept' : 'application/json+sitools-directory'
+                        },
+                        method : 'GET',
+                        scope : this,
+                        success : function (ret) {
+                            try {
+                                var Json = Ext.decode(ret.responseText);
+                                //first append the folders
+                                Ext.each(Json, function (child) {
+                                    if (!child.leaf) {
+                                        var nodeAdded = this.appendChild(child, node);
+                                        child.id = nodeAdded.id;
+                                        
+                                    }
+                                }, this);
+                                //then append the files
+                                Ext.each(Json, function (child) {
+                                    if (child.leaf) {
+                                        var nodeAdded = this.appendChild(child, node);
+                                        child.id = nodeAdded.id;
+                                    }
+                                }, this);
+                                this.loadDataview(node);
+                                
+                                // if there is a node to select prior to the expanding of the node
+                                var nodeToSelect = this.tree.getSelectionModel().getSelectedNode(); 
+                                if (nodeToSelect &amp;&amp; nodeToSelect.leaf === &quot;true&quot;) {
+                                    var text = nodeToSelect.attributes.text;
+                                    var callback = this.callbackForceSelectNodeOtherDirectory.bind(this, text);
+                                    this.tree.expandPath(node.getPath(), undefined, callback);
+                                } else {
+                                    // just expand the current path
+                                    this.tree.expandPath(node.getPath());
+                                }
+                                return true;
+                            } catch (err) {
+                                throw err;
+                            }
+                        },
+                        failure : function (ret) {
+                            return null;
+                        }
+                    });
+                    return true;
+                },
+                contextmenu : function (node, e) {
+                    this.tree.getSelectionModel().select(node, e, true);
+                    var c = node.getOwnerTree().contextMenu;
+                    c.contextNode = node;
+                    c.showAt(e.getXY());
+                },
+                click : function (node, e) {
+                    var tb = this.getTopToolbar();
+                    tb.remove('uplButton');
+                    tb.remove('dwlButton');
+                    tb.remove('delButton');
+                    if (node.leaf !== &quot;true&quot;) {
+                        tb.insert(1, this.uplButton);
+                        if (!this.isRootNode(node)) {
+                            tb.insert(2, this.delButton);
+                        }
+                        this.reloadNode(node);
+                    } else {
+                        tb.insert(1, this.dwlButton);
+                        tb.insert(2, this.delButton);
+                    }
+                    tb.doLayout();
+
+                    if (this.isOpenable(node.text)) {
+                        var rec = this.dataview.getStore().getById(node.id);
+                        if (!Ext.isEmpty(rec)) {
+                            this.displayFile(rec);
+                        } else {
+                            this.reloadNode(node.parentNode);
+                            
+                        }
+                    } else {
+                        this.detailPanel.setTitle(i18n.get('label.defaultTitleDetailPanel'));
+                        this.detailPanel.setSrc(this.noPreviewAvailableUrl);
+                        this.detailPanel.doLayout();
+                    }
+                }
+            }
+        });
+
+        Ext.QuickTips.init();
+
+        this.store = new Ext.data.JsonStore({
+            proxy : new Ext.data.HttpProxy({
+                method : 'GET',
+                url : this.datastorageUrl,
+                headers : {
+                    'Accept' : 'application/json+sitools-directory'
+                }
+            }),
+            idProperty : 'id',
+            fields : [ {
+                name : 'text',
+                mapping : 'text'
+            }, {
+                name : 'lastmod',
+                mapping : 'lastmod',
+                type : 'date',
+                dateFormat : 'timestamp'
+            }, {
+                name : 'leaf',
+                mapping : 'leaf'
+            }, {
+                name : 'url',
+                mapping : 'url'
+            }, {
+                name : 'size',
+                mapping : 'size',
+                type : 'float'
+            }, {
+                name : 'cls',
+                mapping : 'cls'
+            }, {
+                name : 'id',
+                mapping : 'id'
+            } ]
+        });
+
+        // this.store.load();
+
+        this.tpl = new Ext.XTemplate('&lt;tpl for=&quot;.&quot;&gt;',
+                '&lt;div class=&quot;dv-datastorage-wrap&quot; id=&quot;{text}&quot;&gt;',
+                '&lt;div class=&quot;dv-datastorage&quot;&gt;',
+                    '&lt;tpl if=&quot;this.isLeaf(leaf)&quot;&gt;',
+                        '&lt;tpl if=&quot;this.isImage(url)&quot;&gt;',
+                            '&lt;img src=&quot;{url}&quot; alt=&quot;{text}&quot; title=&quot;{text}&quot; width=&quot;60&quot; height=&quot;60&quot;/&gt;',
+                        '&lt;/tpl&gt;',
+                        '&lt;tpl if=&quot;!this.isImage(text)&quot;&gt;',
+                            '&lt;tpl if=&quot;this.isPdf(text)&quot;&gt;',
+                                '&lt;img src=&quot;/sitools/common/res/images/icons/icon-pdf.png&quot; width=&quot;60&quot; height=&quot;60&quot; alt=&quot;{text}&quot; title=&quot;{text}&quot;&gt;',
+                            '&lt;/tpl&gt;',
+                            '&lt;tpl if=&quot;!this.isPdf(text)&quot;&gt;',
+                                '&lt;img src=&quot;/sitools/common/res/images/icons/file-dv.png&quot; width=&quot;60&quot; height=&quot;60&quot; alt=&quot;{text}&quot; title=&quot;{text}&quot;&gt;',
+                            '&lt;/tpl&gt;',
+                        '&lt;/tpl&gt;',
+                    '&lt;/tpl&gt;',
+                    '&lt;tpl if=&quot;!this.isLeaf(leaf)&quot;&gt;',
+                        '&lt;img src=&quot;/sitools/common/res/images/icons/folder-icon.png&quot; width=&quot;60&quot; height=&quot;60&quot; title=&quot;{text}&quot; title=&quot;{text}&quot;&gt;',
+                    '&lt;/tpl&gt;',
+                    '&lt;span class=&quot;dv-datastorage&quot;&gt;{text}&lt;/span&gt;',
+                '&lt;/div&gt;',
+            '&lt;/div&gt;',
+        '&lt;/tpl&gt;',
+        '&lt;div class=&quot;x-clear&quot;&gt;&lt;/div&gt;', {
+            compiled : true,
+            isLeaf : function (leaf) {
+                return leaf;
+            },
+            isImage : function (text) {
+                var imageRegex = /\.(png|jpg|jpeg|gif|bmp)$/;
+                return (text.match(imageRegex));
+            },
+            isPdf : function (text) {
+                var imageRegex = /\.(pdf)$/;
+                return (text.match(imageRegex));
+            }
+
+        });
+
+        this.dataview = new Ext.DataView({
+            id : 'file-view',
+            // autoHeight:true,
+            autoScroll : true,
+            height : 350,
+            // layout: 'fit',
+            region : 'center',
+            store : this.store,
+            tpl : this.tpl,
+            // overClass:'x-view-over-ds',
+            itemSelector : 'div.dv-datastorage-wrap',
+            emptyText : i18n.get('label.nothingToDisplay'),
+            listeners : {
+                scope : this,
+                click : function (dv, ind, node, e) {
+                    var rec = dv.getStore().getAt(ind);
+                    var treeNode = this.tree.getNodeById(rec.data.id);
+                    // if (rec.data.cls){
+                    // this.tree.fireEvent('beforeexpandnode', treeNode);
+                    // }
+                    this.tree.getSelectionModel().select(treeNode, e, true);
+                    this.tree.fireEvent('click', treeNode, e);
+                }
+            }
+        });
+
+        this.detailPanel = new Ext.ux.ManagedIFrame.Panel({
+            id : 'detail-view',
+            region : 'south',
+            height : 325,
+            collapsible : false,
+            collapsed : false,
+            autoScroll : true,
+            cls : 'detail-panel-datastorage',
+            title : i18n.get('label.defaultTitleDetailPanel'),
+            defaultSrc : this.noPreviewAvailableUrl,
+            tools : [ {
+                id : 'plus',
+                qtip : i18n.get(&quot;label.showInWindow&quot;),
+                scope : this,
+                handler : function (event, toolEl, panel) {
+                    this.detachPanel(panel);
+                }
+            } ]
+        });
+
+        this.contentPanel = new Ext.Panel({
+            id : 'content-view',
+            layout : 'border',
+            region : 'center',
+            items : [ this.dataview, this.detailPanel ]
+        });
+
+        this.items = [ this.tree, this.contentPanel ];
+
+        sitools.user.modules.datastorageExplorer.superclass.initComponent.call(this);
+    },
+    
+    appendChild : function (child, parent) {
+        var reference = new Reference(child.url);
+        var url = reference.getFile();
+        return parent.appendChild({
+            cls : child.cls,
+            text : decodeURIComponent(child.text),
+            url : url,
+            leaf : child.leaf,
+            size : child.size,
+            lastmod : child.lastmod,
+            children : []
+        });
+    },
+
+    isImage : function (text) {
+        var imageRegex = /\.(png|jpg|jpeg|gif|bmp)$/;
+        return text.match(imageRegex);            
+    },
+
+    isOpenable : function (text) {
+        var imageRegex = /\.(txt|json|html|css|xml|pdf|png|jpg|jpeg|gif|bmp)$/;
+        return text.match(imageRegex);            
+    },
+
+    onUpload : function (node) {
+
+        var urlUpload = null;
+        if (node.attributes.leaf === &quot;true&quot;) {
+            urlUpload = node.parentNode.attributes.url;
+        } else if (node.attributes.cls) {
+            urlUpload = node.attributes.url;
+        } else if (node.isRoot) {
+            urlUpload = this.datastorageUrl;
+            if (urlUpload.charAt(urlUpload.length - 1) != &quot;/&quot;) {
+                urlUpload = urlUpload + &quot;/&quot;;
+            }
+        }
+        
+        var uploadWin = new sitools.user.modules.datastorageUploadFile({
+            urlUpload : urlUpload,
+            scope : this,
+            callback : function () {
+                this.reloadNode(node);
+            }
+        });
+        
+        uploadWin.show();
+
+    },
+
+    deleteNode : function (node) {
+
+        var deleteUrl = &quot;&quot;;
+        if (node.attributes.leaf === &quot;true&quot;) {
+            deleteUrl = node.attributes.url;
+        } else if (node.attributes.cls) {
+            deleteUrl = node.attributes.url;
+        }
+        Ext.Ajax.request({
+            url : deleteUrl + &quot;?recursive=true&quot;,
+            method : 'DELETE',
+            scope : this,
+            success : function (ret) {
+                var ind = this.store.find('id', node.id);
+                this.store.removeAt(ind);
+                node.remove(true);
+
+                this.dataview.refresh();
+
+                new Ext.ux.Notification({
+                    iconCls : 'x-icon-information',
+                    title : i18n.get('label.information'),
+                    html : i18n.get('label.fileDeleted'),
+                    autoDestroy : true,
+                    hideDelay : 1000
+                }).show(document);
+            },
+            failure : function (response, opts) {
+                Ext.Msg.alert(response.status + &quot; &quot; + response.statusText, response.responseText);
+            }
+        });
+
+    },
+
+    formatSize : function (size) {
+        if (size &lt; 1024) {
+            return size + &quot; bytes&quot;;
+        } else {
+            return (Math.round(((size * 10) / 1024)) / 10) + &quot; KB&quot;;
+        }
+    },
+
+    formatLastModified : function (lastmod) {
+        return new Date(lastmod).format(&quot;d/m/Y g:i a&quot;);
+    },
+
+    displayFile : function (rec) {
+        this.detailPanel.setTitle(rec.data.text);
+        this.detailPanel.setSrc(rec.data.url);
+        // this.detailPanel.expand(true);
+        this.detailPanel.setHeight(350);
+        this.detailPanel.doLayout();
+    },
+
+    loadDataview : function (parent) {
+        var Json = [];
+        Ext.each(parent.childNodes, function (child) {
+            Json.push(child.attributes);
+        });
+        this.dataview.getStore().loadData(Json);
+        //clear any file already displayed
+        this.detailPanel.setTitle(i18n.get('label.defaultTitleDetailPanel'));
+        this.detailPanel.setSrc(this.noPreviewAvailableUrl);
+        this.detailPanel.doLayout();
+    },
+
+    detachPanel : function (panel) {
+        var customConfig = {
+            title : panel.title,
+            id : panel.title,
+            modal : true,
+            iconCls : 'dataDetail'
+        };
+
+        sitools.user.component.dataviews.dataviewUtils.showDisplayableUrl(panel.frameEl.src, true, customConfig);
+
+    },
+    
+    reloadNode : function (node) {
+        this.tree.getLoader().load(node, function () {
+            node.expand(true);
+        }, this);
+    },
+
+<span id='sitools-user-modules-datastorageExplorer-method-_getSettings'>    /**
+</span>     * method called when trying to save preference
+     * 
+     * @returns
+     */
+    _getSettings : function () {
+        return {
+            preferencesPath : &quot;/modules&quot;,
+            preferencesFileName : this.id
+        };
+
+    },
+    
+    callbackForceSelectNodeOtherDirectory : function (text, success, parentNode) {
+        var node = parentNode.findChild(&quot;text&quot;, text);
+        this.tree.fireEvent(&quot;click&quot;, node);
+    },
+    
+    render : function () {
+        this.reloadNode(this.tree.getRootNode());
+        sitools.user.modules.datastorageExplorer.superclass.render.apply(this, arguments);
+    },
+    
+    isRootNode : function (node) { 
+        return this.tree.getRootNode() === node;        
+    }
+
+});
+
+
+
+<span id='sitools-user-modules-datastorageExplorer-static-method-getParameters'>/**
+</span> * @static Implementation of the method getParameters to be able to load view
+ *         Config Module panel.
+ * @return {Array} the parameters to display into administration view.
+ */
+sitools.user.modules.datastorageExplorer.getParameters = function () {
+
+    return [ {
+        jsObj : &quot;Ext.form.TextField&quot;,
+        config : {
+            fieldLabel : i18n.get(&quot;label.urlDatastorage&quot;),
+            allowBlank : false,
+            width : 200,
+            listeners : {
+                render : function (c) {
+                    Ext.QuickTips.register({
+                        target : c,
+                        text : &quot;the datastorage url (cf. Storage)&quot;
+                    });
+                }
+            },
+            name : &quot;dynamicUrlDatastorage&quot;,
+            value : undefined
+        }
+    }, {
+        jsObj : &quot;Ext.form.TextField&quot;,
+        config : {
+            fieldLabel : i18n.get(&quot;label.nameDatastorage&quot;),
+            allowBlank : false,
+            width : 200,
+            listeners : {
+                render : function (c) {
+                    Ext.QuickTips.register({
+                        target : c,
+                        text : &quot;the label NAME of the datastorage to display (cf. Storage)&quot;
+                    });
+                }
+            },
+            name : &quot;nameDatastorage&quot;,
+            value : undefined
+        }
+    } ];
+};
+
+Ext.reg('sitools.user.modules.datastorageExplorer', sitools.user.modules.datastorageExplorer);
+</pre>
+</body>
+</html>

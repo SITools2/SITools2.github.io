@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, i18n,document*/
+Ext.namespace('sitools.widget');
+
+<span id='sitools-widget-atom1FeedReader-cfg-autoLoad'><span id='sitools-widget-atom1FeedReader-cfg-feedSource'><span id='sitools-widget-atom1FeedReader-cfg-datasetName'><span id='sitools-widget-atom1FeedReader-cfg-urlFeed'><span id='sitools-widget-atom1FeedReader-cfg-datasetId'><span id='sitools-widget-atom1FeedReader'>/**
+</span></span></span></span></span></span> * Displays a grid of atom1 format feeds
+ * @class sitools.widget.atom1FeedReader
+ * @extends Ext.grid.GridPanel
+ * @cfg {string} datasetId The Dataset id,
+ * @cfg {string} urlFeed The url to request feed
+ * @cfg {string} datasetName The dataset name
+ * @cfg {string} feedSource
+ * @cfg {boolean} autoLoad store configuration
+ */
+sitools.widget.atom1FeedReader = function (config) {
+	Ext.apply(this);
+	this.layout = &quot;fit&quot;;
+	this.storeFeedsRecords = new Ext.data.Store({
+        autoLoad : true,
+        sortInfo : {field : 'pubDate', direction : &quot;DESC&quot;},
+	    proxy : new Ext.data.HttpProxy({
+	        url : config.urlFeed,
+	        restful : true,
+            listeners : {
+                scope : this,
+                exception : onRequestFeedException
+            }
+	    // url : 'http://extjs.com/forum/external.php?type=RSS2'
+	    }),
+	    reader : new Ext.data.XmlReader({
+            record : 'entry'
+        }, [ 'title',
+             {
+                name : 'author', 
+                mapping : &quot;author.name&quot;
+             }, {
+            name : 'pubDate',
+            mapping : 'updated',
+            type : 'date'
+          }, {
+              name : 'link',
+              mapping: &quot;link@href&quot;
+             },
+             { 
+                 name : 'description',
+                 mapping : 'content'
+             },
+             'content',
+        	{
+               name : 'imageUrl',
+            	createAccessor : function (data, field) {
+            		var q = Ext.DomQuery;
+            		// select node link with attribute type like image%
+            		var node = q.selectNode(&quot;link[type^=image]&quot;, data);
+            		var result = {};
+            		if (Ext.isEmpty(node)) {
+            			return result;
+            		}
+            		Ext.each(node.attributes, function (attribute) {
+            			result[attribute.name] = attribute.value;
+            		});
+            		return result;
+            	}
+        	}
+        ])
+
+	});
+
+	var columns = [ {
+        id : 'image',
+        header : &quot;Image&quot;,
+        dataIndex : 'imageUrl',
+        sortable : false,
+        width : 120
+        ,
+        renderer : this.imageRenderer
+    }, {
+        id : 'title',
+        header : &quot;Title&quot;,
+        dataIndex : 'title',
+        sortable : true,
+        width : 460,
+        scope : this,
+        renderer : this.formatTitle
+    }, {
+        header : &quot;Author&quot;,
+        dataIndex : 'author',
+        width : 100,
+        hidden : true,
+        sortable : true
+    }, {
+        id : 'last',
+        header : &quot;Date&quot;,
+        dataIndex : 'pubDate',
+        width : 150,
+        renderer : this.formatDate,
+        sortable : true,
+        hidden : true
+    } ];
+
+	sitools.widget.atom1FeedReader.superclass.constructor.call(this, {
+	    // height : 300,
+	    columns : columns,
+	    store : this.storeFeedsRecords,
+	    loadMask : {
+            msg : i18n.get(&quot;label.loadingFeed&quot;)
+        },
+	    sm : new Ext.grid.RowSelectionModel({
+		    singleSelect : true
+	    }),
+	    autoExpandColumn : 'title',
+	    hideHeaders : true,
+	    viewConfig : {
+	        forceFit : true,
+	        enableRowBody : true,
+	        showPreview : true,
+	        getRowClass : this.applyRowClass
+	    },
+        listeners : config.listeners
+	});
+};
+
+Ext.extend(sitools.widget.atom1FeedReader, Ext.grid.GridPanel, {
+<span id='sitools-widget-atom1FeedReader-method-loadFeed'>    /**
+</span>     * Load the feeds with the given url
+     * @param {string} url
+     */
+    loadFeed : function (url) {
+        this.store.baseParams = {
+            feed : url
+        };
+        this.store.load();
+    },
+
+<span id='sitools-widget-atom1FeedReader-method-togglePreview'>    /**
+</span>     * switch from preview to complete view
+     * @param {boolean} show
+     */
+    togglePreview : function (show) {
+        this.view.showPreview = show;
+        this.view.refresh();
+    },
+
+<span id='sitools-widget-atom1FeedReader-method-applyRowClass'>    /**
+</span>     * override the method getRowClass 
+     * @param {Record} record The {@link Ext.data.Record} corresponding to the current row.
+     * @param {Number} index The row index.
+     * @param {Object} rowParams A config object that is passed to the row template during rendering that allows
+     * customization of various aspects of a grid row.
+     * &lt;p&gt;If {@link #enableRowBody} is configured &lt;b&gt;&lt;tt&gt;&lt;/tt&gt;true&lt;/b&gt;, then the following properties may be set
+     * by this function, and will be used to render a full-width expansion row below each grid row:&lt;/p&gt;
+     * &lt;ul&gt;
+     * &lt;li&gt;&lt;code&gt;body&lt;/code&gt; : String &lt;div class=&quot;sub-desc&quot;&gt;An HTML fragment to be used as the expansion row's body content (defaults to '').&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;bodyStyle&lt;/code&gt; : String &lt;div class=&quot;sub-desc&quot;&gt;A CSS style specification that will be applied to the expansion row's &amp;lt;tr&gt; element. (defaults to '').&lt;/div&gt;&lt;/li&gt;
+     * &lt;/ul&gt;
+     * The following property will be passed in, and may be appended to:
+     * &lt;ul&gt;
+     * &lt;li&gt;&lt;code&gt;tstyle&lt;/code&gt; : String &lt;div class=&quot;sub-desc&quot;&gt;A CSS style specification that willl be applied to the &amp;lt;table&gt; element which encapsulates
+     * both the standard grid row, and any expansion row.&lt;/div&gt;&lt;/li&gt;
+     * &lt;/ul&gt;
+     * @param {Store} store The {@link Ext.data.Store} this grid is bound to
+     */
+    applyRowClass : function (record, rowIndex, p, ds) {
+        if (this.showPreview) {
+            var xf = Ext.util.Format;
+            if (record.data.summary != &quot;&quot; &amp;&amp; record.data.summary != undefined){
+                p.body = '&lt;p class=sous-titre-flux&gt;' + xf.ellipsis(xf.stripTags(record.data.summary), 300) + '&lt;/p&gt;';
+                return 'x-grid3-row-expanded';
+            }
+        }
+        return 'x-grid3-row-collapsed';
+    },
+
+<span id='sitools-widget-atom1FeedReader-method-formatDate'>    /**
+</span>     * Custom date format
+     * @param {Date} date the input date
+     * @return {String} the date formated
+     */
+    formatDate : function (date) {
+        if (!date) {
+            return '';
+        }
+        var now = new Date();
+        var d = now.clearTime(true);
+        if (date instanceof Date){
+            var notime = date.clearTime(true).getTime();
+            if (notime == d.getTime()) {
+                return 'Today ' + date.dateFormat('g:i a');
+            }
+            d = d.add('d', -6);
+            if (d.getTime() &lt;= notime) {
+                return date.dateFormat('D g:i a');
+            }
+            return date.dateFormat('n/j g:i a');
+        }
+        else {
+            return date;
+        }
+    },
+
+<span id='sitools-widget-atom1FeedReader-method-formatTitle'>    /**
+</span>     * Custom renderer for title columns
+     * @param {} value the value to format
+     * @param {} p
+     * @param {Ext.data.Record} record
+     * @return {String} The title value formatted.
+     */
+    formatTitle : function (value, p, record) {
+        var author = (record.data.author.name !== undefined) ? record.data.author.name : &quot;&quot;;
+        var link = record.data.link;
+        var xf = Ext.util.Format;
+        var dateFormat = this.formatDate(record.data.updated);
+        var author = (record.data.author.name !== undefined) ? record.data.author.name : &quot;&quot;;
+        var authorEmail = (record.data.author.email !== undefined) ? record.data.author.email : &quot;&quot;;
+        var res = &quot;&quot;;
+        if (link !== undefined &amp;&amp; link !== &quot;&quot;) {
+            res = String.format('&lt;div class=&quot;topic&quot;&gt;&lt;a href=&quot;{0}&quot; title=&quot;{1}&quot; target=&quot;_blank&quot;&gt;&lt;span class=&quot;rss_feed_title&quot;&gt;{2}&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;span class=&quot;author&quot;&gt;{3}&lt;/span&gt;&lt;/div&gt;', link, value, 
+                    xf.ellipsis(xf.stripTags(value), 50), author);
+        } else {
+            res = String.format('&lt;div class=&quot;topic&quot;&gt;&lt;span class=&quot;rss_feed_title&quot;&gt;{0}&lt;/span&gt;&lt;br/&gt;&lt;span class=&quot;author&quot;&gt;{1}&lt;/span&gt;&lt;/div&gt;', xf.ellipsis(xf.stripTags(value), 50), author);
+        }
+        if (dateFormat != &quot;&quot; &amp;&amp; dateFormat != undefined ){
+            res += String.format('&lt;p id=&quot;feeds-date&quot;&gt;{0}&lt;/p&gt;', dateFormat);
+        }
+        return res;
+
+    }, 
+    imageRenderer : function (value, p, record) {
+    	if (Ext.isEmpty(value) || Ext.isEmpty(value.href)) {
+            return &quot;&quot;;
+        }
+        if (value.type.substr(0, 5) != &quot;image&quot;) {
+        	return &quot;&quot;;
+        }
+		return String.format('&lt;img src=&quot;{0}&quot; width=&quot;50px&quot;&gt;', value.href);
+    },
+    
+    sortByDate : function (direction){
+        this.storeFeedsRecords.sort('pubDate', direction);
+    }
+
+});
+</pre>
+</body>
+</html>

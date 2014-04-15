@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure*/
+Ext.namespace('sitools.admin.quickStart');
+
+sitools.admin.quickStart.qsStart = Ext.extend(Ext.Panel, {
+    forceLayout : true, 
+    layout : &quot;vbox&quot;,
+    border : false,
+    bodyCssClass : 'quickStart',
+    layoutConfig : {
+        align : 'center',
+        pack : 'start'
+    },
+    initComponent : function () {
+        
+        var title = new Ext.form.Label({
+            cls : 'qs-h1',
+            html : i18n.get('label.qsStartTitle'),
+            listeners : {
+                render : function (img) {
+                    img.getEl().fadeIn({
+                        easing : 'easeIn',
+                        duration: 1
+                    });
+                }
+            }
+        });
+        
+        var desc = new Ext.form.Label({
+            cls : 'qs-div',
+            id : &quot;start-desc&quot;,
+            html : i18n.get('label.qsStartDesc'),
+            listeners : {
+                render : function (img) {
+                    img.getEl().fadeIn({
+                        easing : 'easeIn',
+                        duration: 1
+                    });
+                }
+            }
+        });
+        
+        var img = new Ext.form.Label({
+            html : '&lt;img id=&quot;qs-logo&quot; class=&quot;bouton_action&quot; src=&quot;/sitools/client-admin/res/html/quickStart/icons/quick_start_logo.png&quot;/&gt;',
+            listeners : {
+                render : function (img) {
+                    img.getEl().fadeIn({
+                        endOpacity: 1,
+                        easing : 'easeIn',
+                        duration: 1.5,
+                        useDisplay : true
+                    });
+                },
+                afterrender : function (sitools) {
+                    Ext.get(&quot;qs-logo&quot;).on('load', function () {
+                        
+                        sitools.getEl().on('mouseleave', function (e, t, o) {
+                            t.src = &quot;/sitools/client-admin/res/html/quickStart/icons/quick_start_logo.png&quot;; 
+                         });
+                        sitools.getEl().on('mouseenter', function (e, t, o) {
+                             t.src = &quot;/sitools/client-admin/res/html/quickStart/icons/quick_start_logo_hover.png&quot;; 
+                         });
+                        sitools.getEl().on('click', function (e, t, o) {
+                            var nextBtn = this.ownerCt.qs.stepsPanel.buttons[1];
+                            nextBtn.toggle(true);
+                         }, this);
+                         
+                         new Ext.ToolTip({
+                             target : 'qs-logo',
+                             anchor: 'right',
+                             autoShow : true,
+                             showDelay : 0,
+                             floating : true,
+                             html : &quot;&lt;b&gt;Begin&lt;/b&gt;&quot;
+                         });
+                         
+                         sitools.getEl().alignTo(&quot;start-desc&quot;, &quot;tr-br&quot;);
+                         
+                    }, this);
+                }
+            }
+        });
+        
+        this.items = [title, desc, img];
+        
+        sitools.admin.quickStart.qsStart.superclass.initComponent.call(this);
+    }
+    
+});
+</pre>
+</body>
+</html>

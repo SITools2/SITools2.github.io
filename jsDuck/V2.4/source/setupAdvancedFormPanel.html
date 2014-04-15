@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2014 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser, 
+ showHelp, loadUrl*/
+Ext.namespace(&quot;sitools.admin.forms&quot;);
+
+<span id='sitools-admin-forms-setupAdvancedFormPanel-cfg-the'><span id='sitools-admin-forms-setupAdvancedFormPanel-cfg-parentContainer'><span id='sitools-admin-forms-setupAdvancedFormPanel'>/**
+</span></span></span> * A simple window to edit Absolute Layout Size.
+ * @cfg {sitools.admin.forms.ComponentsDisplayPanel} parentContainer
+ * @cfg {Integer} the last zone position
+ * @class sitools.admin.forms.setupAdvancedFormPanel
+ * @extends Ext.Window
+ */
+sitools.admin.forms.setupAdvancedFormPanel = Ext.extend(Ext.Window, {
+    modal : true,
+    height : 210,
+    width : 260,
+    initComponent : function () {
+
+        this.title = i18n.get('label.setupAdvancedFormPanel');
+        this.fielsetPosition = this.parentContainer.zoneStore.getCount() + 1;
+        
+        this.form = new Ext.form.FormPanel({
+            padding : 5,
+            items : [ {
+                xtype : 'textfield',
+                name : 'title',
+                id : &quot;title&quot;,
+                fieldLabel : i18n.get('label.titleCriteria'),
+                anchor : &quot;100%&quot;
+            }, {
+                xtype : 'textfield',
+                name : 'height',
+                id : &quot;height&quot;,
+                fieldLabel : i18n.get('label.height'),
+                value : 200,
+                anchor : &quot;100%&quot;
+            }, {
+                xtype : 'textfield',
+                fieldLabel : i18n.get('label.css'),
+                name : 'css',
+                id : 'cssFieldset',
+                anchor : &quot;100%&quot;
+            }, {
+                xtype : 'checkbox',
+                fieldLabel : i18n.get('label.collapsible'),
+                name : 'collapsible',
+                id : 'collapseFieldset',
+                anchor : &quot;100%&quot;
+            }, {
+                xtype : 'checkbox',
+                fieldLabel : i18n.get('label.collapsed'),
+                name : 'collapsed',
+                id : 'isCollapseFieldset',
+                anchor : &quot;100%&quot;
+            }   /*{
+                xtype : 'spinnerfield',
+                id : 'position', 
+                fieldLabel : i18n.get('label.position'),
+                minValue : 0,
+                maxValue : 10,
+                value : currentPosition,
+                allowDecimals : false,
+                incrementValue : 1,
+                accelerate : true,
+                anchor : &quot;100%&quot;, 
+                allowBlank : false
+            }*/],
+            buttons : [ {
+                scope : this,
+                text : i18n.get('label.ok'),
+                handler : this._onValidate
+            }, {
+                scope : this,
+                text : i18n.get('label.cancel'),
+                handler : this._onCancel
+            } ]
+        });
+        
+        this.items = [ this.form ];
+        
+        sitools.admin.forms.setupAdvancedFormPanel.superclass.initComponent.call(this);
+
+    },
+    
+    onRender : function () {
+        sitools.admin.forms.setupAdvancedFormPanel.superclass.onRender.apply(this, arguments);
+        if (this.action === 'modify') {
+            var recZone = new Ext.data.Record(this.zone);
+            this.form.getForm().loadRecord(recZone);
+        }
+        
+    },
+    
+    _onValidate : function () {
+        var f = this.form.getForm();
+        
+        var title = f.findField('title').getValue();
+        var isCollapsible = f.findField('collapseFieldset').getValue();
+        var isCollapse = f.findField('isCollapseFieldset').getValue();
+        var cssFieldset = f.findField('cssFieldset').getValue();
+        var height = parseInt(f.findField('height').getValue(), 10);
+        
+        var rec = {
+            title : title,
+            height : height,
+            css : cssFieldset,
+            collapsible : isCollapsible,
+            collapsed : isCollapse,
+            position : this.fielsetPosition
+        };
+        
+        if (this.action === 'modify') {
+            if (!Ext.isEmpty(this.zone.containerPanelId)){
+            	var zoneToRemove = this.parentContainer.zoneStore.find('containerPanelId', this.zone.containerPanelId);
+            } else {
+            	var zoneToRemove = this.parentContainer.zoneStore.find('position', 0);
+            }
+            var zoneRec = this.parentContainer.zoneStore.getAt(zoneToRemove);
+            
+            Ext.apply(zoneRec.data, rec, {containerPanelId : this.zone.containerPanelId});
+        }
+        else {
+            rec.containerPanelId = Ext.id();
+            this.parentContainer.zoneStore.add(new Ext.data.Record(rec));
+        }
+        
+        this.destroy();
+//        this.parentContainer.doLayout();
+        this.parentContainer.fireEvent('activate');
+    },
+    
+    _onCancel : function () {
+        this.destroy();
+    }
+});
+</pre>
+</body>
+</html>

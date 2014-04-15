@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, SITOOLS_DEFAULT_IHM_DATE_FORMAT, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser*/
+Ext.namespace('sitools.admin.datasets');
+
+
+<span id='sitools-admin-datasets-datasetProperties'>/**
+</span> * Define the dataset properties gridPanel 
+ * @class sitools.admin.datasets.datasetProperties
+ * @extends Ext.grid.GridPanel
+ */
+sitools.admin.datasets.datasetProperties = Ext.extend(Ext.grid.EditorGridPanel, {
+    initComponent : function () {
+		var action = this.action;
+		var storeProperties = new Ext.data.JsonStore({
+            fields : [ {
+                name : 'name',
+                type : 'string'
+            }, {
+                name : 'type',
+                type : 'string'
+            }, {
+                name : 'value',
+                type : 'string'
+            } ],
+            autoLoad : false
+        });
+        var smProperties = new Ext.grid.RowSelectionModel({
+            singleSelect : true
+        });
+        
+        var storeTypesProperties = new Ext.data.JsonStore({
+            fields : ['name'],
+            data : [{name : &quot;String&quot;}, {name : &quot;Enum&quot;}, {name : &quot;Numeric&quot;}, {name : &quot;Date&quot;}]
+        });
+	    var comboTypesProperties = new Ext.form.ComboBox({
+	        store : storeTypesProperties, 
+	        mode : 'local',
+	        typeAhead : true,
+	        triggerAction : 'all',
+	        forceSelection : true,
+	        selectOnFocus : true,
+	        dataIndex : 'orderBy',
+	        lazyRender : true,
+	        listClass : 'x-combo-list-small',
+	        valueField : 'name',
+	        displayField : 'name',
+	        tpl : '&lt;tpl for=&quot;.&quot;&gt;&lt;div class=&quot;x-combo-list-item comboItem&quot;&gt;{name}&lt;/div&gt;&lt;/tpl&gt;', 
+	        width : 55
+	    });
+
+        var cmProperties = new Ext.grid.ColumnModel({
+            columns : [ {
+                header : i18n.get('headers.name'),
+                dataIndex : 'name',
+                editor : new Ext.form.TextField()
+            }, {
+                header : i18n.get('headers.type'),
+                dataIndex : 'type', 
+                editor : comboTypesProperties
+            }, {
+                header : i18n.get('headers.value'),
+                dataIndex : 'value',
+                editor : new Ext.form.TextField()
+            }],
+            defaults : {
+                sortable : false,
+                width : 100
+            }
+        });
+        var tbar = {
+            defaults : {
+                scope : this
+            },
+            items : [ {
+                text : i18n.get('label.create'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/toolbar_create.png',
+                handler : this.onCreateProperty
+            }, {
+                text : i18n.get('label.delete'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/toolbar_delete.png',
+                handler : this.onDeleteProperty
+            } ]
+        };
+        
+        Ext.apply(this, {
+            title : i18n.get('title.properties'),
+            id : 'componentGridProperties',
+            tbar : tbar, 
+            anchor : &quot;95%&quot;, 
+            height : 180,
+            store : storeProperties,
+            cm : cmProperties,
+            sm : smProperties,
+            viewConfig : {
+                forceFit : true
+            }, 
+            listeners : {
+				scope : this, 
+				activate : function (panel) {
+                    if (this.action == 'view') {
+						panel.getEl().mask();
+					}
+                },
+				beforeedit : function (e) {
+					//Créer l'éditeur en fonction du type 
+					if (e.column == 2) {
+						var grid = e.grid;
+						var rec = e.record;
+						var column = grid.getColumnModel().columns[e.column];
+						if (Ext.isEmpty(rec.get(&quot;type&quot;))) {
+							return false;
+						}
+						var editor;
+						switch (rec.get('type')) {
+						case &quot;String&quot; : 
+							editor = new Ext.form.TextField();
+							break;
+						
+						case &quot;Numeric&quot; : 
+							editor = new Ext.form.NumberField();
+							break;
+						case &quot;Date&quot; : 
+							editor = new Ext.form.DateField({
+								format : SITOOLS_DEFAULT_IHM_DATE_FORMAT, 
+								showTime : true
+							});
+							break;
+						case &quot;Enum&quot; : 
+							editor = new Ext.form.TextField();
+							break;
+						}
+						
+						column.setEditor(editor);
+					}
+					return true;
+				}, 
+				afteredit : function (e) {
+					//Formatter en string
+					if (e.column == 2) {
+						var grid = e.grid;
+						var rec = e.record;
+						var column = grid.getColumnModel().columns[e.column];
+						var value = e.value;
+						if (Ext.isEmpty(rec.get(&quot;type&quot;))) {
+							return false;
+						}
+						switch (rec.get('type')) {
+						case &quot;String&quot; : 
+							value = String.format(value);
+							break;
+						
+						case &quot;Numeric&quot; : 
+							value = Ext.util.Format.number(value, &quot;0.00&quot;);
+							break;
+						case &quot;Date&quot; : 
+							value = value.format(SITOOLS_DEFAULT_IHM_DATE_FORMAT);
+							break;
+						case &quot;Enum&quot; : 
+							value = String.format(value);
+							break;
+						}
+						rec.set(&quot;value&quot;, value);	
+					}
+					
+				}
+            }
+        
+        });
+        
+		sitools.admin.datasets.datasetProperties.superclass.initComponent.call(this);
+    }, 
+<span id='sitools-admin-datasets-datasetProperties-method-onCreateProperty'>    /**
+</span>     * A method called on create button of the property grid. 
+     * Creates a new record with a String default type 
+     */
+    onCreateProperty : function () {
+        var e = new Ext.data.Record({
+			type : &quot;String&quot;
+        });
+        this.getStore().insert(0, e);
+    },
+<span id='sitools-admin-datasets-datasetProperties-method-onDeleteProperty'>    /**
+</span>     * Called on delete button of the property grid. 
+     * Deletes all selected records. 
+     */
+    onDeleteProperty : function () {
+        var s = this.getSelectionModel().getSelections();
+        var i, r;
+        for (i = 0; s[i]; i++) {
+            r = s[i];
+            this.getStore().remove(r);
+        }
+    }
+
+});
+
+</pre>
+</body>
+</html>

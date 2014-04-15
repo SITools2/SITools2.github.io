@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.dialog.add(&quot;radio&quot;,function(d){return{title:d.lang.forms.checkboxAndRadio.radioTitle,minWidth:350,minHeight:140,onShow:function(){delete this.radioButton;var a=this.getParentEditor().getSelection().getSelectedElement();a&amp;&amp;(&quot;input&quot;==a.getName()&amp;&amp;&quot;radio&quot;==a.getAttribute(&quot;type&quot;))&amp;&amp;(this.radioButton=a,this.setupContent(a))},onOk:function(){var a,b=this.radioButton,c=!b;c&amp;&amp;(a=this.getParentEditor(),b=a.document.createElement(&quot;input&quot;),b.setAttribute(&quot;type&quot;,&quot;radio&quot;));c&amp;&amp;a.insertElement(b);this.commitContent({element:b})},
+contents:[{id:&quot;info&quot;,label:d.lang.forms.checkboxAndRadio.radioTitle,title:d.lang.forms.checkboxAndRadio.radioTitle,elements:[{id:&quot;name&quot;,type:&quot;text&quot;,label:d.lang.common.name,&quot;default&quot;:&quot;&quot;,accessKey:&quot;N&quot;,setup:function(a){this.setValue(a.data(&quot;cke-saved-name&quot;)||a.getAttribute(&quot;name&quot;)||&quot;&quot;)},commit:function(a){a=a.element;this.getValue()?a.data(&quot;cke-saved-name&quot;,this.getValue()):(a.data(&quot;cke-saved-name&quot;,!1),a.removeAttribute(&quot;name&quot;))}},{id:&quot;value&quot;,type:&quot;text&quot;,label:d.lang.forms.checkboxAndRadio.value,&quot;default&quot;:&quot;&quot;,
+accessKey:&quot;V&quot;,setup:function(a){this.setValue(a.getAttribute(&quot;value&quot;)||&quot;&quot;)},commit:function(a){a=a.element;this.getValue()?a.setAttribute(&quot;value&quot;,this.getValue()):a.removeAttribute(&quot;value&quot;)}},{id:&quot;checked&quot;,type:&quot;checkbox&quot;,label:d.lang.forms.checkboxAndRadio.selected,&quot;default&quot;:&quot;&quot;,accessKey:&quot;S&quot;,value:&quot;checked&quot;,setup:function(a){this.setValue(a.getAttribute(&quot;checked&quot;))},commit:function(a){var b=a.element;if(!CKEDITOR.env.ie&amp;&amp;!CKEDITOR.env.opera)this.getValue()?b.setAttribute(&quot;checked&quot;,&quot;checked&quot;):b.removeAttribute(&quot;checked&quot;);
+else{var c=b.getAttribute(&quot;checked&quot;),e=!!this.getValue();c!=e&amp;&amp;(c=CKEDITOR.dom.element.createFromHtml('&lt;input type=&quot;radio&quot;'+(e?' checked=&quot;checked&quot;':&quot;&quot;)+&quot;&gt;&lt;/input&gt;&quot;,d.document),b.copyAttributes(c,{type:1,checked:1}),c.replace(b),d.getSelection().selectElement(c),a.element=c)}}}]}]}});</pre>
+</body>
+</html>

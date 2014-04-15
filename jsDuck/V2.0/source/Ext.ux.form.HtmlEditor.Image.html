@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-ux-form-HtmlEditor-Image'>/**
+</span> * @author Shea Frederick - http://www.vinylfox.com
+ * @class Ext.ux.form.HtmlEditor.Image
+ * @extends Ext.util.Observable
+ * &lt;p&gt;A plugin that creates an image button in the HtmlEditor toolbar for inserting an image. The method to select an image must be defined by overriding the selectImage method. Supports resizing of the image after insertion.&lt;/p&gt;
+ * &lt;p&gt;The selectImage implementation must call insertImage after the user has selected an image, passing it a simple image object like the one below.&lt;/p&gt;
+ * &lt;pre&gt;
+ *      var img = {
+ *         Width: 100,
+ *         Height: 100,
+ *         ID: 123,
+ *         Title: 'My Image'
+ *      };
+ * &lt;/pre&gt;
+ */
+Ext.ux.form.HtmlEditor.Image = Ext.extend(Ext.util.Observable, {
+	// Image language text
+	langTitle: 'Insert Image',
+    urlSizeVars: ['width','height'],
+    basePath: 'image.php',
+    init: function(cmp){
+        this.cmp = cmp;
+        this.cmp.on('render', this.onRender, this);
+        this.cmp.on('initialize', this.onInit, this, {single: true});
+    },
+    
+    onEditorMouseUp : function(e){
+        Ext.get(e.getTarget()).select('img').each(function(el){
+            var w = el.getAttribute('width'), h = el.getAttribute('height'), src = el.getAttribute('src')+' ';
+            src = src.replace(new RegExp(this.urlSizeVars[0]+'=[0-9]{1,5}([&amp;| ])'), this.urlSizeVars[0]+'='+w+'$1');
+            src = src.replace(new RegExp(this.urlSizeVars[1]+'=[0-9]{1,5}([&amp;| ])'), this.urlSizeVars[1]+'='+h+'$1');
+            el.set({src:src.replace(/\s+$/,&quot;&quot;)});
+        }, this);
+        
+    },
+    onInit: function(){
+        Ext.EventManager.on(this.cmp.getDoc(), {
+			'abort': this.onEditorMouseUp,
+			scope: this
+		});
+    },
+    onRender: function() {
+    	
+        var btn = this.cmp.getToolbar().addButton({
+            iconCls: 'x-edit-image',
+            scope: this,
+            handler: this.selectImage,
+            tooltip: {
+                title: this.langTitle
+            },
+            overflowText: this.langTitle
+        });
+    },
+    selectImage: function (){
+    	 function validate(data, config) {
+             config.fieldUrl.setValue(data.url);
+         }
+         var chooser = new ImageExplorer({
+        	 directoryImageUrl : this.cmp.directoryImageUrl,
+             width : 500,
+             height : 350,
+             htmlEditor : this.cmp
+         });
+         chooser.show(document);
+    },
+    
+    insertImage: function(img) {
+        this.cmp.insertAtCursor('&lt;img src=&quot;'+this.basePath+'?'+this.urlSizeVars[0]+'='+img.Width+'&amp;'+this.urlSizeVars[1]+'='+img.Height+'&amp;id='+img.ID+'&quot; title=&quot;'+img.Name+'&quot; alt=&quot;'+img.Name+'&quot;&gt;');
+    }
+    
+});
+
+Image.insertImage = function(data, config) {
+	var htmlEditor = config.htmlEditor;
+     var url = data.url;
+    var indexDatastorageUrl = url.indexOf(config.directoryImageUrl);
+    if (indexDatastorageUrl !== -1) {
+        url = &quot;./images&quot; + url.substr(indexDatastorageUrl + config.directoryImageUrl.length, url.length);
+    }
+    
+	if (data.width &amp;&amp; data.height){
+		htmlEditor.insertAtCursor('&lt;img src=&quot;'+ url +'&quot; title=&quot;'+ data.text +'&quot; width=&quot;'+ data.width +'&quot; height=&quot;'+ data.height +'&quot; alt=&quot;'+ data.text +'&quot;&gt;');
+	}
+	else {
+		htmlEditor.insertAtCursor('&lt;img src=&quot;'+ url +'&quot; title=&quot;'+ data.text +'&quot; alt=&quot;'+ data.text +'&quot;&gt;');
+	}
+};
+</pre>
+</body>
+</html>

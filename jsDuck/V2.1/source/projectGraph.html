@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, i18n, commonTreeUtils, projectGlobal, showResponse, document, SitoolsDesk, alertFailure, loadUrl*/
+/*
+ * @include &quot;../../components/forms/forms.js&quot;  
+ */
+
+Ext.namespace('sitools.user.modules');
+
+<span id='sitools-user-modules-projectGraphTree'>/**
+</span> * Displays a graph Module treeGrid
+ * @class sitools.user.modules.projectGraphTree
+ * @extends Ext.ux.tree.TreeGrid
+ * @requires sitools.user.component.columnsDefinition
+ */
+sitools.user.modules.projectGraphTree = Ext.extend(Ext.ux.tree.TreeGrid, {
+    treeUtils : commonTreeUtils,
+    enableHdMenu : false,
+    enableSort : false,
+    expanded : true,
+    lines : true,
+    useArrows : false,
+    autoScroll : true,
+    animate : true,
+    columnResize : false,
+    headerEllipsisSize : 12,
+    initComponent : function () {
+        this.columns = [ {
+            dataIndex : 'text',
+            width : 200,
+            header : ' '
+        }, {
+            width : 100,
+            dataIndex : 'datasetId', // TODO a     
+            //cls : &quot;grid-column-color&quot;,
+            // changer avec
+            // la variable
+            // nbRecord
+            tpl : new Ext.XTemplate('{[type=&quot;&quot;]}', '&lt;tpl if=&quot;this.exists(type) &amp;&amp; type==\'dataset\'&quot;&gt;{nbRecord} {[i18n.get(&quot;label.records&quot;)]}&lt;/tpl&gt;', {
+                exists : function (o) {
+                    return typeof o !== 'undefined' &amp;&amp; o !== null &amp;&amp; o !== '';
+                },
+                // XTemplate configuration:
+                compiled : true,
+                disableFormats : true
+            }),
+            align : 'right',
+            header : Ext.util.Format.ellipsis(i18n.get(&quot;label.records&quot;),this.headerEllipsisSize)
+        }, {
+            width : 80,
+            dataIndex : 'imageDs',
+            header : i18n.get(&quot;label.image&quot;),
+            align : 'center',
+            tpl : new Ext.XTemplate('{[type=&quot;&quot;,imageDs=&quot;&quot;]}', '&lt;tpl if=&quot;this.exists(type) &amp;&amp; type==\'dataset\'  &amp;&amp; this.exists(imageDs) &amp;&amp; authorized==\'true\'&quot;&gt;&lt;img class=&quot;imageDsNode&quot; src=&quot;{imageDs}&quot;&gt;&lt;/img&gt;&lt;/tpl&gt;', {
+                exists : function (o) {
+                    return typeof o !== 'undefined' &amp;&amp; o !== null &amp;&amp; o !== '';
+                },
+                // XTemplate configuration:
+                compiled : true,
+                disableFormats : true
+            })
+        }, {
+            width : 90,
+            dataIndex : 'readme',
+            //cls : &quot;grid-column-color&quot;,
+            header : Ext.util.Format.ellipsis(i18n.get(&quot;label.descriptionMini&quot;), this.headerEllipsisSize),
+            tpl : new Ext.XTemplate('{[readme=&quot;&quot;]}',
+                                            '&lt;tpl if=&quot;this.exists_description_node(readme,type)&quot;&gt;&lt;img ext:qtip=&quot;{readme}&quot; src=&quot;' + loadUrl.get('APP_URL')
+                                                    + '/common/res/images/icons/description_project_small.png&quot;&gt;&lt;/tpl&gt;',
+                                            '&lt;tpl if=&quot;this.exists_description_dataset(readme,type) &amp;&amp; authorized==\'true\'&quot;&gt;{url:this.getIcone}&lt;/tpl&gt;', {
+                exists_description_dataset : function (o, type) {
+					return typeof o !== 'undefined'
+							&amp;&amp; o !== null &amp;&amp; o !== ''
+							&amp;&amp; type === &quot;dataset&quot;;
+				},
+				exists_description_node : function (o, type) {
+					return typeof o !== 'undefined'
+							&amp;&amp; o !== null &amp;&amp; o !== ''
+							&amp;&amp; type === &quot;node&quot;;
+				},
+                getIcone : function (value) {
+					return &quot;&lt;a href='#' onClick='sitools.user.clickDatasetIcone(\&quot;&quot; + value
+                                                            + &quot;\&quot;, \&quot;desc\&quot;); return false;'&gt;&lt;img src='&quot; + loadUrl.get('APP_URL')
+                                                            + &quot;/common/res/images/icons/help.png'&gt;&lt;/img&gt;&lt;/a&gt;&quot;;
+                },
+                // XTemplate configuration:
+                compiled : true,
+                disableFormats : false
+            }), 
+            align : 'center'
+        }, {
+            width : 90,
+            header : Ext.util.Format.ellipsis(i18n.get(&quot;label.data&quot;),this.headerEllipsisSize),
+            tpl : new Ext.XTemplate('{[datasetId=&quot;&quot;]}', '&lt;tpl if=&quot;this.exists(datasetId) &amp;&amp; authorized==\'true\'&quot;&gt;{url:this.getIcone}&lt;/tpl&gt;', {
+                exists : function (o) {
+                    return typeof o !== 'undefined' &amp;&amp; o !== null &amp;&amp; o !== '';
+                },
+                getIcone : function (value) {
+					return &quot;&lt;a href='#' onClick='sitools.user.clickDatasetIcone(\&quot;&quot; + value
+                                                            + &quot;\&quot;, \&quot;data\&quot;); return false;'&gt;&lt;img src='&quot; + loadUrl.get('APP_URL')
+                                                            + &quot;/common/res/images/icons/tree_datasets.png'&gt;&lt;/img&gt;&lt;/a&gt;&quot;;
+                },
+                // XTemplate configuration:
+                compiled : true,
+                disableFormats : false
+            }), 
+            align : 'center'
+        }, {
+            width : 90,
+            header : Ext.util.Format.ellipsis(i18n.get(&quot;label.definitionMini&quot;),this.headerEllipsisSize),
+            tpl : new Ext.XTemplate('{[datasetId=&quot;&quot;]}', '&lt;tpl if=&quot;this.exists(datasetId) &amp;&amp; authorized==\'true\'&quot;&gt;{url:this.getIcone}&lt;/tpl&gt;', {
+                exists : function (o) {
+                    return typeof o !== 'undefined' &amp;&amp; o !== null &amp;&amp; o !== '';
+                },
+                getIcone : function (value) {
+					return &quot;&lt;a href='#' onClick='sitools.user.clickDatasetIcone(\&quot;&quot; + value
+                                                            + &quot;\&quot;, \&quot;defi\&quot;); return false;'&gt;&lt;img src='&quot; + loadUrl.get('APP_URL')
+                                                            + &quot;/common/res/images/icons/tree_dictionary.png'&gt;&lt;/a&gt;&quot;;
+                },
+                // XTemplate configuration:
+                compiled : true,
+                disableFormats : false
+            }), 
+            align : 'center'
+        }, {
+            width : 90,
+            header : Ext.util.Format.ellipsis(i18n.get(&quot;label.feeds&quot;),this.headerEllipsisSize),
+            //cls : &quot;grid-column-color&quot;,
+            tpl : new Ext.XTemplate('{[datasetId=&quot;&quot;]}', '&lt;tpl if=&quot;this.exists(datasetId) &amp;&amp; authorized==\'true\'&quot;&gt;{url:this.getIcone}&lt;/tpl&gt;', {
+                exists : function (o) {
+                    return typeof o !== 'undefined' &amp;&amp; o !== null &amp;&amp; o !== '';
+                },
+                getIcone : function (value) {
+					return &quot;&lt;a href='#' onClick='sitools.user.clickDatasetIcone(\&quot;&quot; + value
+                                                            + &quot;\&quot;, \&quot;feeds\&quot;); return false;'&gt;&lt;img src='&quot; + loadUrl.get('APP_URL')
+                                                            + &quot;/common/res/images/icons/rss.png'&gt;&lt;/a&gt;&quot;;
+                },
+                // XTemplate configuration:
+                compiled : true,
+                disableFormats : false
+            }), 
+            align : 'center'
+        }, {
+            width : 90,
+            header : Ext.util.Format.ellipsis(i18n.get(&quot;label.opensearchMini&quot;),this.headerEllipsisSize),
+            tpl : new Ext.XTemplate('{[datasetId=&quot;&quot;]}', '&lt;tpl if=&quot;this.exists(datasetId) &amp;&amp; authorized==\'true\'&quot;&gt;{url:this.getIcone}&lt;/tpl&gt;', {
+                exists : function (o) {
+                    return typeof o !== 'undefined' &amp;&amp; o !== null &amp;&amp; o !== '';
+                },
+                getIcone : function (value) {
+					return &quot;&lt;a href='#' onClick='sitools.user.clickDatasetIcone(\&quot;&quot; + value
+                                                            + &quot;\&quot;, \&quot;openSearch\&quot;); return false;'&gt;&lt;img src='&quot; + loadUrl.get('APP_URL')
+                                                            + &quot;/common/res/images/icons/toolbar_open_search.png'&gt;&lt;/a&gt;&quot;;
+                },
+                // XTemplate configuration:
+                compiled : true,
+                disableFormats : false
+            }), 
+            align : 'center'
+        } ];
+
+        SitoolsDesk.navProfile.manageProjectGraphColumns(this.columns);
+        
+        this.tbar = {
+            xtype : 'toolbar',
+            defaults : {
+                scope : this
+            },
+            items : [ {
+                scope : this,
+                text : i18n.get('label.refresh'),
+                icon : loadUrl.get('APP_URL') + '/common/res/images/icons/toolbar_refresh.png',
+                handler : this._onRefresh,
+                xtype : 's-menuButton'
+            } ]
+        };
+        var projectAttachment = projectGlobal.sitoolsAttachementForUsers;
+        this.loader = new Ext.ux.tree.TreeGridLoader({
+            requestMethod : 'GET',
+            url : projectAttachment + &quot;/graph&quot;,
+            root : 'graph.nodeList',
+            createNode : function (attr) {
+
+                if (attr.type !== undefined &amp;&amp; attr.type == &quot;dataset&quot;) {
+                    // attr.nodeType = 'templateTreeNode';
+                    attr.icon = attr.authorized === &quot;true&quot; ? loadUrl.get('APP_URL') + &quot;/common/res/images/icons/tree_datasets.png&quot; : loadUrl.get('APP_URL') + &quot;/common/res/images/icons/cadenas.png&quot;;
+                    attr.leaf = true;
+
+                }
+                if (attr.type !== undefined &amp;&amp; attr.type == &quot;node&quot;) {
+                    // if(attr.image!=undefined)
+                    attr.icon = attr.image.url;
+                    /*
+                     * else attr.icon = undefined;
+                     */
+                    attr.iconCls = &quot;graphNodeType&quot;;
+                    attr.readme = attr.description;
+                }		
+                return Ext.ux.tree.TreeGridLoader.prototype.createNode.call(this, attr);
+            }
+        });
+
+        var conn = Ext.Ajax;
+        conn.request({
+            url : projectAttachment + '/datasets?media=json',
+            method : 'GET',
+            scriptTag : true,
+            scope : this,
+            success : function (response) {
+                if (!showResponse(response, false)) {
+                    return;
+                }
+
+                var getData = Ext.decode(response.responseText);
+                var datasetsList = getData.data;
+                if (datasetsList !== null) {
+                    // creates an index of datasets
+                    this.datasets = {};
+                    var i;
+                    for (i = 0; i &lt; datasetsList.length; i++) {
+						this.datasets[datasetsList[i].id] = datasetsList[i];
+                    }
+                }
+
+            }
+
+        });
+
+        sitools.user.modules.projectGraphTree.superclass.initComponent.call(this);
+
+    },
+    _onRefresh : function () {
+        var root = this.getRootNode();
+        this.loader.load(root);
+    }, 
+<span id='sitools-user-modules-projectGraphTree-method-_getSettings'>    /**
+</span>     * method called when trying to save preference
+     * @returns
+     */
+    _getSettings : function () {
+		return {
+            preferencesPath : &quot;/modules&quot;, 
+            preferencesFileName : this.id
+        };
+
+    }
+
+});
+
+Ext.reg('sitools.user.modules.projectGraphTree', sitools.user.modules.projectGraphTree);
+</pre>
+</body>
+</html>

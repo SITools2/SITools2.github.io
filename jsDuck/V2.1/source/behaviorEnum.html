@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2011, 2012 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, ID, i18n, document, showResponse, alertFailure, LOCALE, ImageChooser, 
+ showHelp, loadUrl, ColumnRendererEnum*/
+
+Ext.namespace('sitools.admin.datasets.columnRenderer');
+<span id='global-property-behaviorEnum'>/**
+</span> * List of constants
+ * @type sitools.admin.datasets.columnRenderer.columnRenderEnum
+ */
+sitools.admin.datasets.columnRenderer.behaviorEnum = {
+<span id='global-static-property-URL_LOCAL'>    /**
+</span>	 * URL_LOCAL constant
+	 * @static
+	 * @type String
+	 */
+	URL_LOCAL : &quot;localUrl&quot;,
+<span id='global-static-property-URL_EXT_NEW_TAB'>	/**
+</span>	 * URL_EXT_NEW_TAB constant
+	 * @static
+	 * @type String
+	 */
+	URL_EXT_NEW_TAB : &quot;extUrlNewTab&quot;,
+<span id='global-static-property-URL_EXT_DESKTOP'>	/**
+</span>	 * URL_EXT_DESKTOP constant
+	 * @static
+	 * @type String
+	 */
+	URL_EXT_DESKTOP : &quot;extUrlDesktop&quot;,
+<span id='global-static-property-IMAGE_NO_THUMB'>	/**
+</span>	 * IMAGE_NO_THUMB constant
+	 * @static
+	 * @type String
+	 */
+	IMAGE_NO_THUMB : &quot;ImgNoThumb&quot;,
+<span id='global-static-property-IMAGE_THUMB_FROM_IMAGE'>	/**
+</span>	 * IMAGE_THUMB_FROM_IMAGE constant
+	 * @static
+	 * @type String
+	 */
+	IMAGE_THUMB_FROM_IMAGE : &quot;ImgAutoThumb&quot;,
+<span id='global-static-property-IMAGE_FROM_SQL'>	/**
+</span>	 * IMAGE_FROM_SQL constant
+	 * @static
+	 * @type String
+	 */
+	IMAGE_FROM_SQL : &quot;ImgThumbSQL&quot;,
+<span id='global-static-property-DATASET_LINK'>	/**
+</span>	 * DATASET_LINK constant
+	 * @static
+	 * @type String
+	 */
+	DATASET_LINK : &quot;datasetLink&quot;,
+<span id='global-static-property-DATASET_ICON_LINK'>	/**
+</span>	 * DATASET_ICON_LINK constant
+	 * @static
+	 * @type String
+	 */
+	DATASET_ICON_LINK : &quot;datasetIconLink&quot;,
+<span id='global-static-property-NO_CLIENT_ACCESS'>	/**
+</span>	 * NO_CLIENT_ACCESS constant
+	 * @static
+	 * @type String
+	 */
+	NO_CLIENT_ACCESS : &quot;noClientAccess&quot;,
+    
+    
+    getColumnRendererCategoryFromBehavior : function (behavior) {
+        var category;
+        switch (behavior) {
+		case ColumnRendererEnum.URL_LOCAL:
+		case ColumnRendererEnum.URL_EXT_NEW_TAB:
+		case ColumnRendererEnum.URL_EXT_DESKTOP:
+            category = &quot;URL&quot;;
+            break;
+        case ColumnRendererEnum.IMAGE_NO_THUMB:
+        case ColumnRendererEnum.IMAGE_THUMB_FROM_IMAGE:
+        case ColumnRendererEnum.IMAGE_FROM_SQL:
+            category = &quot;Image&quot;;
+            break;
+        case ColumnRendererEnum.DATASET_LINK:
+        case ColumnRendererEnum.DATASET_ICON_LINK:
+            category = &quot;DataSetLink&quot;;
+            break;
+        case ColumnRendererEnum.NO_CLIENT_ACCESS:
+            category = &quot;Other&quot;;
+            break;
+        default :
+            category = &quot;&quot;;
+            break;            
+        }
+        return category;
+    }, 
+<span id='global-method-isDisplayingImage'>    /**
+</span>     * According to a given column Renderer, return true if the column should be displayed as an image
+     * @param {Object} cr the Column Renderer
+     * @return {Boolean} true when displaying an image, false otherwise.
+     */
+    isDisplayingImage : function (cr) {
+    	var result = false;
+    	switch (cr.behavior) {
+        case ColumnRendererEnum.IMAGE_THUMB_FROM_IMAGE:
+        case ColumnRendererEnum.IMAGE_FROM_SQL:
+	    case ColumnRendererEnum.DATASET_ICON_LINK:
+            result = true;
+	        break;
+   		case ColumnRendererEnum.URL_LOCAL:
+		case ColumnRendererEnum.URL_EXT_NEW_TAB:
+		case ColumnRendererEnum.URL_EXT_DESKTOP:
+			if (cr.type == &quot;Image&quot;)
+			result = true;
+			break;
+    	}
+    	return result;
+		
+    }
+};
+
+var ColumnRendererEnum = sitools.admin.datasets.columnRenderer.behaviorEnum;</pre>
+</body>
+</html>

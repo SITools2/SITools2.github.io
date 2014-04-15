@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.dialog.add(&quot;a11yHelp&quot;,function(j){var l=j.lang.a11yhelp,m=CKEDITOR.tools.getNextId(),d={8:&quot;BACKSPACE&quot;,9:&quot;TAB&quot;,13:&quot;ENTER&quot;,16:&quot;SHIFT&quot;,17:&quot;CTRL&quot;,18:&quot;ALT&quot;,19:&quot;PAUSE&quot;,20:&quot;CAPSLOCK&quot;,27:&quot;ESCAPE&quot;,33:&quot;PAGE UP&quot;,34:&quot;PAGE DOWN&quot;,35:&quot;END&quot;,36:&quot;HOME&quot;,37:&quot;LEFT ARROW&quot;,38:&quot;UP ARROW&quot;,39:&quot;RIGHT ARROW&quot;,40:&quot;DOWN ARROW&quot;,45:&quot;INSERT&quot;,46:&quot;DELETE&quot;,91:&quot;LEFT WINDOW KEY&quot;,92:&quot;RIGHT WINDOW KEY&quot;,93:&quot;SELECT KEY&quot;,96:&quot;NUMPAD  0&quot;,97:&quot;NUMPAD  1&quot;,98:&quot;NUMPAD  2&quot;,99:&quot;NUMPAD  3&quot;,100:&quot;NUMPAD  4&quot;,101:&quot;NUMPAD  5&quot;,102:&quot;NUMPAD  6&quot;,103:&quot;NUMPAD  7&quot;,
+104:&quot;NUMPAD  8&quot;,105:&quot;NUMPAD  9&quot;,106:&quot;MULTIPLY&quot;,107:&quot;ADD&quot;,109:&quot;SUBTRACT&quot;,110:&quot;DECIMAL POINT&quot;,111:&quot;DIVIDE&quot;,112:&quot;F1&quot;,113:&quot;F2&quot;,114:&quot;F3&quot;,115:&quot;F4&quot;,116:&quot;F5&quot;,117:&quot;F6&quot;,118:&quot;F7&quot;,119:&quot;F8&quot;,120:&quot;F9&quot;,121:&quot;F10&quot;,122:&quot;F11&quot;,123:&quot;F12&quot;,144:&quot;NUM LOCK&quot;,145:&quot;SCROLL LOCK&quot;,186:&quot;SEMI-COLON&quot;,187:&quot;EQUAL SIGN&quot;,188:&quot;COMMA&quot;,189:&quot;DASH&quot;,190:&quot;PERIOD&quot;,191:&quot;FORWARD SLASH&quot;,192:&quot;GRAVE ACCENT&quot;,219:&quot;OPEN BRACKET&quot;,220:&quot;BACK SLASH&quot;,221:&quot;CLOSE BRAKET&quot;,222:&quot;SINGLE QUOTE&quot;};d[CKEDITOR.ALT]=&quot;ALT&quot;;d[CKEDITOR.SHIFT]=&quot;SHIFT&quot;;d[CKEDITOR.CTRL]=&quot;CTRL&quot;;
+var e=[CKEDITOR.ALT,CKEDITOR.SHIFT,CKEDITOR.CTRL],n=/\$\{(.*?)\}/g,q=function(){var o=j.keystrokeHandler.keystrokes,f={},b;for(b in o)f[o[b]]=b;return function(b,g){var a;if(f[g]){a=f[g];for(var h,i,k=[],c=0;c&lt;e.length;c++)i=e[c],h=a/e[c],1&lt;h&amp;&amp;2&gt;=h&amp;&amp;(a-=i,k.push(d[i]));k.push(d[a]||String.fromCharCode(a));a=k.join(&quot;+&quot;)}else a=b;return a}}();return{title:l.title,minWidth:600,minHeight:400,contents:[{id:&quot;info&quot;,label:j.lang.common.generalTab,expand:!0,elements:[{type:&quot;html&quot;,id:&quot;legends&quot;,style:&quot;white-space:normal;&quot;,
+focus:function(){this.getElement().focus()},html:function(){for(var d='&lt;div class=&quot;cke_accessibility_legend&quot; role=&quot;document&quot; aria-labelledby=&quot;'+m+'_arialbl&quot; tabIndex=&quot;-1&quot;&gt;%1&lt;/div&gt;&lt;span id=&quot;'+m+'_arialbl&quot; class=&quot;cke_voice_label&quot;&gt;'+l.contents+&quot; &lt;/span&gt;&quot;,f=[],b=l.legend,j=b.length,g=0;g&lt;j;g++){for(var a=b[g],h=[],i=a.items,k=i.length,c=0;c&lt;k;c++){var e=i[c],p=e.legend.replace(n,q);p.match(n)||h.push(&quot;&lt;dt&gt;%1&lt;/dt&gt;&lt;dd&gt;%2&lt;/dd&gt;&quot;.replace(&quot;%1&quot;,e.name).replace(&quot;%2&quot;,p))}f.push(&quot;&lt;h1&gt;%1&lt;/h1&gt;&lt;dl&gt;%2&lt;/dl&gt;&quot;.replace(&quot;%1&quot;,
+a.name).replace(&quot;%2&quot;,h.join(&quot;&quot;)))}return d.replace(&quot;%1&quot;,f.join(&quot;&quot;))}()+'&lt;style type=&quot;text/css&quot;&gt;.cke_accessibility_legend{width:600px;height:400px;padding-right:5px;overflow-y:auto;overflow-x:hidden;}.cke_browser_quirks .cke_accessibility_legend,.cke_browser_ie6 .cke_accessibility_legend{height:390px}.cke_accessibility_legend *{white-space:normal;}.cke_accessibility_legend h1{font-size: 20px;border-bottom: 1px solid #AAA;margin: 5px 0px 15px;}.cke_accessibility_legend dl{margin-left: 5px;}.cke_accessibility_legend dt{font-size: 13px;font-weight: bold;}.cke_accessibility_legend dd{margin:10px}&lt;/style&gt;'}]}],
+buttons:[CKEDITOR.dialog.cancelButton]}});</pre>
+</body>
+</html>

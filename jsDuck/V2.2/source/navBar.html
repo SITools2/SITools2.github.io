@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-'>/***************************************
+</span>* Copyright 2010-2013 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+* 
+* This file is part of SITools2.
+* 
+* SITools2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* SITools2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with SITools2.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+***************************************/
+/*global Ext, sitools, window, showVersion, publicStorage, userLogin, projectGlobal, SitoolsDesk, showResponse, i18n, extColModelToJsonColModel, loadUrl*/
+
+Ext.namespace('sitools.user.component.entete');
+<span id='sitools-user-component-entete-NavBar-cfg-modules'><span id='sitools-user-component-entete-NavBar'>/**
+</span></span> * @cfg {Array} modules la liste des modules
+ * @class sitools.user.component.entete.NavBar
+ * @extends Ext.Toolbar
+ */
+sitools.user.component.entete.NavBar = Ext.extend(Ext.Toolbar, {
+	
+	initComponent : function () {
+		var items = [];
+		var categories = this.categorizeModules();
+		
+		var homeButton = new Ext.Button({
+            handler : function () {
+                projectGlobal.getPreferences(function () {
+                    SitoolsDesk.removeActivePanel();
+                    SitoolsDesk.removeAllWindows();
+                    SitoolsDesk.loadPreferences();
+                });
+            }, 
+            scale : &quot;medium&quot;, 
+            icon : &quot;/sitools/common/res/images/icons/button-home.png&quot;,
+            iconCls : 'navBarButtons-icon',
+            tooltip : {
+                html : i18n.get(&quot;label.homeButton&quot;), 
+                anchor : 'bottom', 
+                trackMouse : false
+            },
+            template : new Ext.Template('&lt;table cellspacing=&quot;0&quot; class=&quot;x-btn {3}&quot; style=&quot;padding-left:5px;&quot;&gt;&lt;tbody&gt;&lt;tr&gt;',
+                    '&lt;td&gt;&lt;i&gt;&amp;#160;&lt;/i&gt;&lt;/td&gt;',
+                    '&lt;td&gt;&lt;em class=&quot;{5} unselectable=&quot;on&quot;&gt;',
+                    '&lt;button type=&quot;{1}&quot; style=&quot;height:28px; width:28px;&quot;&gt;{0}&lt;/button&gt;', '&lt;/em&gt;&lt;/td&gt;',
+                    '&lt;td&gt;&lt;i&gt;&amp;#160;&lt;/i&gt;&lt;/td&gt;', &quot;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&quot;)
+        });
+        items.push(homeButton);
+		items.push('|');
+        
+		Ext.each(categories, function (category) {
+			var modules = category.modules;
+			
+			//Le module n'appartient pas à une catégorie: inclusion en tant que bouton dans le menu.
+			if (Ext.isEmpty(category.category)) {
+				var module = modules[0];
+				var xtype = module.xtype;
+				try {
+					if (Ext.isEmpty(module.divIdToDisplay)) {
+						var handler = null;
+						var item = {
+							text : i18n.get(module.label),
+							iconCls : module.icon,
+			                scope : module,
+			                tooltip : {
+								html : i18n.get(module.description), 
+								anchor : 'bottom', 
+								trackMouse : false
+							}, 
+			                cls : &quot;x-navBar-items&quot;, 
+			                clickEvent : 'mousedown',
+						    template : new Ext.Template('&lt;table cellspacing=&quot;0&quot; class=&quot;x-btn {3}&quot;&gt;&lt;tbody&gt;&lt;tr&gt;',
+						            '&lt;td class=&quot;ux-taskbutton-left&quot;&gt;&lt;i&gt;&amp;#160;&lt;/i&gt;&lt;/td&gt;',
+						            '&lt;td class=&quot;ux-taskbutton-center&quot;&gt;&lt;em class=&quot;{5} unselectable=&quot;on&quot;&gt;',
+						            '&lt;button class=&quot;x-btn-text {2}&quot; type=&quot;{1}&quot; style=&quot;height:28px;&quot;&gt;{0}&lt;/button&gt;', '&lt;/em&gt;&lt;/td&gt;',
+						            '&lt;td class=&quot;ux-taskbutton-right&quot;&gt;&lt;i&gt;&amp;#160;&lt;/i&gt;&lt;/td&gt;', &quot;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&quot;)
+						
+						};
+						var xtype = module.xtype;
+						var func = xtype + &quot;.openModule&quot;;
+						if (!Ext.isEmpty(xtype) &amp;&amp; Ext.isFunction(eval(func))) {
+							handler = eval(func);
+						}
+						else {
+							handler = module.openModule;
+						}
+						Ext.apply(item, {
+							handler : handler
+						});
+						items.push(item);
+						items.push('|');
+					}
+				}
+				catch(err) {
+					//Nothing to do
+					var tmp = null;
+				}
+			}
+			//Le module est dans une catégorie : On crée un menu contenant tous les modules de la catégorie
+			else {
+				var menuItems = [];
+				Ext.each(category.modules, function (moduleInCategory) {
+					try {
+						if (Ext.isEmpty(moduleInCategory)) {
+							return;
+						}
+						
+						if (Ext.isEmpty(moduleInCategory.divIdToDisplay)) {
+							var item = {
+								text : i18n.get(moduleInCategory.label),
+								
+								iconCls : moduleInCategory.icon,
+				                scope : this
+							};
+
+							//Test spécifique pour savoir si on doit inclure un sous menu : 
+							var xtype = moduleInCategory.xtype;
+							if (Ext.isEmpty(xtype)) {
+								return;
+							}
+							var Func = eval(xtype + &quot;.getStaticParameters&quot;);
+							if (Ext.isFunction(Func)) {
+								var staticParameters = Func();	
+								if (staticParameters &amp;&amp; staticParameters.showAsMenu) {
+									Ext.apply(item, {
+										menu : {
+											xtype : moduleInCategory.xtype, 
+											cls : &quot;sitools-navbar-menu&quot;
+										}
+									});
+								}
+								else {
+									Ext.apply(item, {
+										handler : moduleInCategory.openModule
+									});
+								}
+							}
+							
+							
+							func = xtype + &quot;.openModule&quot;;
+							if (Ext.isFunction(eval(func))) {
+								handler = eval(func);
+							}
+							else {
+								handler = moduleInCategory.openModule
+							}
+							Ext.apply(item, {
+								handler : handler
+							});
+								
+							menuItems.push(item);
+							
+							
+						}
+					}
+					catch (err) {
+						//nothing to do 
+						var tmp = null;
+					}
+					
+				});
+			    if (!Ext.isEmpty(menuItems)) {
+		            var menu = new Ext.menu.Menu({
+                        items : menuItems, 
+                        cls : &quot;sitools-navbar-menu&quot;
+                    });
+                    items.push({
+                        text : category.category,
+                        menu : menu,
+                        icon : &quot;/sitools/common/res/images/icons/white_arrow.gif&quot;,
+                        iconAlign : &quot;left&quot;,
+                        clickEvent : 'mousedown',
+                        cls : &quot;x-navBar-items&quot;,
+                        template : new Ext.Template('&lt;table cellspacing=&quot;0&quot; class=&quot;x-btn {3}&quot;&gt;&lt;tbody&gt;&lt;tr&gt;',
+                                '&lt;td class=&quot;ux-taskbutton-center&quot;&gt;&lt;em class=&quot;{2} unselectable=&quot;on&quot;&gt;',
+                                '&lt;button class=&quot;x-btn-text {2}&quot; type=&quot;{1}&quot; style=&quot;height:28px;&quot;&gt;{0}&lt;/button&gt;', '&lt;/em&gt;&lt;/td&gt;',
+                                &quot;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&quot;)
+
+                    });
+                    items.push('|');
+			    }
+			}
+			
+		});
+
+		sitools.user.component.entete.NavBar.superclass.initComponent.call(Ext.apply(this,  {
+			id : &quot;navBarId&quot;, 
+			enableOverflow: true,
+			defaults : {
+				overCls : &quot;x-navBar-items-over&quot;, 
+				ctCls : &quot;x-navBar-items-ct&quot;
+			}, 
+			items : items, 
+			cls : &quot;x-navBar&quot;, 
+			overCls : &quot;x-navBar-over&quot;, 
+			ctCls : &quot;x-navBar-ct&quot;, 
+			flex : 1,
+			listeners : {
+				scope : this, 
+				afterRender : function (me) {
+					this.observer.fireEvent(&quot;navBarRendered&quot;, me);
+				}
+			}, 
+			border : false
+		}));
+	}, 
+<span id='sitools-user-component-entete-NavBar-method-categorizeModules'>	/**
+</span>	 * From the modules attribute, return an array of categories. 
+	 * Each items of the array could be either 
+	 *  - {
+	 *      modules : [module]
+	 *    }
+	 *  - {
+	 *      category : categoryName, 
+	 *      modules : [modules]
+	 *    }
+	 * @returns {Array}
+	 */
+	categorizeModules : function () {
+		function getCategoryIndex(category, categoryList) {
+			var idx = -1;
+			for (var i = 0; i &lt; categoryList.length; i++) {
+				if (categoryList[i].category === category) {
+					return i;
+				}
+			}
+			return idx;
+		}
+		var categoryModules = [];
+		Ext.each(this.modules, function (module) {
+			if (Ext.isEmpty(module.categoryModule)) {
+				categoryModules.push({
+					modules : [module]
+				});
+			}
+			else {
+				var idx = getCategoryIndex(module.categoryModule, categoryModules);
+				if (idx &gt;= 0) {
+					categoryModules[idx].modules.push(module);
+				}
+				else {
+					categoryModules.push({
+						category : module.categoryModule,
+						modules : [module]
+					});
+				}
+			}
+			
+		});
+		return categoryModules;
+	}
+});
+
+Ext.reg('sitools.user.component.entete.NavBar', sitools.user.component.entete.NavBar);
+</pre>
+</body>
+</html>

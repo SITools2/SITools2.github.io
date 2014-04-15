@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">﻿/*
+ Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+*/
+CKEDITOR.dialog.add(&quot;specialchar&quot;,function(i){var e,l=i.lang.specialchar,k=function(c){var b,c=c.data?c.data.getTarget():new CKEDITOR.dom.element(c);if(&quot;a&quot;==c.getName()&amp;&amp;(b=c.getChild(0).getHtml()))c.removeClass(&quot;cke_light_background&quot;),e.hide(),c=i.document.createElement(&quot;span&quot;),c.setHtml(b),i.insertText(c.getText())},m=CKEDITOR.tools.addFunction(k),j,g=function(c,b){var a,b=b||c.data.getTarget();&quot;span&quot;==b.getName()&amp;&amp;(b=b.getParent());if(&quot;a&quot;==b.getName()&amp;&amp;(a=b.getChild(0).getHtml())){j&amp;&amp;d(null,j);
+var f=e.getContentElement(&quot;info&quot;,&quot;htmlPreview&quot;).getElement();e.getContentElement(&quot;info&quot;,&quot;charPreview&quot;).getElement().setHtml(a);f.setHtml(CKEDITOR.tools.htmlEncode(a));b.getParent().addClass(&quot;cke_light_background&quot;);j=b}},d=function(c,b){b=b||c.data.getTarget();&quot;span&quot;==b.getName()&amp;&amp;(b=b.getParent());&quot;a&quot;==b.getName()&amp;&amp;(e.getContentElement(&quot;info&quot;,&quot;charPreview&quot;).getElement().setHtml(&quot;&amp;nbsp;&quot;),e.getContentElement(&quot;info&quot;,&quot;htmlPreview&quot;).getElement().setHtml(&quot;&amp;nbsp;&quot;),b.getParent().removeClass(&quot;cke_light_background&quot;),
+j=void 0)},n=CKEDITOR.tools.addFunction(function(c){var c=new CKEDITOR.dom.event(c),b=c.getTarget(),a;a=c.getKeystroke();var f=&quot;rtl&quot;==i.lang.dir;switch(a){case 38:if(a=b.getParent().getParent().getPrevious())a=a.getChild([b.getParent().getIndex(),0]),a.focus(),d(null,b),g(null,a);c.preventDefault();break;case 40:if(a=b.getParent().getParent().getNext())if((a=a.getChild([b.getParent().getIndex(),0]))&amp;&amp;1==a.type)a.focus(),d(null,b),g(null,a);c.preventDefault();break;case 32:k({data:c});c.preventDefault();
+break;case f?37:39:if(a=b.getParent().getNext())a=a.getChild(0),1==a.type?(a.focus(),d(null,b),g(null,a),c.preventDefault(!0)):d(null,b);else if(a=b.getParent().getParent().getNext())(a=a.getChild([0,0]))&amp;&amp;1==a.type?(a.focus(),d(null,b),g(null,a),c.preventDefault(!0)):d(null,b);break;case f?39:37:(a=b.getParent().getPrevious())?(a=a.getChild(0),a.focus(),d(null,b),g(null,a),c.preventDefault(!0)):(a=b.getParent().getParent().getPrevious())?(a=a.getLast().getChild(0),a.focus(),d(null,b),g(null,a),c.preventDefault(!0)):
+d(null,b)}});return{title:l.title,minWidth:430,minHeight:280,buttons:[CKEDITOR.dialog.cancelButton],charColumns:17,onLoad:function(){for(var c=this.definition.charColumns,b=i.config.specialChars,a=CKEDITOR.tools.getNextId()+&quot;_specialchar_table_label&quot;,f=['&lt;table role=&quot;listbox&quot; aria-labelledby=&quot;'+a+'&quot; style=&quot;width: 320px; height: 100%; border-collapse: separate;&quot; align=&quot;center&quot; cellspacing=&quot;2&quot; cellpadding=&quot;2&quot; border=&quot;0&quot;&gt;'],d=0,g=b.length,h,e;d&lt;g;){f.push('&lt;tr role=&quot;presentation&quot;&gt;');for(var j=0;j&lt;c;j++,
+d++){if(h=b[d]){h instanceof Array?(e=h[1],h=h[0]):(e=h.replace(&quot;&amp;&quot;,&quot;&quot;).replace(&quot;;&quot;,&quot;&quot;).replace(&quot;#&quot;,&quot;&quot;),e=l[e]||h);var k=&quot;cke_specialchar_label_&quot;+d+&quot;_&quot;+CKEDITOR.tools.getNextNumber();f.push('&lt;td class=&quot;cke_dark_background&quot; style=&quot;cursor: default&quot; role=&quot;presentation&quot;&gt;&lt;a href=&quot;javascript: void(0);&quot; role=&quot;option&quot; aria-posinset=&quot;'+(d+1)+'&quot;',' aria-setsize=&quot;'+g+'&quot;',' aria-labelledby=&quot;'+k+'&quot;',' class=&quot;cke_specialchar&quot; title=&quot;',CKEDITOR.tools.htmlEncode(e),'&quot; onkeydown=&quot;CKEDITOR.tools.callFunction( '+n+
+', event, this )&quot; onclick=&quot;CKEDITOR.tools.callFunction('+m+', this); return false;&quot; tabindex=&quot;-1&quot;&gt;&lt;span style=&quot;margin: 0 auto;cursor: inherit&quot;&gt;'+h+'&lt;/span&gt;&lt;span class=&quot;cke_voice_label&quot; id=&quot;'+k+'&quot;&gt;'+e+&quot;&lt;/span&gt;&lt;/a&gt;&quot;)}else f.push('&lt;td class=&quot;cke_dark_background&quot;&gt;&amp;nbsp;');f.push(&quot;&lt;/td&gt;&quot;)}f.push(&quot;&lt;/tr&gt;&quot;)}f.push(&quot;&lt;/tbody&gt;&lt;/table&gt;&quot;,'&lt;span id=&quot;'+a+'&quot; class=&quot;cke_voice_label&quot;&gt;'+l.options+&quot;&lt;/span&gt;&quot;);this.getContentElement(&quot;info&quot;,&quot;charContainer&quot;).getElement().setHtml(f.join(&quot;&quot;))},contents:[{id:&quot;info&quot;,label:i.lang.common.generalTab,
+title:i.lang.common.generalTab,padding:0,align:&quot;top&quot;,elements:[{type:&quot;hbox&quot;,align:&quot;top&quot;,widths:[&quot;320px&quot;,&quot;90px&quot;],children:[{type:&quot;html&quot;,id:&quot;charContainer&quot;,html:&quot;&quot;,onMouseover:g,onMouseout:d,focus:function(){var c=this.getElement().getElementsByTag(&quot;a&quot;).getItem(0);setTimeout(function(){c.focus();g(null,c)},0)},onShow:function(){var c=this.getElement().getChild([0,0,0,0,0]);setTimeout(function(){c.focus();g(null,c)},0)},onLoad:function(c){e=c.sender}},{type:&quot;hbox&quot;,align:&quot;top&quot;,widths:[&quot;100%&quot;],children:[{type:&quot;vbox&quot;,
+align:&quot;top&quot;,children:[{type:&quot;html&quot;,html:&quot;&lt;div&gt;&lt;/div&gt;&quot;},{type:&quot;html&quot;,id:&quot;charPreview&quot;,className:&quot;cke_dark_background&quot;,style:&quot;border:1px solid #eeeeee;font-size:28px;height:40px;width:70px;padding-top:9px;font-family:'Microsoft Sans Serif',Arial,Helvetica,Verdana;text-align:center;&quot;,html:&quot;&lt;div&gt;&amp;nbsp;&lt;/div&gt;&quot;},{type:&quot;html&quot;,id:&quot;htmlPreview&quot;,className:&quot;cke_dark_background&quot;,style:&quot;border:1px solid #eeeeee;font-size:14px;height:20px;width:70px;padding-top:2px;font-family:'Microsoft Sans Serif',Arial,Helvetica,Verdana;text-align:center;&quot;,
+html:&quot;&lt;div&gt;&amp;nbsp;&lt;/div&gt;&quot;}]}]}]}]}]}});</pre>
+</body>
+</html>
