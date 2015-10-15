@@ -1,0 +1,305 @@
+body {
+	background-color: #3e3e43;
+	margin: 0;
+	font-size: 16px;
+	font-family:Verdana, Arial, Helvetica, sans-serif;
+	color: #FFFFFF;
+}
+
+a {
+	color: #818895;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #FFFFFF;
+	text-decoration: underline;
+}
+
+p {
+	font-size: 0.7em;
+	line-height: 1.6em;
+	margin-left: 1.2em;
+	margin-right: 0.8em;
+	margin-bottom: 1em;
+}
+
+h2 {
+	border-bottom: solid 1px #818895;
+	margin-left: 0.5em;
+	margin-right: 0.5em;
+	font-size: 1.4em;
+	font-weight: normal;
+	margin-top: 1em;
+	line-height: 1.4em;
+}
+
+h3 {
+	margin-left: 2.7em;
+	font-size: 0.7em;
+	font-weight: normal;
+	margin-bottom: -1.3em;
+}
+
+#header {
+	margin: 0px;
+	padding: 0px;
+	height: 7em;
+	width: 100%;
+	background-image: url(../images/logo.png);
+	background-position: 40% 100%;
+	background-repeat: no-repeat;
+	background-color: #b3c7f5;
+}
+
+#header a img{
+	color: #b3c7f5;
+	padding: 20px 10px;	
+}
+
+#header a:hover {
+	text-decoration: none;
+	color: #b3c7f5;
+}
+
+#header h1 {
+	display: none;
+}
+
+#wrap {
+	max-width: 55em;
+	margin: auto;
+	background-position: 0px 90px;
+	background-color: #a2aab2;
+}
+
+#content {
+	width: 100%;
+	clear: both;
+	margin: 0;
+	padding: 0;
+	background-color: #34354a;
+	overflow: hidden;
+}
+
+#left {
+	padding: 0;
+	margin: 0;
+	left: 0px;
+	float: left;
+	width: 64%;
+
+}
+
+#description {
+	width: 63%;
+	margin: 0;
+	padding: 0;
+	left: 0px;
+	float: left;
+}
+
+#desctext {
+	color: #313439;
+	font-size: 1.0em;
+	line-height: 1.5em;
+	vertical-align: middle;
+	margin-left: 0.9em;
+	margin-top: 0.8em;
+}
+
+#desctext h3 {
+	color: #313439;
+	font-size: 1.0em;
+	line-height: 1.5em;
+	vertical-align: middle;
+	margin-left: 0.9em;
+	margin-top: 0.8em;
+	margin-bottom: 0.8em;
+	font-weight: bold;
+}
+
+#desctext a {
+	color: #313439;
+	font-style: italic;
+	font-weight: bold;
+}
+
+#desctext a:hover {
+	text-decoration: underline;
+}
+
+#desctext span {
+	text-align: right;
+	display: block;
+}
+#desctext li {
+	list-style-image: url(../images/largelist-bullet.gif);
+	list-style-type: none;
+	font-size: 0.7em;
+	margin-left: 0.4em;
+	padding-left: 0.4em;
+}
+
+
+#features {
+}
+
+#version {
+	font-weight: bold;
+	font-size: 1.2em;
+}
+
+#features li {
+	font-size: 0.7em;
+	line-height: 1.6em;
+	margin-right: 1em;
+}
+
+.largelist {
+	font-size: 1em;
+	line-height: 1.4em;
+	font-weight: bold;
+}
+
+.largelist li {
+	list-style-image: url(../images/largelist-bullet.gif);
+	list-style-type: none;
+	margin-left: 0.6em;
+	padding-left: 0.4em;
+	font-size: 0.6em;	
+}
+
+.largelist a {
+	font-size: 1.4em;
+	margin-left: 0.4em;
+	padding-left: 0.4em;
+}
+
+.largelist a:hover {
+	text-decoration: underline;
+	color: #FFE67D;
+}
+
+#center {
+	margin: 0;
+	padding: 0;
+	float: left;
+	background-color: #434552;
+	width: 31%;
+	height: 100%;
+}
+
+#wikitop {
+	padding-bottom:26em;
+}
+
+#right {
+	right: 0px;
+	top: 0px;
+	margin: 0;
+	padding: 0;
+	float: left;
+	width: 33%;
+}
+
+#downloads {
+	width: 36%;
+	height: 19em;
+	top: 0px;
+	float: right;
+}
+
+#downloads h2 {
+	display:none;
+}
+
+.download {
+	background-color:  #424752;
+	height: 20%;
+}
+
+.download a,.download a:hover {
+	text-decoration:none;
+}
+
+.downloading {
+	border: none;
+	position: relative;
+	top: 10px;
+	left: 25px;
+}
+
+.downloadlink {
+	font-weight:bold;
+	text-decoration:none;
+	margin-left: 2.3em;
+	position: relative;
+	top: -0.1em;
+}
+.news {
+	margin-left: 0em;
+	padding-left: 0em;
+}
+.news li {
+	float: left;
+	width: 100%;
+	margin-left: 0.8em;
+	padding-left: 0em;
+	list-style-type: none;
+}
+
+.news .date {
+	background: #f8b94f;
+	border-right: 1px solid #E3DE9F;
+	border-bottom: 1px solid #E3DE9F;
+	float: left;
+	text-align: center;
+	line-height: 1.1em;
+	padding: 2px 4px 5px 4px;
+	width: 2.5em;
+	color: #fce8c7;
+	margin: 0 0.5em 1em 0;
+        font-size: 0.7em;
+}
+.news .event {
+        font-size: 0.7em;
+}
+
+select.icon-menu option {
+	background-position:bottom left;
+	background-repeat:no-repeat;
+	padding-left:32px;
+}
+
+#presentation, #tutorial  {
+	float: left;
+	width: 33%;
+	margin-top:20px;
+	margin-left:0px;
+	padding-left:10px;	
+}
+
+#software, #updates, #patches, #plugins  {
+	float: left;
+	width: 62%;
+	margin-top:20px;
+	margin-left:0px;
+	padding-left:10px;	
+}
+
+.software {
+	float: left;
+	margin-top:20px;
+	margin-left:0px;
+	padding-left:10px;
+}
+
+.softdescription {
+	float:left;
+	font-size: 0.8em;
+	color: #313439;
+	margin-top:20px;
+	margin-left:10px;
+	padding-left:10px;		
+}
